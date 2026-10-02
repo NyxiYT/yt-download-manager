@@ -3,6 +3,22 @@
 All notable changes to YT Download Manager are listed here. Versions follow
 [semantic versioning](https://semver.org): `MAJOR.MINOR.PATCH`.
 
+## [1.8.0] - 2026-10-02
+
+### New
+
+- Download videos in up to 8K quality. With the app running, the quality list shows every resolution YouTube
+  offers for the video, up to 4320p (8K), including videos that only have VP9 or AV1 at high resolutions.
+- HDR videos stay HDR, and at the same resolution 60 fps is picked over 30 fps.
+- The highest quality is selected for you. A quality you picked before is kept where a video has it; otherwise
+  the next lower one is used.
+- The quality label shows 8K for 4320p.
+
+### Fixed
+
+- Many videos only offered up to 1080p although YouTube has 1440p, 4K or 8K for them. The list came only from
+  what YouTube gives the browser directly, which often leaves out the high-resolution streams.
+
 ## [1.7.1] - 2026-10-02
 
 ### Fixed
@@ -46,6 +62,7 @@ The first public release.
 
 - Resizing the Shorts picture-in-picture window from Chrome's own border no longer changes only one side.
 
+[1.8.0]: https://github.com/NyxiYT/yt-download-manager/releases/tag/v1.8.0
 [1.7.1]: https://github.com/NyxiYT/yt-download-manager/releases/tag/v1.7.1
 [1.7.0]: https://github.com/NyxiYT/yt-download-manager/releases/tag/v1.7.0
 [1.6.0]: https://github.com/NyxiYT/yt-download-manager/releases/tag/v1.6.0
