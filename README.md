@@ -68,6 +68,8 @@ YT Download Manager has two parts that work together:
 - **Your video comes first.** When the video you are watching needs the connection, downloads slow down
   for a moment so your video doesn't stutter.
 - **Runs quietly.** It starts with Windows and waits in the system tray (the small icons next to the clock).
+- **Light or dark.** The app and its installer follow your Windows setting for light or dark mode.
+- **Easy to update, repair or remove.** Open the installer again and pick **Update**, **Repair** or **Uninstall**.
 - **Stays up to date with YouTube.** Its download engine (yt-dlp) updates itself about once a week.
 - **Connects by itself.** The extension finds the app on its own. There is nothing to set up.
 
@@ -258,19 +260,32 @@ next to a download in the download history, or open the app and click **Open** u
 ### How do I update?
 
 1. Download the newest installer from the [latest release](https://github.com/NyxiYT/yt-download-manager/releases/latest)
-   and run it. It updates the app and keeps your settings.
+   and open it. It sees the version you have and offers **Update**. Click it. Your settings stay.
+
+   ![The installer offering an update](docs/images/installer-update.png)
+
 2. Open your browser's extensions page (`chrome://extensions`) and click the **reload** icon (the round arrow)
    on the YT Standalone Downloader card.
 3. Refresh any open YouTube tabs (press **F5**).
 
+### Something is broken. How do I repair the app?
+
+Open the installer again (the same version you have). It offers **Repair**. Click it. This puts back all of the
+app's files and tools and keeps your settings.
+
+![The installer offering a repair](docs/images/installer-repair.png)
+
 ### How do I uninstall?
 
-1. Open Windows **Settings** → **Apps** → **Installed apps**.
-2. Find **YT Download Manager**, click the three dots next to it and choose **Uninstall**.
-3. Open your browser's extensions page (`chrome://extensions`) and click **Remove** on the YT Standalone
-   Downloader card.
+Open the installer again and click **Uninstall**. It asks once more before it removes anything.
 
-Your downloaded files stay where they are.
+![The installer asking before it uninstalls](docs/images/installer-uninstall.png)
+
+You can also uninstall it like any other app: open Windows **Settings** → **Apps** → **Installed apps**, find
+**YT Download Manager**, click the three dots next to it and choose **Uninstall**.
+
+Afterwards, open your browser's extensions page (`chrome://extensions`) and click **Remove** on the YT Standalone
+Downloader card. Your downloaded files stay where they are.
 
 ### What do I do when a download fails?
 
