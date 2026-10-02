@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -86,6 +87,10 @@ namespace YTDM
             };
             psi.EnvironmentVariables["PYTHONUTF8"] = "1";
             psi.EnvironmentVariables["PYTHONIOENCODING"] = "utf-8";
+            // Temporary files (yt-dlp unpacks itself on every start) and Deno's cache stay in the app's own data
+            // folder: nothing is left in Windows' temp folder, and uninstalling removes all of it.
+            psi.EnvironmentVariables["TEMP"] = psi.EnvironmentVariables["TMP"] = Paths.Temp;
+            psi.EnvironmentVariables["DENO_DIR"] = Path.Combine(Paths.Cache, "deno");
             psi.EnvironmentVariables["PYTHONUNBUFFERED"] = "1";
 
             var proc = new Process { StartInfo = psi, EnableRaisingEvents = true };

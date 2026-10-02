@@ -44,6 +44,7 @@ namespace YTDM
             ui.CreateControl();
             _ = ui.Handle;
 
+            Files.DeleteDir(System.IO.Path.Combine(Paths.Data, "work", "tmp")); // left by tools that were stopped last time
             Components.Detect();
             Jobs.Load();
             Jobs.Changed += () => Post(UpdateTray);

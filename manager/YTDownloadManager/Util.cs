@@ -28,6 +28,7 @@ namespace YTDM
         public static string InfoDir => Ensure(Path.Combine(Data, "work", "_info"));
         public static string Logs => Ensure(Path.Combine(Data, "logs"));
         public static string Cache => Ensure(Path.Combine(Data, "cache"));
+        public static string Temp => Ensure(Path.Combine(Data, "work", "tmp"));
         public static string SettingsFile => Path.Combine(Ensure(Data), "settings.json");
         public static string JobsFile => Path.Combine(Ensure(Data), "jobs.json");
         public static string Exe => System.Reflection.Assembly.GetExecutingAssembly().Location;
