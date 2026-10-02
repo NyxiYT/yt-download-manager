@@ -13,7 +13,7 @@
 <!-- The pictures come from jsDelivr, pinned to a commit, so browsers may keep them for a year (GitHub Pages
      allows only 10 minutes). After changing a file in images/web, put the new commit into their addresses. -->
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
-<link rel="preload" as="image" type="image/webp" fetchpriority="high" imagesrcset="https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/toolbar-480.webp 480w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/toolbar-680.webp 680w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/toolbar-760.webp 760w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/toolbar-1012.webp 1012w" imagesizes="(max-width: 1040px) calc(100vw - 32px), 1008px">
+<link rel="preload" as="image" type="image/webp" fetchpriority="high" imagesrcset="https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/toolbar-480.webp 480w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/toolbar-680.webp 680w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/toolbar-989.webp 989w" imagesizes="(max-width: 1040px) calc(100vw - 32px), 989px">
 <link rel="icon" type="image/png" href="images/icon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="YT Download Manager">
@@ -89,10 +89,17 @@
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
   .card h3 { margin: 0 0 6px; font-size: 18px; }
   .card p { margin: 0; color: var(--muted); }
-  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; align-items: start; }
-  figure { margin: 0; }
-  figure img { width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); }
-  figcaption { color: var(--muted); font-size: 15px; margin-top: 6px; }
+  .showcase .row { display: grid; grid-template-columns: 3fr 2fr; gap: 36px; align-items: center; margin: 0 0 56px; }
+  .showcase .row.rev { grid-template-columns: 2fr 3fr; }
+  .showcase .row.rev .media { order: 2; }
+  .showcase .row.narrow .media { max-width: 400px; width: 100%; justify-self: center; }
+  .showcase .media img { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); }
+  .showcase h3 { font-size: 22px; margin: 0 0 10px; }
+  .showcase p { color: var(--muted); margin: 0; }
+  @media (max-width: 760px) {
+    .showcase .row, .showcase .row.rev { grid-template-columns: 1fr; gap: 16px; margin-bottom: 40px; }
+    .showcase .row.rev .media { order: 0; }
+  }
   ol li { margin: 6px 0; }
   details { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 10px 0; }
   summary { cursor: pointer; font-weight: 600; }
@@ -104,7 +111,7 @@
 <body>
 <div class="wrap">
   <header>
-    <picture><source type="image/webp" srcset="https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/icon-96.webp 96w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/icon-192.webp 192w" sizes="96px"><img class="logo" src="images/icon.png" alt="YT Download Manager icon" width="96" height="96" fetchpriority="high"></picture>
+    <picture><source type="image/webp" srcset="https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/icon-96.webp 96w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/icon-192.webp 192w" sizes="96px"><img class="logo" src="images/icon.png" alt="YT Download Manager icon" width="96" height="96" fetchpriority="high"></picture>
     <h1>YT Download Manager</h1>
     <p class="lead">A free, open-source YouTube downloader for Windows. Download YouTube videos in up to 4K,
       convert YouTube to MP3, and save Shorts, thumbnails and subtitles with one click, right from a toolbar
@@ -115,7 +122,7 @@
       <a class="btn alt" href="https://github.com/NyxiYT/yt-download-manager">Source code on GitHub</a>
     </div>
     <p class="small">Free · No ads · No account · Windows 10 and 11 · Works with Chrome, Edge, Brave and other Chromium browsers</p>
-    <picture><source type="image/webp" srcset="https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/toolbar-480.webp 480w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/toolbar-680.webp 680w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/toolbar-760.webp 760w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/toolbar-1012.webp 1012w" sizes="(max-width: 1040px) calc(100vw - 32px), 1008px"><img class="hero" src="images/toolbar.jpg" alt="The download toolbar under a YouTube video in dark mode" width="1012" height="624" fetchpriority="high"></picture>
+    <picture><source type="image/webp" srcset="https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/toolbar-480.webp 480w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/toolbar-680.webp 680w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/toolbar-989.webp 989w" sizes="(max-width: 1040px) calc(100vw - 32px), 989px"><img class="hero" src="images/toolbar.jpg" alt="The download toolbar under a YouTube video in dark mode" width="989" height="612" fetchpriority="high"></picture>
   </header>
 
   <main>
@@ -134,11 +141,23 @@
     </div>
 
     <h2>See it in action</h2>
-    <div class="shots">
-      <figure><picture><source type="image/webp" srcset="https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/download-video-360.webp 360w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/download-video-680.webp 680w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/download-video-720.webp 720w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/download-video-1012.webp 1012w" sizes="(max-width: 720px) calc(100vw - 32px), 330px"><img src="images/download-video.jpg" alt="Choosing the video quality and trimming a clip on YouTube" width="1012" height="624" loading="lazy"></picture><figcaption>Download a YouTube video in the quality you want.</figcaption></figure>
-      <figure><picture><source type="image/webp" srcset="https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/download-audio-360.webp 360w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/download-audio-680.webp 680w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/download-audio-720.webp 720w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/download-audio-1012.webp 1012w" sizes="(max-width: 720px) calc(100vw - 32px), 330px"><img src="images/download-audio.jpg" alt="Converting a YouTube video to MP3" width="1012" height="624" loading="lazy"></picture><figcaption>Convert YouTube to MP3 with cover art.</figcaption></figure>
-      <figure><picture><source type="image/webp" srcset="https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/shorts-menu-360.webp 360w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/shorts-menu-680.webp 680w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/shorts-menu-830.webp 830w" sizes="(max-width: 720px) calc(100vw - 32px), 330px"><img src="images/shorts-menu.png" alt="The Download button and its menu beside a YouTube Short" width="830" height="824" loading="lazy"></picture><figcaption>Download YouTube Shorts.</figcaption></figure>
-      <figure><picture><source type="image/webp" srcset="https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/download-history-330.webp 330w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@82f0e4fa8b956a15b5b13ca0e780d4d94cc76e7c/docs/images/web/download-history-400.webp 400w" sizes="(max-width: 720px) calc(100vw - 32px), 330px"><img src="images/download-history.png" alt="The download history with finished downloads" width="400" height="365" loading="lazy"></picture><figcaption>All your downloads in one place.</figcaption></figure>
+    <div class="showcase">
+      <div class="row">
+        <div class="media"><picture><source type="image/webp" srcset="https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/download-video-600.webp 600w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/download-video-680.webp 680w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/download-video-989.webp 989w" sizes="(max-width: 760px) calc(100vw - 32px), 600px"><img src="images/download-video.jpg" alt="Choosing the video quality and trimming a clip on YouTube" width="989" height="612" loading="lazy"></picture></div>
+        <div class="txt"><h3>Download a video in the quality you want</h3><p>Click the camera button under any video, pick a quality from 144p up to 4K and click Download. Drag the two dots under Trim to keep only a part of it.</p></div>
+      </div>
+      <div class="row rev">
+        <div class="media"><picture><source type="image/webp" srcset="https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/download-audio-600.webp 600w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/download-audio-680.webp 680w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/download-audio-989.webp 989w" sizes="(max-width: 760px) calc(100vw - 32px), 600px"><img src="images/download-audio.jpg" alt="Converting a YouTube video to MP3" width="989" height="612" loading="lazy"></picture></div>
+        <div class="txt"><h3>Turn any video into an MP3</h3><p>The music note button saves just the sound: MP3 up to 320 kb/s with the video's picture as cover art, or M4A, Opus or WAV.</p></div>
+      </div>
+      <div class="row narrow">
+        <div class="media"><picture><source type="image/webp" srcset="https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/shorts-menu-420.webp 420w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/shorts-menu-680.webp 680w, https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/shorts-menu-794.webp 794w" sizes="(max-width: 760px) calc(100vw - 32px), 400px"><img src="images/shorts-menu.png" alt="The Download button and its menu beside a YouTube Short" width="794" height="812" loading="lazy"></picture></div>
+        <div class="txt"><h3>Download Shorts</h3><p>Every Short gets a Download button beside it, with the same choices: the video, the sound, the thumbnail, the subtitles or a screenshot.</p></div>
+      </div>
+      <div class="row rev narrow">
+        <div class="media"><picture><source type="image/webp" srcset="https://cdn.jsdelivr.net/gh/NyxiYT/yt-download-manager@7c124ac48141041e4636a6987fafdd8a860f72d1/docs/images/web/download-history-400.webp 400w" sizes="(max-width: 760px) calc(100vw - 32px), 400px"><img src="images/download-history.png" alt="The download history with finished downloads" width="400" height="365" loading="lazy"></picture></div>
+        <div class="txt"><h3>All your downloads in one place</h3><p>A clock button in YouTube's top bar shows what is downloading, what is done and where it was saved. One click opens the folder.</p></div>
+      </div>
     </div>
 
     <h2>How to install</h2>
