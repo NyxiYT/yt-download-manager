@@ -3,6 +3,17 @@
 All notable changes to YT Download Manager are listed here. Versions follow
 [semantic versioning](https://semver.org): `MAJOR.MINOR.PATCH`.
 
+## [1.7.1] - 2026-10-02
+
+### Fixed
+
+- Uninstalling removes everything the app put on the PC: besides its program, settings, logs, tools and
+  registry entries, now also the entries Windows adds for its autostart and its `ytdm:` links, its tray icon
+  setting, and files that were still in use at that moment (they go a few seconds later).
+- Temporary and cache files of yt-dlp and Deno now stay in the app's own folder instead of Windows' temp
+  folder and `%LOCALAPPDATA%\deno`, so uninstalling removes them too.
+- Opening the installer and closing it without installing no longer leaves an empty folder behind.
+
 ## [1.7.0] - 2026-10-02
 
 ### New
@@ -35,5 +46,6 @@ The first public release.
 
 - Resizing the Shorts picture-in-picture window from Chrome's own border no longer changes only one side.
 
+[1.7.1]: https://github.com/NyxiYT/yt-download-manager/releases/tag/v1.7.1
 [1.7.0]: https://github.com/NyxiYT/yt-download-manager/releases/tag/v1.7.0
 [1.6.0]: https://github.com/NyxiYT/yt-download-manager/releases/tag/v1.6.0
