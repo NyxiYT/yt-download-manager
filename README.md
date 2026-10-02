@@ -5,7 +5,8 @@
 <h1 align="center">YT Download Manager</h1>
 
 <p align="center">
-  Download YouTube videos, Shorts and music with one click, right from a toolbar under every video.
+  A free, open-source <b>YouTube downloader for Windows</b>. Download YouTube videos in up to 4K, convert
+  YouTube to MP3, and save Shorts, thumbnails and subtitles with one click, right from a toolbar under every video.
 </p>
 
 <p align="center">
@@ -15,9 +16,11 @@
 
 <p align="center">
   <b><a href="https://github.com/NyxiYT/yt-download-manager/releases/latest">Download the latest release</a></b>
+  ·
+  <a href="https://nyxiyt.github.io/yt-download-manager/">Website</a>
 </p>
 
-![The download toolbar under a YouTube video](docs/images/toolbar.jpg)
+![YouTube downloader toolbar under a YouTube video, in YouTube's dark mode](docs/images/toolbar.jpg)
 
 YT Download Manager has two parts that work together:
 
@@ -47,13 +50,13 @@ YT Download Manager has two parts that work together:
 
 **Downloading**
 
-- **Videos up to 4K.** Pick the quality you want, from 144p up to 2160p (4K), including 60 fps.
-- **Music and sound.** Save just the audio as MP3 (with the video's picture as cover art), M4A, Opus or WAV.
+- **YouTube videos up to 4K.** Pick the quality you want, from 144p up to 2160p (4K), including 60 fps.
+- **YouTube to MP3.** Save just the audio as MP3 (with the video's picture as cover art), M4A, Opus or WAV.
 - **Only the part you need.** Set a start and end time to download a short clip instead of the whole video.
 - **Thumbnails.** Save a video's preview picture in full size. Shorts also offer their tall portrait picture.
 - **Subtitles.** Save the video's subtitles as a file.
 - **Screenshots.** Save the exact frame you are watching as a picture.
-- **Shorts.** Every Short gets a Download button beside it, with the same choices as normal videos.
+- **YouTube Shorts.** Every Short gets a Download button beside it, with the same choices as normal videos.
 - **Age-restricted and members-only videos.** If your YouTube account may watch a video, the app can download
   it too, using your own sign-in from the browser.
 
@@ -137,7 +140,7 @@ The extension now shows up on the page.
 **8. Open any YouTube video.** If YouTube was already open, refresh the tab first (press **F5**).
 The toolbar appears under the video, and the app window now says **Connected**.
 
-![The toolbar under a video](docs/images/toolbar.jpg)
+![The download toolbar under a YouTube video](docs/images/toolbar.jpg)
 
 That's it. From now on the app starts with Windows, and the extension connects to it by itself.
 
@@ -173,7 +176,7 @@ connections, so it may not work for you. The extension has not been tested on Li
 4. Optional: drag the two dots under **Trim** to keep only a part of the video.
 5. Click **Download**.
 
-![Downloading a video](docs/images/download-video.jpg)
+![Choosing the quality to download a YouTube video in 1080p or 4K](docs/images/download-video.jpg)
 
 ### Download music as MP3
 
@@ -181,7 +184,7 @@ connections, so it may not work for you. The extension has not been tested on Li
 2. Pick a **Format**. MP3 at 320 kb/s works on every device and gets the video's picture as cover art.
 3. Click **Download**.
 
-![Downloading audio](docs/images/download-audio.jpg)
+![Converting a YouTube video to MP3](docs/images/download-audio.jpg)
 
 ### Download a Short
 
@@ -189,7 +192,7 @@ connections, so it may not work for you. The extension has not been tested on Li
 2. Click **Download** beside the Short (above YouTube's like button).
 3. Pick what you want: the video, the audio, the thumbnail, the subtitles or a screenshot.
 
-![The Download button and its menu beside a Short](docs/images/shorts-menu.png)
+![Downloading a YouTube Short with the Download button beside it](docs/images/shorts-menu.png)
 
 ### Find your downloads
 
