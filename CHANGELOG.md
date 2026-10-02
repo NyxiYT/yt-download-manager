@@ -3,6 +3,15 @@
 All notable changes to YT Download Manager are listed here. Versions follow
 [semantic versioning](https://semver.org): `MAJOR.MINOR.PATCH`.
 
+## [1.7.0] - 2026-10-02
+
+### New
+
+- The app and its installer follow Windows' light or dark mode, title bar included.
+- Opening the installer again on a PC that has the app offers **Update** (a newer version) or **Repair**
+  (the same version), and **Uninstall**, which asks once more before removing anything.
+- `YTDownloadManager-Setup-x64.exe --uninstall --quiet` removes the app without a window, for scripts.
+
 ## [1.6.0] - 2026-10-02
 
 The first public release.
@@ -26,4 +35,5 @@ The first public release.
 
 - Resizing the Shorts picture-in-picture window from Chrome's own border no longer changes only one side.
 
+[1.7.0]: https://github.com/NyxiYT/yt-download-manager/releases/tag/v1.7.0
 [1.6.0]: https://github.com/NyxiYT/yt-download-manager/releases/tag/v1.6.0
