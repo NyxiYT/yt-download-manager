@@ -1,0 +1,73 @@
+name: Bug report
+description: Something doesn't work as it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please check the [FAQ](https://github.com/NyxiYT/yt-download-manager#faq) and
+        [Troubleshooting](https://github.com/NyxiYT/yt-download-manager#troubleshooting) first.
+        Security problems go to the [private report form](https://github.com/NyxiYT/yt-download-manager/security/advisories/new) instead.
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What did you do, step by step? Add the YouTube link if it happens with one video.
+      placeholder: |
+        1. Open https://www.youtube.com/watch?v=...
+        2. Click the camera button
+        3. Choose 1080p and click Download
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead
+      description: Copy any error message exactly.
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows 11 (64-bit)
+        - Windows 10 (64-bit)
+        - Windows 10 (32-bit)
+        - Linux
+        - macOS
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: Windows Settings → Apps → Installed apps → YT Download Manager. Write "none" if you use only the extension.
+      placeholder: "1.6.0"
+    validations:
+      required: true
+  - type: input
+    id: extension-version
+    attributes:
+      label: Extension version
+      description: Shown on the extension's card in chrome://extensions.
+      placeholder: "6.9.0"
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: "Chrome 154"
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot or log
+      description: |
+        Drag a screenshot here if it helps. For download problems, attach the app's log: open the app,
+        click Diagnostics and attach manager.log.
