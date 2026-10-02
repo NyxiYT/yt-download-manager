@@ -7,8 +7,8 @@
 // @updateURL    https://github.com/NyxiYT/yt-download-manager/releases/latest/download/yt-standalone-downloader.user.js
 // @downloadURL  https://github.com/NyxiYT/yt-download-manager/releases/latest/download/yt-standalone-downloader.user.js
 // @license      MIT
-// @version      6.8.0
-// @description  Toolbar under the YouTube player and beside Shorts: video (up to 4K), MP3/M4A/Opus/WAV, thumbnails, subtitles, screenshots, clip trimming, resumable downloads, FFmpeg processing, a sticky focus mode and a movable history. Runs in your browser, or hands downloads to the optional YT Download Manager app to save them to any folder on your PC.
+// @version      6.9.0
+// @description  Toolbar under the YouTube player and beside Shorts: video (up to 8K), MP3/M4A/Opus/WAV, thumbnails, subtitles, screenshots, clip trimming, resumable downloads, FFmpeg processing, a sticky focus mode and a movable history. Runs in your browser, or hands downloads to the optional YT Download Manager app to save them to any folder on your PC.
 // @icon         data:image/png;base64,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
 // @icon64       data:image/png;base64,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
 // @match        https://www.youtube.com/*
@@ -35,7 +35,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '6.8.0';
+  const VERSION = '6.9.0';
   const CHUNK = 9 * 1024 * 1024; // googlevideo throttles big single requests; fetch in ranges
   const PARALLEL = 3; // range requests per stream
   const MAX_ACTIVE = 2; // downloads running at once, the rest wait in the queue
@@ -1633,6 +1633,18 @@
     return list.filter((f) => trackScore(f) === top);
   };
 
+  const qualityBadge = (h) => (h >= 4320 ? '8K' : h >= 2160 ? '4K' : h >= 1440 ? '2K' : h >= 720 ? 'HD' : '');
+
+  // A quality from the app's list (yt-dlp's view of the video: every codec, HDR, up to 8K). `own` is the
+  // browser's option for the same height, kept for a download without the app; without it, only the app
+  // can download this one.
+  const appVideoOpt = (v, own) => ({
+    ...(own || {}),
+    kind: 'video', key: `v${v.height}`, format: 'MP4', quality: `${v.height}p${v.fps > 30 ? v.fps : ''}`, height: v.height,
+    badge: qualityBadge(v.height), codec: `${v.codec || 'MP4'}${v.hdr ? ' HDR' : ''}`, size: Math.max(0, +v.size || 0), trimmable: true,
+    appOnly: !own,
+  });
+
   // Every option carries `key` (stable id for retry) and `format` + `quality` (history columns).
   function buildInfo(vid, player, client, variant) {
     const sd = player.streamingData;
@@ -1653,7 +1665,7 @@
     }
     const video = [...byH.values()].sort((a, b) => b.h - a.h).map(({ f, h }) => ({
       kind: 'video', key: `v${h}`, format: 'MP4', quality: `${h}p${(f.fps || 0) > 30 ? f.fps : ''}`, height: h,
-      badge: h >= 2160 ? '4K' : h >= 1440 ? '2K' : h >= 720 ? 'HD' : '',
+      badge: qualityBadge(h),
       codec: f.mimeType.includes('avc1') ? 'H.264' : f.mimeType.includes('av01') ? 'AV1' : 'MP4',
       vf: f, af: bestAac, size: len(f) + (bestAac ? len(bestAac) : 0), trimmable: true,
     }));
@@ -3708,7 +3720,7 @@ onmessage = async ({ data: m }) => {
   // With the Download Manager connected, it does the download; otherwise the browser does.
   function startOption(opt, info, opts = {}, folderPerm) {
     if (hostGone()) { noteExtReloaded(); return null; }
-    if (info.viaApp && !dmOn()) { noteNoApp(); return null; }
+    if ((info.viaApp || opt.appOnly) && !dmOn()) { noteNoApp(); return null; }
     const dmOpts = { ...opts, trim: opt.trimmable && opts.trim ? opts.trim : null };
     if (dmOn()) return dmStartOption(opt, info, dmOpts);
     const perm = folderPerm ?? requestFolderAccess(); // needs the click, so before anything that waits
@@ -3721,6 +3733,7 @@ onmessage = async ({ data: m }) => {
   }
 
   function startBrowserOption(opt, info, opts = {}, folderPerm = requestFolderAccess()) {
+    if (opt.appOnly) { noteNoApp(); return null; } // a quality only the app can get (see addAppQualities)
     const trim = opt.trimmable && opts.trim ? opts.trim : null;
     const o = { ...opts, trim };
     const dedupe = jobKey(info.vid, opt.key, o);
@@ -4074,10 +4087,7 @@ onmessage = async ({ data: m }) => {
       throw anonErr;
     }
     const mb = (n) => Math.max(0, +n || 0);
-    const video = (r.video || []).map((v) => ({
-      kind: 'video', key: `v${v.height}`, format: 'MP4', quality: `${v.height}p${v.fps > 30 ? v.fps : ''}`, height: v.height,
-      badge: v.height >= 2160 ? '4K' : v.height >= 1440 ? '2K' : v.height >= 720 ? 'HD' : '', codec: v.codec || 'MP4', size: mb(v.size), trimmable: true,
-    }));
+    const video = (r.video || []).map((v) => appVideoOpt(v));
     const secs = +r.duration || 0;
     const audio = [];
     if (r.aac) {
@@ -4111,7 +4121,7 @@ onmessage = async ({ data: m }) => {
     const send = async (force) => {
       if (!(await dmEnsure())) {
         // The app couldn't be reached: offer the in-browser download instead of failing.
-        noteNoApp({ label: t('dmBrowserInstead'), run: () => startBrowserOption(opt, info, o) });
+        noteNoApp(opt.appOnly || info.viaApp ? null : { label: t('dmBrowserInstead'), run: () => startBrowserOption(opt, info, o) });
         return;
       }
       try {
@@ -4631,7 +4641,9 @@ onmessage = async ({ data: m }) => {
     if (gate) return [head, popBody(...gate)];
     const info = state.info;
     if (!info.video.length) return [head, popBody(msgRow('info', t('noVideo')))];
-    const opt = info.video.find((o) => o.key === settings.videoKey) || info.video.find((o) => o.height <= 1080) || info.video[0];
+    // The highest quality, or the one picked before (the next lower one where a video doesn't have it).
+    const want = +String(settings.videoKey || '').slice(1) || Infinity;
+    const opt = info.video.find((o) => o.height <= want) || info.video[info.video.length - 1];
     const sum = h('span');
     const updateSum = () => sum.replaceChildren(`MP4 \u00b7 ${opt.codec} \u00b7 ${estimate(opt, info)}`);
     const trim = trimSection(info, true, updateSum);
@@ -6533,6 +6545,7 @@ onmessage = async ({ data: m }) => {
         info = await dmAuthInfo(vid, e);
       }
       if (state.vid === vid) state.info = info;
+      if (!info.viaApp && !info.appList && dmOn()) info.appList = addAppQualities(vid, info); // once per lookup
     } catch (e) {
       console.debug('[YSD] could not load formats', e);
       if (state.vid === vid) state.err = errInfo(e, 'errFormats');
@@ -6541,6 +6554,24 @@ onmessage = async ({ data: m }) => {
       state.loading = false;
       if (pop.el && ![settingsMenu, helpMenu, viewMenu, folderPop].includes(pop.build)) renderPopover();
     }
+  }
+
+  // YouTube gives the browser's requests fewer formats than the app gets: often nothing above 1080p, no
+  // VP9 and no HDR, so 1440p, 4K and 8K would be missing. With the app connected, its list (what it
+  // will download, highest first) replaces the browser's as soon as it arrives.
+  async function addAppQualities(vid, info) {
+    let r;
+    try {
+      r = await dmReq('GET', `/v1/info?v=${encodeURIComponent(vid)}&auth=0`, null, 120000);
+    } catch (e) {
+      console.debug('[YSD] the app has no quality list for this video', e);
+      return;
+    }
+    const list = (r?.video || []).filter((v) => +v.height > 0).sort((a, b) => b.height - a.height);
+    if (!list.length || !dmOn()) return;
+    const own = new Map(info.video.map((o) => [o.height, o]));
+    info.video = list.map((v) => appVideoOpt(v, own.get(v.height)));
+    if (state.info === info && pop.el && ![settingsMenu, helpMenu, viewMenu, folderPop].includes(pop.build)) renderPopover();
   }
 
   function mount() {

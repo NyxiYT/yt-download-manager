@@ -474,6 +474,18 @@
     return list.filter((f) => trackScore(f) === top);
   };
 
+  const qualityBadge = (h) => (h >= 4320 ? '8K' : h >= 2160 ? '4K' : h >= 1440 ? '2K' : h >= 720 ? 'HD' : '');
+
+  // A quality from the app's list (yt-dlp's view of the video: every codec, HDR, up to 8K). `own` is the
+  // browser's option for the same height, kept for a download without the app; without it, only the app
+  // can download this one.
+  const appVideoOpt = (v, own) => ({
+    ...(own || {}),
+    kind: 'video', key: `v${v.height}`, format: 'MP4', quality: `${v.height}p${v.fps > 30 ? v.fps : ''}`, height: v.height,
+    badge: qualityBadge(v.height), codec: `${v.codec || 'MP4'}${v.hdr ? ' HDR' : ''}`, size: Math.max(0, +v.size || 0), trimmable: true,
+    appOnly: !own,
+  });
+
   // Every option carries `key` (stable id for retry) and `format` + `quality` (history columns).
   function buildInfo(vid, player, client, variant) {
     const sd = player.streamingData;
@@ -494,7 +506,7 @@
     }
     const video = [...byH.values()].sort((a, b) => b.h - a.h).map(({ f, h }) => ({
       kind: 'video', key: `v${h}`, format: 'MP4', quality: `${h}p${(f.fps || 0) > 30 ? f.fps : ''}`, height: h,
-      badge: h >= 2160 ? '4K' : h >= 1440 ? '2K' : h >= 720 ? 'HD' : '',
+      badge: qualityBadge(h),
       codec: f.mimeType.includes('avc1') ? 'H.264' : f.mimeType.includes('av01') ? 'AV1' : 'MP4',
       vf: f, af: bestAac, size: len(f) + (bestAac ? len(bestAac) : 0), trimmable: true,
     }));
@@ -2171,7 +2183,7 @@ onmessage = async ({ data: m }) => {
   // With the Download Manager connected, it does the download; otherwise the browser does.
   function startOption(opt, info, opts = {}, folderPerm) {
     if (hostGone()) { noteExtReloaded(); return null; }
-    if (info.viaApp && !dmOn()) { noteNoApp(); return null; }
+    if ((info.viaApp || opt.appOnly) && !dmOn()) { noteNoApp(); return null; }
     const dmOpts = { ...opts, trim: opt.trimmable && opts.trim ? opts.trim : null };
     if (dmOn()) return dmStartOption(opt, info, dmOpts);
     const perm = folderPerm ?? requestFolderAccess(); // needs the click, so before anything that waits
@@ -2184,6 +2196,7 @@ onmessage = async ({ data: m }) => {
   }
 
   function startBrowserOption(opt, info, opts = {}, folderPerm = requestFolderAccess()) {
+    if (opt.appOnly) { noteNoApp(); return null; } // a quality only the app can get (see addAppQualities)
     const trim = opt.trimmable && opts.trim ? opts.trim : null;
     const o = { ...opts, trim };
     const dedupe = jobKey(info.vid, opt.key, o);
@@ -2537,10 +2550,7 @@ onmessage = async ({ data: m }) => {
       throw anonErr;
     }
     const mb = (n) => Math.max(0, +n || 0);
-    const video = (r.video || []).map((v) => ({
-      kind: 'video', key: `v${v.height}`, format: 'MP4', quality: `${v.height}p${v.fps > 30 ? v.fps : ''}`, height: v.height,
-      badge: v.height >= 2160 ? '4K' : v.height >= 1440 ? '2K' : v.height >= 720 ? 'HD' : '', codec: v.codec || 'MP4', size: mb(v.size), trimmable: true,
-    }));
+    const video = (r.video || []).map((v) => appVideoOpt(v));
     const secs = +r.duration || 0;
     const audio = [];
     if (r.aac) {
@@ -2574,7 +2584,7 @@ onmessage = async ({ data: m }) => {
     const send = async (force) => {
       if (!(await dmEnsure())) {
         // The app couldn't be reached: offer the in-browser download instead of failing.
-        noteNoApp({ label: t('dmBrowserInstead'), run: () => startBrowserOption(opt, info, o) });
+        noteNoApp(opt.appOnly || info.viaApp ? null : { label: t('dmBrowserInstead'), run: () => startBrowserOption(opt, info, o) });
         return;
       }
       try {
@@ -3094,7 +3104,9 @@ onmessage = async ({ data: m }) => {
     if (gate) return [head, popBody(...gate)];
     const info = state.info;
     if (!info.video.length) return [head, popBody(msgRow('info', t('noVideo')))];
-    const opt = info.video.find((o) => o.key === settings.videoKey) || info.video.find((o) => o.height <= 1080) || info.video[0];
+    // The highest quality, or the one picked before (the next lower one where a video doesn't have it).
+    const want = +String(settings.videoKey || '').slice(1) || Infinity;
+    const opt = info.video.find((o) => o.height <= want) || info.video[info.video.length - 1];
     const sum = h('span');
     const updateSum = () => sum.replaceChildren(`MP4 \u00b7 ${opt.codec} \u00b7 ${estimate(opt, info)}`);
     const trim = trimSection(info, true, updateSum);
@@ -4979,6 +4991,7 @@ onmessage = async ({ data: m }) => {
         info = await dmAuthInfo(vid, e);
       }
       if (state.vid === vid) state.info = info;
+      if (!info.viaApp && !info.appList && dmOn()) info.appList = addAppQualities(vid, info); // once per lookup
     } catch (e) {
       console.debug('[YSD] could not load formats', e);
       if (state.vid === vid) state.err = errInfo(e, 'errFormats');
@@ -4987,6 +5000,24 @@ onmessage = async ({ data: m }) => {
       state.loading = false;
       if (pop.el && ![settingsMenu, helpMenu, viewMenu, folderPop].includes(pop.build)) renderPopover();
     }
+  }
+
+  // YouTube gives the browser's requests fewer formats than the app gets: often nothing above 1080p, no
+  // VP9 and no HDR, so 1440p, 4K and 8K would be missing. With the app connected, its list (what it
+  // will download, highest first) replaces the browser's as soon as it arrives.
+  async function addAppQualities(vid, info) {
+    let r;
+    try {
+      r = await dmReq('GET', `/v1/info?v=${encodeURIComponent(vid)}&auth=0`, null, 120000);
+    } catch (e) {
+      console.debug('[YSD] the app has no quality list for this video', e);
+      return;
+    }
+    const list = (r?.video || []).filter((v) => +v.height > 0).sort((a, b) => b.height - a.height);
+    if (!list.length || !dmOn()) return;
+    const own = new Map(info.video.map((o) => [o.height, o]));
+    info.video = list.map((v) => appVideoOpt(v, own.get(v.height)));
+    if (state.info === info && pop.el && ![settingsMenu, helpMenu, viewMenu, folderPop].includes(pop.build)) renderPopover();
   }
 
   function mount() {

@@ -420,7 +420,8 @@ namespace YTDM
                     {
                         // The browser asks here only after YouTube refused it without a sign-in (newer versions
                         // say so with auth=1): both lookups start at once (see Media.GetInfoFor).
-                        info = await Media.GetInfoFor(vid, null, CancellationToken.None, likely: true);
+                        // auth=0: the extension's quality list for any video; only YouTube's anonymous answer.
+                        info = await Media.GetInfoFor(vid, null, CancellationToken.None, likely: r.Q("auth") != "0");
                     }
                     catch (Fail f) when (Session.Helps.Contains(f.Key) && !Session.Available)
                     {

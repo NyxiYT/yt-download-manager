@@ -16,6 +16,7 @@ namespace YTDM
         public double Fps, Tbr, Abr;
         public long Size, AvailableAt;
         public bool Drc;
+        public bool Hdr; // HDR10, HLG or Dolby Vision (yt-dlp's dynamic_range)
         public Dictionary<string, string> Headers = new Dictionary<string, string>();
 
         public bool HasVideo => !string.IsNullOrEmpty(VCodec) && VCodec != "none";
@@ -430,6 +431,7 @@ namespace YTDM
                     Abr = f.Num("abr"),
                     Size = f.Long("filesize") > 0 ? f.Long("filesize") : f.Long("filesize_approx"),
                     Drc = f.Bool("has_drc") || note.IndexOf("DRC", StringComparison.Ordinal) >= 0 || id.EndsWith("-drc"),
+                    Hdr = !string.IsNullOrEmpty(f.Str("dynamic_range")) && f.Str("dynamic_range") != "SDR",
                 });
             }
             return info;
@@ -511,7 +513,9 @@ namespace YTDM
                     pool = vids.Where(f => f.Short == least).ToList();
                 }
             }
-            return pool.OrderByDescending(f => f.CodecScore).ThenByDescending(f => f.Fps).ThenByDescending(f => f.Tbr).First();
+            // The smoothest first (60 fps before 30), then HDR where the video has it, then the codec that plays
+            // most widely (H.264, AV1, VP9), then the higher bit rate.
+            return pool.OrderByDescending(f => Math.Round(f.Fps)).ThenByDescending(f => f.Hdr).ThenByDescending(f => f.CodecScore).ThenByDescending(f => f.Tbr).First();
         }
 
         public static List<StreamPart> Plan(Job j, Info i)
@@ -579,6 +583,7 @@ namespace YTDM
                     ["height"] = h,
                     ["fps"] = (int)Math.Round(v.Fps),
                     ["codec"] = v.CodecName,
+                    ["hdr"] = v.Hdr,
                     ["size"] = size,
                 };
             }).ToArray();
