@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>YT Standalone Downloader</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <img src="../assets/images/logo.png" alt="" width="36" height="36">
+    <div>
+      <b>YT Standalone Downloader</b>
+      <small id="version"></small>
+    </div>
+  </header>
+  <main id="main"></main>
+  <section id="dm" hidden>
+    <span id="dm-label"></span>
+    <span id="dm-state" class="state"></span>
+  </section>
+  <footer>
+    <button id="settings" class="link" type="button"></button>
+  </footer>
+  <script src="../content/i18n.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

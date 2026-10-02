@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>YTDownloadManager-Setup</AssemblyName>
+    <RootNamespace>YTDM</RootNamespace>
+    <StartupObject>YTDM.SetupProgram</StartupObject>
+    <ApplicationIcon>..\YTDownloadManager\app.ico</ApplicationIcon>
+    <ApplicationManifest>..\YTDownloadManager\app.manifest</ApplicationManifest>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <Version>1.6.0</Version>
+    <Product>YT Download Manager</Product>
+    <AssemblyTitle>YT Download Manager Setup</AssemblyTitle>
+    <Company>YT Download Manager</Company>
+    <Description>Installs YT Download Manager with everything it needs</Description>
+    <DebugType>embedded</DebugType>
+    <NoWarn>CS1591;CS0649;CS0169</NoWarn>
+  </PropertyGroup>
+
+  <!-- The whole app is compiled in: the installer runs the same setup wizard and serves the browser
+       while it is open. The installed app itself is the payload below. -->
+  <ItemGroup>
+    <Compile Include="..\YTDownloadManager\*.cs" Link="App\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- .NET Framework 4.8 reference assemblies, so it builds without the targeting pack installed -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\YTDownloadManager\app.ico" LogicalName="app.ico" />
+    <EmbeddedResource Include="..\YTDownloadManager\bin\Release\net48\YTDownloadManager.exe" LogicalName="payload.exe" />
+    <EmbeddedResource Include="..\vendor\components.zip" LogicalName="components.zip" />
+    <EmbeddedResource Include="..\vendor\extension.zip" LogicalName="extension.zip" />
+  </ItemGroup>
+
+</Project>

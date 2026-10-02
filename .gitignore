@@ -1,0 +1,17 @@
+# Build output
+manager/**/bin/
+manager/**/obj/
+manager/vendor/
+dist/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Editor and OS files
+.vs/
+.vscode/
+*.suo
+*.user
+Thumbs.db
+desktop.ini

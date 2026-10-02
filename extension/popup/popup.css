@@ -1,0 +1,104 @@
+:root {
+  --bg: #fff;
+  --text: #0f0f0f;
+  --text2: #606060;
+  --hover: rgba(0, 0, 0, .06);
+  --divider: rgba(0, 0, 0, .1);
+  --accent: #065fd4;
+  --on-accent: #fff;
+  --ok: #188038;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #212121;
+    --text: #f1f1f1;
+    --text2: #aaa;
+    --hover: rgba(255, 255, 255, .1);
+    --divider: rgba(255, 255, 255, .12);
+    --accent: #3ea6ff;
+    --on-accent: #0f0f0f;
+    --ok: #4cc26a;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  width: 300px;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/20px Roboto, "Segoe UI", Arial, sans-serif;
+}
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--divider);
+}
+header img { border-radius: 8px; }
+header div { display: flex; flex-direction: column; min-width: 0; }
+header b { font-weight: 500; }
+header small { color: var(--text2); font-size: 12px; line-height: 16px; }
+
+main { padding: 8px 0; }
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.item:hover, .item:focus-visible { background: var(--hover); outline: none; }
+.item svg { flex: none; color: var(--text2); }
+.note { margin: 4px 16px 12px; color: var(--text2); }
+.primary {
+  display: block;
+  margin: 0 16px 8px;
+  padding: 0 16px;
+  height: 36px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 500 14px/36px Roboto, "Segoe UI", Arial, sans-serif;
+  cursor: pointer;
+}
+.primary:hover { filter: brightness(1.08); }
+
+#dm {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--divider);
+  color: var(--text2);
+  font-size: 13px;
+}
+#dm[hidden] { display: none; }
+.state.ok { color: var(--ok); }
+
+footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 6px 8px 8px;
+  border-top: 1px solid var(--divider);
+}
+.link {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--accent);
+  font: 500 13px/18px Roboto, "Segoe UI", Arial, sans-serif;
+  cursor: pointer;
+}
+.link:hover { background: var(--hover); }

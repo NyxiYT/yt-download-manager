@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YT Standalone Downloader</title>
+  <link rel="icon" href="../assets/icons/icon32.png">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="page">
+    <header>
+      <img src="../assets/images/logo.png" alt="" width="48" height="48">
+      <div>
+        <h1>YT Standalone Downloader</h1>
+        <p id="version"></p>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2 id="h-general"></h2>
+      <label class="row">
+        <span id="l-language"></span>
+        <select id="language"></select>
+      </label>
+      <label class="row">
+        <span id="l-toolbar"></span>
+        <input type="checkbox" id="toolbar" class="switch">
+      </label>
+      <label class="row">
+        <span id="l-autoopen"></span>
+        <input type="checkbox" id="autoopen" class="switch">
+      </label>
+    </section>
+
+    <section class="card">
+      <h2 id="h-dm"></h2>
+      <div class="row">
+        <span id="dm-state" class="state"></span>
+      </div>
+      <label class="row" id="dm-use-row">
+        <span id="l-dm-use"></span>
+        <input type="checkbox" id="dm-use" class="switch">
+      </label>
+      <p id="dm-hint" class="hint"></p>
+    </section>
+
+    <section class="card">
+      <h2 id="h-history"></h2>
+      <div class="row">
+        <span id="history-count" class="muted"></span>
+        <button id="history-clear" class="button" type="button"></button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 id="h-about"></h2>
+      <p id="about" class="hint"></p>
+    </section>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+  </div>
+  <script src="../content/i18n.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

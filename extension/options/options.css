@@ -1,0 +1,147 @@
+:root {
+  --bg: #f9f9f9;
+  --card: #fff;
+  --text: #0f0f0f;
+  --text2: #606060;
+  --divider: rgba(0, 0, 0, .1);
+  --border: rgba(0, 0, 0, .16);
+  --hover: rgba(0, 0, 0, .05);
+  --accent: #065fd4;
+  --track: rgba(0, 0, 0, .2);
+  --ok: #188038;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f0f0f;
+    --card: #212121;
+    --text: #f1f1f1;
+    --text2: #aaa;
+    --divider: rgba(255, 255, 255, .12);
+    --border: rgba(255, 255, 255, .2);
+    --hover: rgba(255, 255, 255, .08);
+    --accent: #3ea6ff;
+    --track: rgba(255, 255, 255, .25);
+    --ok: #4cc26a;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/20px Roboto, "Segoe UI", Arial, sans-serif;
+}
+.page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 16px 48px;
+}
+header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+header img { border-radius: 10px; }
+h1 { margin: 0; font-size: 22px; line-height: 28px; font-weight: 500; }
+header p { margin: 2px 0 0; color: var(--text2); font-size: 13px; }
+
+.card {
+  margin-bottom: 16px;
+  padding: 8px 20px 12px;
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  background: var(--card);
+}
+h2 {
+  margin: 8px 0 4px;
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 48px;
+  padding: 6px 0;
+}
+.row + .row { border-top: 1px solid var(--divider); }
+.row[hidden] { display: none; }
+.hint { margin: 6px 0 8px; color: var(--text2); font-size: 13px; line-height: 19px; }
+.muted { color: var(--text2); }
+.state.ok { color: var(--ok); font-weight: 500; }
+
+select {
+  min-width: 180px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+}
+.button {
+  height: 34px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  background: none;
+  color: var(--text);
+  font: 500 14px/32px Roboto, "Segoe UI", Arial, sans-serif;
+  cursor: pointer;
+}
+.button:hover { background: var(--hover); }
+.button[hidden] { display: none; }
+.button:disabled { opacity: .45; cursor: default; background: none; }
+
+.switch {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 20px;
+  margin: 0;
+  border-radius: 10px;
+  background: var(--track);
+  cursor: pointer;
+  transition: background .18s;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+  transition: transform .18s;
+}
+.switch:checked { background: var(--accent); }
+.switch:checked::after { transform: translateX(16px); }
+.switch:focus-visible, select:focus-visible, .button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.status {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #0f0f0f;
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+.status.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .switch, .switch::after, .status { transition: none; }
+}
