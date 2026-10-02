@@ -5,7 +5,7 @@
 <h1 align="center">YT Download Manager</h1>
 
 <p align="center">
-  A free, open-source <b>YouTube downloader for Windows</b>. Download YouTube videos in up to 4K, convert
+  A free, open-source <b>YouTube downloader for Windows</b>. Download videos in up to 8K quality, convert
   YouTube to MP3, and save Shorts, thumbnails and subtitles with one click, right from a toolbar under every video.
 </p>
 
@@ -50,7 +50,9 @@ YT Download Manager has two parts that work together:
 
 **Downloading**
 
-- **YouTube videos up to 4K.** Pick the quality you want, from 144p up to 2160p (4K), including 60 fps.
+- **Download videos in up to 8K quality.** Every resolution the video has, from 144p up to 4320p (8K), with 60 fps and HDR
+  where YouTube offers them. The highest one is picked for you. 1440p, 4K and 8K need the Windows app (see
+  [compatibility](#system-requirements-and-compatibility)).
 - **YouTube to MP3.** Save just the audio as MP3 (with the video's picture as cover art), M4A, Opus or WAV.
 - **Only the part you need.** Set a start and end time to download a short clip instead of the whole video.
 - **Thumbnails.** Save a video's preview picture in full size. Shorts also offer their tall portrait picture.
@@ -174,11 +176,11 @@ connections, so it may not work for you. The extension has not been tested on Li
 
 1. Open a video on YouTube.
 2. Click the **camera button** (the first button in the toolbar under the video).
-3. Pick a **Quality**. The size of the file is shown next to it.
+3. Pick a **Quality**. The highest one is already selected. The size of the file is shown next to it.
 4. Optional: drag the two dots under **Trim** to keep only a part of the video.
 5. Click **Download**.
 
-![Choosing the quality to download a YouTube video in 1080p or 4K](docs/images/download-video.jpg)
+![Choosing the quality to download a YouTube video in up to 8K](docs/images/download-video.jpg)
 
 ### Download music as MP3
 
@@ -219,11 +221,11 @@ a ring around the clock fills up to show the progress.
 
 | Platform | Architecture | Status |
 |---|---|---|
-| Windows 11 | x64 (64-bit) | ✅ Tested: installs, runs, downloads videos and MP3s |
-| Windows 11 | x64, running the 32-bit (x86) build | ✅ Tested: the 32-bit app and its 32-bit tools run and download |
+| Windows 11 | x64 (64-bit) | ✅ Tested: installs, runs, downloads videos in up to 8K quality (HDR included) and MP3s |
+| Windows 11 | x64, running the 32-bit (x86) build | ✅ Tested: the 32-bit app and its 32-bit tools download in up to 8K quality, files over 4 GB included |
 | Windows 10 | x64 (64-bit) | ⚠️ Not tested |
 | Windows 10 | x86 (32-bit) | ⚠️ Not tested |
-| Linux (Ubuntu 24.04 LTS and others) | x64 | ⚠️ Not tested. Browser extension only, no app |
+| Linux (Ubuntu 24.04 LTS and others) | x64 | ⚠️ Not tested. Browser extension only, no app, so no 1440p, 4K or 8K in most cases |
 | macOS | any | ❌ No app. The browser extension may work, not tested |
 
 | Browser | Status |
@@ -231,6 +233,15 @@ a ring around the clock fills up to show the progress.
 | Google Chrome 154 | ✅ Tested |
 | Microsoft Edge, Brave, Opera, Vivaldi (version 111 or newer) | ⚠️ Not tested. They are built on the same base as Chrome |
 | Firefox | ❌ Not supported by the extension |
+
+### Video quality
+
+With the Windows app, you get every quality YouTube offers for a video, up to 8K (4320p), including 60 fps
+and HDR. Without the app (the browser extension alone, for example on Linux), the browser only gets what
+YouTube gives it directly: usually up to 1080p.
+
+8K files are big: an hour of 8K video is about 14 GB. Playing them smoothly needs a fast PC. Downloading them
+works on every PC the app runs on.
 
 ### Requirements
 

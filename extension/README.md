@@ -1,6 +1,6 @@
 # YT Standalone Downloader (browser extension)
 
-A download toolbar under YouTube videos and beside Shorts: video up to 4K, MP3 / M4A / Opus / WAV, thumbnails,
+A download toolbar under YouTube videos and beside Shorts: video in up to 8K quality, MP3 / M4A / Opus / WAV, thumbnails,
 subtitles, screenshots and trimmed clips, plus Big Picture and a download history. Everything runs
 locally in your browser. If the optional **YT Download Manager** app is installed and connected,
 downloads go through it instead and are saved to any folder on your PC.
