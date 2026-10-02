@@ -284,8 +284,14 @@ Open the installer again and click **Uninstall**. It asks once more before it re
 You can also uninstall it like any other app: open Windows **Settings** → **Apps** → **Installed apps**, find
 **YT Download Manager**, click the three dots next to it and choose **Uninstall**.
 
-Afterwards, open your browser's extensions page (`chrome://extensions`) and click **Remove** on the YT Standalone
-Downloader card. Your downloaded files stay where they are.
+Uninstalling removes everything the app put on your PC: the program, its settings, logs, temporary files and
+tools, the shortcuts, and all of its registry entries. Your downloaded videos stay where they are.
+
+Two things are up to you afterwards:
+
+1. Open your browser's extensions page (`chrome://extensions`) and click **Remove** on the YT Standalone
+   Downloader card. This also deletes the extension's settings and download history in the browser.
+2. Delete the installer file (`YTDownloadManager-Setup-x64.exe`) from your Downloads folder if you still have it.
 
 ### What do I do when a download fails?
 
