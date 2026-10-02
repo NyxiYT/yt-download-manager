@@ -6,21 +6,71 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using Microsoft.Win32;
 
 namespace YTDM
 {
     static class Ui
     {
-        public static readonly Color Accent = Color.FromArgb(0x0F, 0x6C, 0xBD);
-        public static readonly Color AccentHover = Color.FromArgb(0x11, 0x5E, 0xA3);
-        public static readonly Color Text = Color.FromArgb(0x1B, 0x1B, 0x1B);
-        public static readonly Color Text2 = Color.FromArgb(0x5F, 0x5F, 0x5F);
-        public static readonly Color Border = Color.FromArgb(0xE0, 0xE0, 0xE0);
-        public static readonly Color Footer = Color.FromArgb(0xF3, 0xF3, 0xF3);
-        public static readonly Color Card = Color.FromArgb(0xF7, 0xF7, 0xF7);
-        public static readonly Color Ok = Color.FromArgb(0x0F, 0x7B, 0x0F);
-        public static readonly Color Bad = Color.FromArgb(0xC4, 0x2B, 0x1C);
-        public static readonly Color Warn = Color.FromArgb(0x9D, 0x5D, 0x00);
+        // Light or dark like Windows' own apps (Settings > Personalization > Colors > app mode).
+        // YTDM_THEME=light or dark overrides it.
+        public static readonly bool Dark = ReadDark();
+
+        public static readonly Color Back = Dark ? Color.FromArgb(0x20, 0x20, 0x20) : Color.White;
+        public static readonly Color Accent = Dark ? Color.FromArgb(0x4C, 0xC2, 0xFF) : Color.FromArgb(0x0F, 0x6C, 0xBD);
+        public static readonly Color AccentHover = Dark ? Color.FromArgb(0x47, 0xB1, 0xE8) : Color.FromArgb(0x11, 0x5E, 0xA3);
+        public static readonly Color AccentText = Dark ? Color.Black : Color.White;
+        public static readonly Color Text = Dark ? Color.White : Color.FromArgb(0x1B, 0x1B, 0x1B);
+        public static readonly Color Text2 = Dark ? Color.FromArgb(0xB0, 0xB0, 0xB0) : Color.FromArgb(0x5F, 0x5F, 0x5F);
+        public static readonly Color Border = Dark ? Color.FromArgb(0x3D, 0x3D, 0x3D) : Color.FromArgb(0xE0, 0xE0, 0xE0);
+        public static readonly Color Footer = Dark ? Color.FromArgb(0x2B, 0x2B, 0x2B) : Color.FromArgb(0xF3, 0xF3, 0xF3);
+        public static readonly Color Card = Dark ? Color.FromArgb(0x2B, 0x2B, 0x2B) : Color.FromArgb(0xF7, 0xF7, 0xF7);
+        public static readonly Color Ok = Dark ? Color.FromArgb(0x6C, 0xCB, 0x5F) : Color.FromArgb(0x0F, 0x7B, 0x0F);
+        public static readonly Color Bad = Dark ? Color.FromArgb(0xFF, 0x99, 0xA4) : Color.FromArgb(0xC4, 0x2B, 0x1C);
+        public static readonly Color Warn = Dark ? Color.FromArgb(0xFC, 0xE1, 0x00) : Color.FromArgb(0x9D, 0x5D, 0x00);
+        static readonly Color ButtonBack = Color.FromArgb(0x2D, 0x2D, 0x2D);
+        static readonly Color ButtonHover = Color.FromArgb(0x38, 0x38, 0x38);
+        static readonly Color ButtonBorder = Color.FromArgb(0x4A, 0x4A, 0x4A);
+
+        static bool ReadDark()
+        {
+            var over = (Environment.GetEnvironmentVariable("YTDM_THEME") ?? "").Trim().ToLowerInvariant();
+            if (over == "dark" || over == "light") return over == "dark";
+            try
+            {
+                using (var k = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"))
+                    return k?.GetValue("AppsUseLightTheme") is int v && v == 0;
+            }
+            catch { return false; }
+        }
+
+        [DllImport("dwmapi.dll")] static extern int DwmSetWindowAttribute(IntPtr h, int attr, ref int value, int size);
+
+        // A window in the theme: its colors, and in dark mode a dark title bar.
+        public static void Theme(Form f)
+        {
+            f.BackColor = Back;
+            f.ForeColor = Text;
+            if (!Dark) return;
+            f.HandleCreated += (s, e) =>
+            {
+                int on = 1;
+                if (DwmSetWindowAttribute(f.Handle, 20, ref on, 4) != 0) DwmSetWindowAttribute(f.Handle, 19, ref on, 4); // 19: Windows 10 before 20H1
+            };
+        }
+
+        public static CheckBox CheckBox(string text)
+        {
+            var c = new CheckBox { Text = text, AutoSize = true, ForeColor = Text, UseMnemonic = false };
+            if (Dark)
+            {
+                c.FlatStyle = FlatStyle.Flat;
+                c.FlatAppearance.BorderColor = Text2;
+                c.FlatAppearance.CheckedBackColor = Back;
+                c.FlatAppearance.MouseOverBackColor = ButtonHover;
+            }
+            return c;
+        }
 
         public static readonly Font Body = new Font("Segoe UI", 9.75f);
         public static readonly Font BodyBold = new Font("Segoe UI Semibold", 9.75f);
@@ -85,7 +135,7 @@ namespace YTDM
                 MinimumSize = new Size(S(96), S(32)),
                 Padding = new Padding(S(10), 0, S(10), 0),
                 Font = Body,
-                UseVisualStyleBackColor = !primary,
+                UseVisualStyleBackColor = !primary && !Dark,
                 UseMnemonic = false,
             };
             if (primary)
@@ -93,14 +143,23 @@ namespace YTDM
                 b.FlatStyle = FlatStyle.Flat;
                 b.FlatAppearance.BorderSize = 0;
                 b.BackColor = Accent;
-                b.ForeColor = Color.White;
+                b.ForeColor = AccentText;
                 b.FlatAppearance.MouseOverBackColor = AccentHover;
                 b.FlatAppearance.MouseDownBackColor = AccentHover;
                 b.EnabledChanged += (s, e) =>
                 {
-                    b.BackColor = b.Enabled ? Accent : Color.FromArgb(0xC8, 0xC8, 0xC8);
-                    b.ForeColor = b.Enabled ? Color.White : Color.FromArgb(0x70, 0x70, 0x70);
+                    b.BackColor = b.Enabled ? Accent : Dark ? Color.FromArgb(0x43, 0x43, 0x43) : Color.FromArgb(0xC8, 0xC8, 0xC8);
+                    b.ForeColor = b.Enabled ? AccentText : Dark ? Color.FromArgb(0x9D, 0x9D, 0x9D) : Color.FromArgb(0x70, 0x70, 0x70);
                 };
+            }
+            else if (Dark) // the system's buttons are always light
+            {
+                b.FlatStyle = FlatStyle.Flat;
+                b.BackColor = ButtonBack;
+                b.ForeColor = Text;
+                b.FlatAppearance.BorderColor = ButtonBorder;
+                b.FlatAppearance.MouseOverBackColor = ButtonHover;
+                b.FlatAppearance.MouseDownBackColor = ButtonBack;
             }
             if (click != null) b.Click += click;
             return b;

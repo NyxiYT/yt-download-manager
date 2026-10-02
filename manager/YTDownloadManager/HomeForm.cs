@@ -24,7 +24,7 @@ namespace YTDM
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             StartPosition = FormStartPosition.CenterScreen;
-            BackColor = Color.White;
+            Ui.Theme(this);
             Font = Ui.Body;
             AutoSize = true;
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
@@ -74,7 +74,8 @@ namespace YTDM
             addHint = new Label { Text = S.T("HomeAddHint"), AutoSize = true, MaximumSize = new Size(w, 0), ForeColor = Ui.Text2, Font = Ui.Small, Margin = new Padding(0, 0, 0, Ui.S(8)), Visible = false, UseMnemonic = false };
             flow.Controls.Add(addHint);
 
-            startup = new CheckBox { Text = S.T("HomeStartup"), AutoSize = true, Margin = new Padding(0, Ui.S(8), 0, Ui.S(16)), UseMnemonic = false };
+            startup = Ui.CheckBox(S.T("HomeStartup"));
+            startup.Margin = new Padding(0, Ui.S(8), 0, Ui.S(16));
             startup.CheckedChanged += (s, e) => { if (!updating) app.SetKeepRunning(startup.Checked); };
             flow.Controls.Add(startup);
 

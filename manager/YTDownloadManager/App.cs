@@ -271,11 +271,11 @@ namespace YTDM
                 TopMost = true,
                 ShowInTaskbar = true,
                 Icon = Ui.AppIcon(),
-                BackColor = System.Drawing.Color.White,
                 Font = Ui.Body,
                 AutoSize = true,
                 AutoSizeMode = AutoSizeMode.GrowAndShrink,
             };
+            Ui.Theme(f);
             // Placed with a margin on every side (an auto-sized form ignores its own padding here).
             var flow = new FlowLayoutPanel
             {
