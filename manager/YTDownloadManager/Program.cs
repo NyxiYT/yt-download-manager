@@ -92,14 +92,24 @@ namespace YTDM
         public static bool Run(bool quiet)
         {
             if (!quiet && MessageBox.Show(S.T("UnAsk"), S.T("AppName"), MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return false;
+            Remove();
+            if (!quiet) MessageBox.Show(S.T("UnDone"), S.T("AppName"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return true;
+        }
+
+        // Stops the app and removes it: its registration, shortcuts and program folder, and its data (settings,
+        // queue, logs, temporary work files and the tools). Downloaded videos live in the user's own folder and
+        // are not touched. Run by the app itself (Windows' "Uninstall") or by the installer.
+        public static void Remove()
+        {
             Program.StopRunning();
             Registration.RemoveAll();
             Log.Off = true;
-            // App data: settings, queue, logs, temporary work files and the tools we downloaded.
-            // Downloaded videos live in the user's own folder and are not touched.
             Files.DeleteDir(Paths.Data);
-            var dir = Path.GetDirectoryName(Paths.Exe);
-            if (string.Equals(Path.GetFullPath(dir).TrimEnd('\\'), Path.GetFullPath(Paths.InstallDir).TrimEnd('\\'), StringComparison.OrdinalIgnoreCase))
+            var dir = Paths.InstallDir;
+            if (!string.Equals(Path.GetFullPath(Path.GetDirectoryName(Paths.Exe)).TrimEnd('\\'), Path.GetFullPath(dir).TrimEnd('\\'), StringComparison.OrdinalIgnoreCase))
+                Files.DeleteDir(dir); // the installer, running from somewhere else
+            else
             {
                 // The program folder can only go once this process has ended.
                 try
@@ -113,8 +123,6 @@ namespace YTDM
                 }
                 catch { }
             }
-            if (!quiet) MessageBox.Show(S.T("UnDone"), S.T("AppName"), MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return true;
         }
     }
 }

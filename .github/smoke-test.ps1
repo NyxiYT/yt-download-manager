@@ -56,3 +56,13 @@ try {
 } finally {
   Stop-Process -Id $app.Id -Force -ErrorAction SilentlyContinue
 }
+
+# On the build server only: the installer removes the app again, with its data and its Windows entries.
+if ($env:CI) {
+  $u = Start-Process $Setup -ArgumentList '--uninstall', '--quiet' -PassThru -Wait
+  if ($u.ExitCode -ne 0) { throw "Uninstalling failed with exit code $($u.ExitCode)" }
+  if (Test-Path (Split-Path -Parent $exe)) { throw 'The program folder is still there after uninstalling' }
+  if (Test-Path $data) { throw 'The app data is still there after uninstalling' }
+  if (Test-Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\YTDownloadManager') { throw 'The uninstall entry is still there' }
+  "The $Arch installer uninstalls cleanly"
+}

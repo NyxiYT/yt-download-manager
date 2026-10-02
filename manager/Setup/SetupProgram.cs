@@ -12,8 +12,9 @@ using System.Windows.Forms;
 namespace YTDM
 {
     // YTDownloadManager-Setup.exe: the only file needed. It carries the app, the browser extension and
-    // the tools the app uses (yt-dlp, FFmpeg, Deno). One window: Install, Installing, Ready, Open.
-    // "--quiet" installs without any window.
+    // the tools the app uses (yt-dlp, FFmpeg, Deno or Node.js). One window: Install, Installing, Ready, Open;
+    // on a PC that has the app: Update or Repair, and Uninstall. "--quiet" installs without any window,
+    // "--uninstall --quiet" removes the app without any window.
     static class SetupProgram
     {
         [STAThread]
@@ -31,7 +32,8 @@ namespace YTDM
             {
                 try
                 {
-                    Task.Run(() => bundle.Run(p => { }, CancellationToken.None)).GetAwaiter().GetResult();
+                    if (a.Contains("--uninstall")) Task.Run(() => bundle.Remove()).GetAwaiter().GetResult();
+                    else Task.Run(() => bundle.Run(p => { }, CancellationToken.None)).GetAwaiter().GetResult();
                     return 0;
                 }
                 catch (Exception e)
@@ -155,6 +157,13 @@ namespace YTDM
             Components.Detect();
             Installed = true;
             Log.Info("installed " + Version + " to " + Paths.InstallDir);
+        }
+
+        // Removes the installed app the way Windows' "Uninstall" does: everything except the downloaded files.
+        public async Task Remove()
+        {
+            await Task.Run(() => Uninstaller.Remove());
+            Installed = false;
         }
 
         void InstallApp()
