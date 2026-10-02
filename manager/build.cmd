@@ -8,6 +8,7 @@ cd /d "%~dp0"
 set ARCHS=%~1
 if "%ARCHS%"=="" set ARCHS=x64 x86
 if not exist ..\dist mkdir ..\dist
+if not exist vendor mkdir vendor
 rem The browser extension ships inside the installers, and on its own for browsers without the app.
 powershell -NoProfile -Command "Add-Type -AssemblyName System.IO.Compression.FileSystem; $z = Join-Path (Resolve-Path vendor) 'extension.zip'; if (Test-Path $z) { Remove-Item $z }; [IO.Compression.ZipFile]::CreateFromDirectory((Resolve-Path ..\extension), $z, 'Optimal', $false)" || exit /b 1
 copy /y vendor\extension.zip ..\dist\YTStandaloneDownloader-Extension.zip >nul || exit /b 1
