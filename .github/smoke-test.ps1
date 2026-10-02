@@ -53,6 +53,21 @@ try {
   [void][Smoke.K]::IsWow64Process($app.Handle, [ref]$wow)
   if ([Environment]::Is64BitOperatingSystem -and $wow -ne ($Arch -eq 'x86')) { throw "The app runs as the wrong kind of program (32-bit: $wow)" }
   "The $Arch app $($hello.version) works (32-bit process: $wow)"
+
+  if ($env:CI) {
+    # A real lookup runs yt-dlp (and its JavaScript runtime) through the app. Whether YouTube answers the build
+    # server doesn't matter here: their temporary and cache files must stay inside the app's data folder.
+    $denoBefore = Test-Path (Join-Path $env:LOCALAPPDATA 'deno')
+    $since = Get-Date
+    $pair = Invoke-RestMethod -Method Post 'http://127.0.0.1:17724/v1/pair' -ContentType 'application/json' -Body '{"client":"smoke test","auto":true}' `
+      -Headers @{ Origin = 'chrome-extension://cgjpjebkpfjhaedhimgenbemfmgmkmjj' } -TimeoutSec 10
+    try { Invoke-RestMethod 'http://127.0.0.1:17724/v1/info?v=aqz-KE-bpKQ' -Headers @{ 'X-YDM-Token' = $pair.token } -TimeoutSec 180 | Out-Null; 'lookup answered' }
+    catch { "lookup without an answer (fine here): $($_.Exception.Message)" }
+    $strays = @(Get-ChildItem $env:TEMP -Directory -Filter '_MEI*' -ErrorAction SilentlyContinue | Where-Object { $_.CreationTime -ge $since })
+    if ($strays.Count) { throw "yt-dlp left files in Windows' temp folder: $($strays.Name -join ', ')" }
+    if (-not $denoBefore -and (Test-Path (Join-Path $env:LOCALAPPDATA 'deno'))) { throw "Deno put its cache outside the app's folder" }
+    'tools keep their temporary files inside the app folder'
+  }
 } finally {
   Stop-Process -Id $app.Id -Force -ErrorAction SilentlyContinue
 }
@@ -61,8 +76,22 @@ try {
 if ($env:CI) {
   $u = Start-Process $Setup -ArgumentList '--uninstall', '--quiet' -PassThru -Wait
   if ($u.ExitCode -ne 0) { throw "Uninstalling failed with exit code $($u.ExitCode)" }
-  if (Test-Path (Split-Path -Parent $exe)) { throw 'The program folder is still there after uninstalling' }
-  if (Test-Path $data) { throw 'The app data is still there after uninstalling' }
-  if (Test-Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\YTDownloadManager') { throw 'The uninstall entry is still there' }
-  "The $Arch installer uninstalls cleanly"
+  Start-Sleep 6 # anything still in use is removed a few seconds later
+  $left = @()
+  foreach ($p in (Split-Path -Parent $exe), $data,
+      (Join-Path ([Environment]::GetFolderPath('Programs')) 'YT Download Manager.lnk'),
+      (Join-Path ([Environment]::GetFolderPath('DesktopDirectory')) 'YT Download Manager.lnk')) {
+    if (Test-Path $p) { $left += $p }
+  }
+  foreach ($k in 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\YTDownloadManager', 'HKCU:\Software\Classes\ytdm') {
+    if (Test-Path $k) { $left += $k }
+  }
+  foreach ($v in @(
+      @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Run', 'YT Download Manager'),
+      @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run', 'YT Download Manager'),
+      @('HKCU:\Software\Microsoft\Windows\CurrentVersion\ApplicationAssociationToasts', 'ytdm_ytdm'))) {
+    if ($null -ne (Get-ItemProperty -Path $v[0] -Name $v[1] -ErrorAction SilentlyContinue)) { $left += "$($v[0]) : $($v[1])" }
+  }
+  if ($left.Count) { throw "Left behind after uninstalling: $($left -join '; ')" }
+  "The $Arch installer uninstalls cleanly (program, data, shortcuts and registry entries all gone)"
 }

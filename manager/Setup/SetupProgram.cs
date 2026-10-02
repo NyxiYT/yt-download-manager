@@ -23,6 +23,7 @@ namespace YTDM
             System.Net.ServicePointManager.SecurityProtocol = (System.Net.SecurityProtocolType)(3072 | 12288);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            bool hadData = Directory.Exists(Paths.Data); // reading the settings and the log create it
             Settings.Load();
             var a = args.Select(x => x.Trim().ToLowerInvariant()).ToArray();
             var bundle = new BundleInstaller { Quiet = a.Contains("--quiet") };
@@ -53,6 +54,12 @@ namespace YTDM
             finally
             {
                 bundle.ReleaseInstance();
+            }
+            // Opened and closed without installing: nothing stays behind.
+            if (!hadData && !bundle.Installed && bundle.InstalledVersion == null)
+            {
+                Log.Off = true;
+                Files.DeleteDir(Paths.Data);
             }
             if (!bundle.Installed || !File.Exists(BundleInstaller.Exe)) return 0;
             // Open: the app's window. Closed instead: the app still starts quietly when it's set to

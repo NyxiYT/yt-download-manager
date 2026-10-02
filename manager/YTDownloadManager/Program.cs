@@ -97,32 +97,33 @@ namespace YTDM
             return true;
         }
 
-        // Stops the app and removes it: its registration, shortcuts and program folder, and its data (settings,
-        // queue, logs, temporary work files and the tools). Downloaded videos live in the user's own folder and
-        // are not touched. Run by the app itself (Windows' "Uninstall") or by the installer.
+        // Stops the app and removes everything it put on the PC: its registration, shortcuts and program folder
+        // (with the browser extension's copy), and its data (settings, queue, logs, temporary and cache files and
+        // the tools). Downloaded videos live in the user's own folder and are not touched. Run by the app itself
+        // (Windows' "Uninstall") or by the installer.
         public static void Remove()
         {
             Program.StopRunning();
             Registration.RemoveAll();
             Log.Off = true;
+            var running = string.Equals(Path.GetFullPath(Path.GetDirectoryName(Paths.Exe)).TrimEnd('\\'), Path.GetFullPath(Paths.InstallDir).TrimEnd('\\'), StringComparison.OrdinalIgnoreCase);
             Files.DeleteDir(Paths.Data);
-            var dir = Paths.InstallDir;
-            if (!string.Equals(Path.GetFullPath(Path.GetDirectoryName(Paths.Exe)).TrimEnd('\\'), Path.GetFullPath(dir).TrimEnd('\\'), StringComparison.OrdinalIgnoreCase))
-                Files.DeleteDir(dir); // the installer, running from somewhere else
-            else
+            if (!running) Files.DeleteDir(Paths.InstallDir); // the installer, running from somewhere else
+            // What can't go yet (the program file of this very process, or a file still held open for a moment)
+            // goes a few seconds after this process has ended.
+            var left = new[] { Paths.InstallDir, Paths.Data }.Where(Directory.Exists).ToList();
+            if (left.Count == 0) return;
+            try
             {
-                // The program folder can only go once this process has ended.
-                try
+                var rm = string.Join(" & ", left.Select(d => "rmdir /s /q " + Args.Quote(d)));
+                Process.Start(new ProcessStartInfo("cmd.exe", "/c ping 127.0.0.1 -n 4 > nul & " + rm)
                 {
-                    Process.Start(new ProcessStartInfo("cmd.exe", "/c ping 127.0.0.1 -n 3 > nul & rmdir /s /q " + Args.Quote(dir))
-                    {
-                        CreateNoWindow = true,
-                        UseShellExecute = false,
-                        WorkingDirectory = Path.GetTempPath(),
-                    });
-                }
-                catch { }
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows),
+                });
             }
+            catch { }
         }
     }
 }

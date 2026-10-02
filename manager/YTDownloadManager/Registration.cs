@@ -112,13 +112,43 @@ namespace YTDM
             }
         }
 
+        // Everything the app registered, plus the entries Windows itself adds for it: whether its autostart is
+        // allowed (Task Manager's Startup apps), the first-use note for its ytdm: links, and its tray icon setting.
         public static void RemoveAll()
         {
             try { Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\" + Protocol, false); } catch { }
             try { Registry.CurrentUser.DeleteSubKeyTree(UninstallKey, false); } catch { }
             SetAutostart(null, false);
+            DeleteValue(@"Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", RunName);
+            DeleteValue(@"Software\Microsoft\Windows\CurrentVersion\ApplicationAssociationToasts", Protocol + "_" + Protocol);
+            try
+            {
+                using (var tray = Registry.CurrentUser.OpenSubKey(@"Control Panel\NotifyIconSettings", true))
+                {
+                    if (tray != null)
+                        foreach (var id in tray.GetSubKeyNames())
+                        {
+                            string path;
+                            using (var k = tray.OpenSubKey(id)) path = k?.GetValue("ExecutablePath") as string;
+                            // A full path, or one starting with a known-folder id instead of the user's AppData\Local
+                            if (path != null && path.EndsWith(@"\Programs\" + Paths.AppName + @"\" + Paths.ExeName, StringComparison.OrdinalIgnoreCase))
+                                tray.DeleteSubKeyTree(id, false);
+                        }
+                }
+            }
+            catch { }
             try { if (File.Exists(ShortcutPath)) File.Delete(ShortcutPath); } catch { }
             try { if (File.Exists(DesktopShortcutPath)) File.Delete(DesktopShortcutPath); } catch { }
+        }
+
+        static void DeleteValue(string key, string name)
+        {
+            try
+            {
+                using (var k = Registry.CurrentUser.OpenSubKey(key, true))
+                    if (k?.GetValue(name) != null) k.DeleteValue(name);
+            }
+            catch { }
         }
     }
 }
