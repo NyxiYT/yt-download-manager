@@ -1,8 +1,8 @@
 name: Packages
 
 # Brings a published release to the package managers: installs and removes it through Scoop to check the
-# manifest, commits the manifest to bucket/, and, with the WINGET_TOKEN secret (a GitHub token with the
-# public_repo scope), opens the pull request to microsoft/winget-pkgs. The release workflow starts it; it
+# manifest, commits the manifest to bucket/, and, with the WINGET_TOKEN secret (a classic GitHub token with
+# the public_repo scope; fine-grained tokens don't work), opens the pull request to microsoft/winget-pkgs. The release workflow starts it; it
 # can also be started by hand for any published version.
 on:
   workflow_dispatch:
@@ -77,8 +77,8 @@ jobs:
         if: steps.winget.outputs.ok == '1'
         shell: pwsh
         env:
-          WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+          WINGET_CREATE_GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }} # read by wingetcreate, so it never appears in a command line
         run: |
           Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe -UseBasicParsing
-          ./wingetcreate.exe submit --token $env:WINGET_TOKEN --prtitle "New version: NyxiYT.YTDownloadManager version $env:VERSION" "packages/winget/$env:VERSION"
+          ./wingetcreate.exe submit --prtitle "New version: NyxiYT.YTDownloadManager version $env:VERSION" "packages/winget/$env:VERSION"
           if ($LASTEXITCODE) { throw "wingetcreate failed ($LASTEXITCODE)" }
