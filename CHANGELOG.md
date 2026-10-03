@@ -3,6 +3,19 @@
 All notable changes to YT Download Manager are listed here. Versions follow
 [semantic versioning](https://semver.org): `MAJOR.MINOR.PATCH`.
 
+## [1.10.0] - 2026-10-04
+
+### New
+
+- The app speaks the same ten languages as the extension: English, German, Spanish, French, Italian,
+  Portuguese, Polish, Russian, Japanese and Chinese. Its window has a language choice; **Automatic** follows
+  Windows.
+- A new look for the app window: each part on its own rounded card, the browser connection as a colored
+  badge, a Windows 11 style switch and a dropdown in the window's own colors. The tray menu follows light or
+  dark mode as well, with rounded corners on Windows 11.
+- Extension options: the language dropdown uses the page's colors, with its own arrow and more room on the
+  right. The connection to the app shows as a badge, with the app's version next to it.
+
 ## [1.9.0] - 2026-10-03
 
 ### New
