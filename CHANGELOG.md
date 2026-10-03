@@ -3,6 +3,26 @@
 All notable changes to YT Download Manager are listed here. Versions follow
 [semantic versioning](https://semver.org): `MAJOR.MINOR.PATCH`.
 
+## [1.9.0] - 2026-10-03
+
+### New
+
+- The app updates itself. It asks GitHub for a new release at most every 12 hours; when nothing changed, GitHub
+  answers without any content. A new version shows up as a notification, at the top of the tray menu and in the
+  app window. One click downloads it, checks it against the release's checksums, installs it and restarts the
+  app. Settings and the download queue stay.
+- The browser extension updates itself with the app: when the app brings a newer copy, the extension reloads
+  itself once no YouTube tab is open. No more reload button in `chrome://extensions`.
+- Install with Scoop: `scoop bucket add nyxiyt https://github.com/NyxiYT/yt-download-manager`, then
+  `scoop install nyxiyt/yt-download-manager`. Every release updates the Scoop manifest and prepares the winget
+  manifests.
+- `YTDownloadManager-Setup-x64.exe --quiet --start` starts the app after a quiet install (`--open` opens its window).
+
+### Fixed
+
+- When the app was restarted while a program it had started was still running, it could come back on another
+  port, and the browser lost the connection to it. Programs the app starts no longer hold on to its port.
+
 ## [1.8.0] - 2026-10-02
 
 ### New
