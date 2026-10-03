@@ -1,8 +1,8 @@
 # Writes the package manager manifests for one release from its two installers:
 #   packages/winget/<version>/*.yaml        the three winget manifests (submitted to microsoft/winget-pkgs)
 #   packages/scoop/yt-download-manager.json the Scoop manifest (copied into bucket/ of this repository)
-# The installers are hashed where they are (dist/ after a build) or, with -FromRelease, downloaded from
-# the published release.
+# The installers' hashes come from dist/ after a build or, with -FromRelease, from the published release's
+# SHA256SUMS.txt.
 param(
   [Parameter(Mandatory)][string]$Version,
   [string]$Dist = 'dist',
@@ -15,12 +15,18 @@ $id = 'NyxiYT.YTDownloadManager'
 $base = "$repo/releases/download/v$Version"
 $schema = '1.10.0'
 
+if ($FromRelease) {
+  $tmp = Join-Path ([IO.Path]::GetTempPath()) 'ytdm-SHA256SUMS.txt'
+  Invoke-WebRequest "$base/SHA256SUMS.txt" -OutFile $tmp -UseBasicParsing
+  $sums = Get-Content $tmp -Raw
+  Remove-Item $tmp
+}
 function Get-Sha([string]$arch) {
   $name = "YTDownloadManager-Setup-$arch.exe"
   if ($FromRelease) {
-    $tmp = Join-Path ([IO.Path]::GetTempPath()) $name
-    Invoke-WebRequest "$base/$name" -OutFile $tmp -UseBasicParsing
-    try { return (Get-FileHash -Algorithm SHA256 $tmp).Hash } finally { Remove-Item $tmp }
+    $m = [regex]::Match($sums, "(?im)^([0-9a-f]{64})\s+\*?$([regex]::Escape($name))\s*$")
+    if (-not $m.Success) { throw "SHA256SUMS.txt of v$Version has no $name" }
+    return $m.Groups[1].Value.ToUpper()
   }
   (Get-FileHash -Algorithm SHA256 (Join-Path $Dist $name)).Hash
 }

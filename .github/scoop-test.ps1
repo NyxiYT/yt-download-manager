@@ -11,7 +11,7 @@ if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
   $env:PATH = "$env:USERPROFILE\scoop\shims;$env:PATH"
 }
 
-scoop install $Manifest
+scoop install (Resolve-Path $Manifest).Path # a full path: "dir/file.json" would be read as bucket/app
 if ($LASTEXITCODE) { throw "scoop install failed ($LASTEXITCODE)" }
 if (-not (Test-Path $exe)) { throw 'Scoop ran the installer, but the app is not installed' }
 $have = ([Version](Get-Item $exe).VersionInfo.FileVersion).ToString(3)

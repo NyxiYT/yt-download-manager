@@ -1,0 +1,84 @@
+name: Packages
+
+# Brings a published release to the package managers: installs and removes it through Scoop to check the
+# manifest, commits the manifest to bucket/, and, with the WINGET_TOKEN secret (a GitHub token with the
+# public_repo scope), opens the pull request to microsoft/winget-pkgs. The release workflow starts it; it
+# can also be started by hand for any published version.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: A published version, like 1.9.0
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  scoop-test:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Manifests
+        shell: pwsh
+        run: |
+          if ($env:VERSION -notmatch '^\d+\.\d+\.\d+$') { throw "Not a version: $env:VERSION" }
+          ./.github/packages.ps1 -Version $env:VERSION -FromRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: packages
+      # No token in this job: Scoop's installer script comes from the internet.
+      - name: Install and uninstall through Scoop
+        shell: pwsh
+        run: ./.github/scoop-test.ps1 -Manifest packages/scoop/yt-download-manager.json
+
+  publish:
+    needs: scoop-test
+    runs-on: windows-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: packages
+      - name: Update the Scoop bucket
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force bucket | Out-Null
+          Copy-Item packages/scoop/yt-download-manager.json bucket/yt-download-manager.json
+          git add bucket/yt-download-manager.json
+          git diff --cached --quiet
+          if (-not $LASTEXITCODE) { 'The bucket already has this version'; exit 0 }
+          git -c user.name=NyxiYT -c user.email=225954479+NyxiYT@users.noreply.github.com commit -m "chore: Scoop manifest $env:VERSION"
+          git push origin main
+          if ($LASTEXITCODE) { throw 'push failed' }
+      - name: Check for the winget token
+        id: winget
+        shell: pwsh
+        env:
+          T: ${{ secrets.WINGET_TOKEN }}
+        run: |
+          if ($env:T) { 'ok=1' | Out-File -Append -Encoding utf8 $env:GITHUB_OUTPUT }
+          else { 'No WINGET_TOKEN secret, so no winget pull request. The manifests are in the "packages" artifact.' }
+      - name: Submit to winget
+        if: steps.winget.outputs.ok == '1'
+        shell: pwsh
+        env:
+          WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+        run: |
+          Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe -UseBasicParsing
+          ./wingetcreate.exe submit --token $env:WINGET_TOKEN --prtitle "New version: NyxiYT.YTDownloadManager version $env:VERSION" "packages/winget/$env:VERSION"
+          if ($LASTEXITCODE) { throw "wingetcreate failed ($LASTEXITCODE)" }
