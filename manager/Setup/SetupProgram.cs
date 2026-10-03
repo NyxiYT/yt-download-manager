@@ -13,8 +13,9 @@ namespace YTDM
 {
     // YTDownloadManager-Setup.exe: the only file needed. It carries the app, the browser extension and
     // the tools the app uses (yt-dlp, FFmpeg, Deno or Node.js). One window: Install, Installing, Ready, Open;
-    // on a PC that has the app: Update or Repair, and Uninstall. "--quiet" installs without any window,
-    // "--uninstall --quiet" removes the app without any window.
+    // on a PC that has the app: Update or Repair, and Uninstall. "--quiet" installs without any window
+    // (then "--start" starts the app in the tray and "--open" opens its window; the app's own updates use
+    // these), "--uninstall --quiet" removes the app without any window.
     static class SetupProgram
     {
         [STAThread]
@@ -34,7 +35,12 @@ namespace YTDM
                 try
                 {
                     if (a.Contains("--uninstall")) Task.Run(() => bundle.Remove()).GetAwaiter().GetResult();
-                    else Task.Run(() => bundle.Run(p => { }, CancellationToken.None)).GetAwaiter().GetResult();
+                    else
+                    {
+                        Task.Run(() => bundle.Run(p => { }, CancellationToken.None)).GetAwaiter().GetResult();
+                        if (a.Contains("--open") || a.Contains("--start"))
+                            Process.Start(new ProcessStartInfo(BundleInstaller.Exe, a.Contains("--open") ? "" : "--background") { UseShellExecute = false, WorkingDirectory = Paths.InstallDir });
+                    }
                     return 0;
                 }
                 catch (Exception e)

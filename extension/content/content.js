@@ -2311,6 +2311,7 @@ onmessage = async ({ data: m }) => {
       if (r.app !== 'ytdm') throw new Error('not the Download Manager');
       if (DM.token && !r.paired) dmForget(); // the app was reset or reinstalled: connect again
       DM.state = r.paired ? 'ready' : 'unpaired';
+      extensionOnDisk(r.extension);
       if (!DM.token && AUTO_CONNECT && settings.useManager !== false) await dmAutoPair();
       else if (r.pairing && !DM.token) dmPair(); // its setup (or "Connect a browser") is waiting for this page
       return true;
@@ -3821,6 +3822,14 @@ onmessage = async ({ data: m }) => {
   // follows the pointer in the video's shape there as well; it is told the window's shape and limits.
   function pipNative(info) {
     return send({ type: 'pipNative', info }).then((r) => !!r?.ok, () => null);
+  }
+
+  // The version of the browser extension the app keeps next to itself: the extension build reloads itself
+  // when that copy is newer. Nothing to do for the userscript (its manager updates it).
+  function extensionOnDisk(version) {
+    if (!version || version === extensionOnDisk.seen) return;
+    extensionOnDisk.seen = version;
+    send({ type: 'extOnDisk', version }).catch(() => {});
   }
 
   // Big enough for its controls (Chrome's smallest is 240 wide inside), within Chrome's limits (80 % of the

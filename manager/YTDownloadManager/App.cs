@@ -27,7 +27,8 @@ namespace YTDM
         public readonly ApiServer Api = new ApiServer();
         readonly Control ui = new Control();
         readonly NotifyIcon tray = new NotifyIcon();
-        ToolStripMenuItem keepItem;
+        ToolStripMenuItem keepItem, updateItem;
+        Action balloonClick;
         readonly System.Windows.Forms.Timer idleTimer = new System.Windows.Forms.Timer { Interval = 15000 };
         readonly DateTime started = DateTime.UtcNow;
         readonly SemaphoreSlim pairLock = new SemaphoreSlim(1, 1);
@@ -54,9 +55,58 @@ namespace YTDM
             if (!background) ShowHome();
             if (!Components.Ready) PrepareComponents();
 
-            idleTimer.Tick += (s, e) => CheckIdle();
+            idleTimer.Tick += (s, e) =>
+            {
+                CheckIdle();
+                AppUpdate.Tick();
+            };
             idleTimer.Start();
             ScheduleUpdateCheck();
+            AppUpdate.Changed += () => Post(UpdateChanged);
+            UpdateChanged();
+            SayUpdated();
+        }
+
+        // ---------- app updates ----------
+
+        // A newer version: an item at the top of the tray menu, a line in the window, and once per version
+        // a notification that updates when clicked.
+        void UpdateChanged()
+        {
+            if (exiting) return;
+            var v = AppUpdate.Available;
+            updateItem.Text = v == null ? "" : S.T("UpdMenu", v);
+            updateItem.Visible = v != null;
+            updateItem.Enabled = !AppUpdate.Busy;
+            home?.RefreshState();
+            if (v != null && !AppUpdate.Busy && Settings.Current.Update.Notified != v)
+            {
+                Settings.Current.Update.Notified = v;
+                Settings.Current.Save();
+                Balloon(S.T("UpdTitle"), S.T("UpdText", v), ToolTipIcon.Info, () => InstallUpdate(true));
+            }
+        }
+
+        public void InstallUpdate(bool open)
+        {
+            if (open) ShowHome();
+            _ = AppUpdate.Install(open || (home != null && home.Visible));
+        }
+
+        // The first start of a new version says so once (not after a fresh install).
+        void SayUpdated()
+        {
+            var last = Settings.Current.RanVersion;
+            if (last == Version) return;
+            Settings.Current.RanVersion = Version;
+            Settings.Current.Save();
+            if (!string.IsNullOrEmpty(last) && AppUpdate.Newer(Version, last)) Balloon(S.T("UpdDoneTitle"), S.T("UpdDoneText", Version), ToolTipIcon.Info, null);
+        }
+
+        void Balloon(string title, string text, ToolTipIcon icon, Action click)
+        {
+            balloonClick = click;
+            tray.ShowBalloonTip(10000, title, text, icon);
         }
 
         // Tools the app needs but doesn't have (only when it wasn't installed with the setup program)
@@ -147,6 +197,9 @@ namespace YTDM
         void BuildTray()
         {
             var menu = new ContextMenuStrip { Font = Ui.Body };
+            updateItem = new ToolStripMenuItem("") { Visible = false, Font = new System.Drawing.Font(Ui.Body, System.Drawing.FontStyle.Bold) };
+            updateItem.Click += (s, e) => InstallUpdate(true);
+            menu.Items.Add(updateItem);
             menu.Items.Add(S.T("MnOpen"), null, (s, e) => ShowHome());
             menu.Items.Add(S.T("MnOpenFolder"), null, (s, e) => OpenFolder());
             menu.Items.Add(S.T("MnChangeFolder"), null, async (s, e) => await ChooseFolder());
@@ -158,7 +211,7 @@ namespace YTDM
             tray.ContextMenuStrip = menu;
             tray.Icon = Ui.AppIcon(SystemInformation.SmallIconSize.Width);
             tray.DoubleClick += (s, e) => ShowHome();
-            tray.BalloonTipClicked += async (s, e) => await ChooseFolder();
+            tray.BalloonTipClicked += (s, e) => balloonClick?.Invoke();
             UpdateTray();
             tray.Visible = true;
         }
@@ -188,7 +241,7 @@ namespace YTDM
             {
                 if (DateTime.UtcNow - lastFolderWarning < TimeSpan.FromMinutes(10)) return;
                 lastFolderWarning = DateTime.UtcNow;
-                tray.ShowBalloonTip(10000, S.T("FolderGoneTitle"), S.T("FolderGoneText", folder), ToolTipIcon.Warning);
+                Balloon(S.T("FolderGoneTitle"), S.T("FolderGoneText", folder), ToolTipIcon.Warning, () => _ = ChooseFolder());
             });
         }
 

@@ -17,6 +17,16 @@ namespace YTDM
         public List<string> Tokens = new List<string>();
         // Advanced overrides, only settable in the file: full paths to specific tools.
         public string YtDlpPath, FfmpegDir, JsRuntime;
+        public bool CheckUpdates = true; // only settable in the file
+        public UpdateInfo Update = new UpdateInfo();
+        public string RanVersion; // the version that ran last, to say "updated" once
+
+        // The newest release GitHub reported (see AppUpdate).
+        public sealed class UpdateInfo
+        {
+            public string Etag, Version, Url, Sha256, SumsUrl, Notified;
+            public long Size, Checked;
+        }
 
         static readonly object L = new object();
         public static Settings Current { get; private set; } = new Settings();
@@ -39,6 +49,15 @@ namespace YTDM
                     s.YtDlpPath = d.Str("ytDlpPath");
                     s.FfmpegDir = d.Str("ffmpegDir");
                     s.JsRuntime = d.Str("jsRuntime");
+                    s.CheckUpdates = !(d.Get("checkUpdates") is bool cu) || cu;
+                    s.RanVersion = d.Str("ranVersion");
+                    var u = d.Obj("update");
+                    if (u != null)
+                        s.Update = new UpdateInfo
+                        {
+                            Etag = u.Str("etag"), Version = u.Str("version"), Url = u.Str("url"), Sha256 = u.Str("sha256"),
+                            SumsUrl = u.Str("sums"), Notified = u.Str("notified"), Size = u.Long("size"), Checked = u.Long("checked"),
+                        };
                 }
             }
             catch (Exception e) { Log.Error("settings load", e); }
@@ -63,7 +82,14 @@ namespace YTDM
                         ["linkVariant"] = LinkVariant,
                         ["lang"] = Lang,
                         ["tokens"] = Tokens.ToArray(),
+                        ["ranVersion"] = RanVersion,
+                        ["update"] = new Dictionary<string, object>
+                        {
+                            ["etag"] = Update.Etag, ["version"] = Update.Version, ["url"] = Update.Url, ["sha256"] = Update.Sha256,
+                            ["sums"] = Update.SumsUrl, ["notified"] = Update.Notified, ["size"] = Update.Size, ["checked"] = Update.Checked,
+                        },
                     };
+                    if (!CheckUpdates) d["checkUpdates"] = false;
                     if (YtDlpPath != null) d["ytDlpPath"] = YtDlpPath;
                     if (FfmpegDir != null) d["ffmpegDir"] = FfmpegDir;
                     if (JsRuntime != null) d["jsRuntime"] = JsRuntime;

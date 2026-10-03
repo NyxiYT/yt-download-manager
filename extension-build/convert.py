@@ -305,6 +305,10 @@ body = b + ("  function pipWindowBounds(match, to, animate) {" + NL +
 b, block, a = cut(body, "  function pipNative(info) {", NL + "  }" + NL)
 body = b + ("  function pipNative(info) {" + NL +
             "    return send({ type: 'pipNative', info }).then((r) => !!r?.ok, () => null);" + NL + "  }" + NL) + a
+b, block, a = cut(body, "  function extensionOnDisk(version) {}" + NL, "")
+body = b + ("  function extensionOnDisk(version) {" + NL +
+            "    if (!version || version === extensionOnDisk.seen) return;" + NL + "    extensionOnDisk.seen = version;" + NL +
+            "    send({ type: 'extOnDisk', version }).catch(() => {});" + NL + "  }" + NL) + a
 b, block, a = cut(body, "  function openShort(vid) {", NL + "  }" + NL)
 body = b + "  function openShort(vid) {" + NL + "    page('openShort', vid);" + NL + "  }" + NL + a
 b, block, a = cut(body, "  let mediaKeysHooked = false;" + NL, NL + "  }" + NL + NL)

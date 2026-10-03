@@ -13,6 +13,24 @@ namespace YTDM
     {
         public static bool Available => Directory.Exists(Paths.ExtensionDir) && File.Exists(Path.Combine(Paths.ExtensionDir, "manifest.json"));
 
+        // The version of the extension copy next to the app. A browser that loaded it from there reloads it
+        // by itself when this is newer than the version it runs (see the extension's service worker).
+        static (DateTime at, string v) version;
+        public static string Version
+        {
+            get
+            {
+                try
+                {
+                    var f = Path.Combine(Paths.ExtensionDir, "manifest.json");
+                    var at = File.GetLastWriteTimeUtc(f);
+                    if (at != version.at) version = (at, File.Exists(f) ? Json.ParseObj(File.ReadAllText(f)).Str("version") : null);
+                    return version.v;
+                }
+                catch { return null; }
+            }
+        }
+
         public static void CopyPath()
         {
             try { Clipboard.SetText(Paths.ExtensionDir); }

@@ -10,9 +10,10 @@ namespace YTDM
     sealed class HomeForm : Form
     {
         readonly App app;
-        readonly Label state, folderPath, browserState, addHint;
-        readonly SlimBar prep;
-        readonly Button add, retry;
+        readonly Label state, folderPath, browserState, addHint, updText;
+        readonly SlimBar prep, updBar;
+        readonly Button add, retry, updButton;
+        readonly TableLayoutPanel updCard;
         readonly CheckBox startup;
         bool updating;
 
@@ -42,6 +43,25 @@ namespace YTDM
             state = new Label { AutoSize = true, MaximumSize = new Size(w - Ui.S(60), 0), ForeColor = Ui.Text2, Margin = new Padding(Ui.S(2), Ui.S(2), 0, 0), UseMnemonic = false };
             head.Controls.Add(state, 1, 1);
             flow.Controls.Add(head);
+
+            // A newer version: which one, and one button that installs it.
+            updCard = new TableLayoutPanel
+            {
+                ColumnCount = 2, AutoSize = true, MinimumSize = new Size(w, 0), MaximumSize = new Size(w, 0), BackColor = Ui.Card,
+                Padding = new Padding(Ui.S(12), Ui.S(10), Ui.S(10), Ui.S(10)), Margin = new Padding(0, 0, 0, Ui.S(16)), Visible = false,
+            };
+            updCard.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            updCard.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            updText = new Label { AutoSize = true, MaximumSize = new Size(w - Ui.S(150), 0), ForeColor = Ui.Text, Anchor = AnchorStyles.Left, Margin = new Padding(0), UseMnemonic = false };
+            updButton = Ui.Button(S.T("UpdNow"), (s, e) => app.InstallUpdate(true), true);
+            updButton.Anchor = AnchorStyles.Right;
+            updButton.Margin = new Padding(Ui.S(8), 0, 0, 0);
+            updBar = new SlimBar { Anchor = AnchorStyles.Left | AnchorStyles.Right, Margin = new Padding(0, Ui.S(10), 0, 0), Visible = false };
+            updCard.Controls.Add(updText, 0, 0);
+            updCard.Controls.Add(updButton, 1, 0);
+            updCard.Controls.Add(updBar, 0, 1);
+            updCard.SetColumnSpan(updBar, 2);
+            flow.Controls.Add(updCard);
 
             prep = new SlimBar { Width = w, Margin = new Padding(0, 0, 0, Ui.S(14)), Visible = false };
             flow.Controls.Add(prep);
@@ -139,6 +159,19 @@ namespace YTDM
             prep.Visible = app.Preparing;
             prep.Value = app.PrepareProgress;
             retry.Visible = app.PrepareFailed && !app.Preparing;
+
+            var v = AppUpdate.Available;
+            updCard.Visible = v != null;
+            if (v != null)
+            {
+                bool busy = AppUpdate.Busy, failed = AppUpdate.Failed && !busy;
+                updText.Text = busy ? S.T("UpdLoading", v) : failed ? S.T("UpdFailed") : S.T("UpdAvail", v);
+                updText.ForeColor = failed ? Ui.Bad : Ui.Text;
+                updButton.Text = failed ? S.T("TryAgain") : S.T("UpdNow");
+                updButton.Visible = !busy;
+                updBar.Visible = busy;
+                updBar.Value = AppUpdate.Progress;
+            }
 
             var st = app.FolderState();
             folderPath.Text = Settings.Current.Folder + (st == "ok" ? "" : "\n" + S.T(st == "missing" ? "FolderMissing" : "FolderReadonly"));

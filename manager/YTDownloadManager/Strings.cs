@@ -69,6 +69,16 @@ namespace YTDM
             ["FolderGoneTitle"] = "Download folder not available",
             ["FolderGoneText"] = "{0} isn't available. Downloads wait until it's back.",
 
+            ["UpdAvail"] = "Version {0} is available.",
+            ["UpdNow"] = "Update",
+            ["UpdMenu"] = "Update to version {0}",
+            ["UpdLoading"] = "Downloading version {0}…",
+            ["UpdFailed"] = "The update couldn't be downloaded.",
+            ["UpdTitle"] = "Update available",
+            ["UpdText"] = "Version {0} of YT Download Manager is ready. Click here to update.",
+            ["UpdDoneTitle"] = "Updated",
+            ["UpdDoneText"] = "YT Download Manager is now on version {0}.",
+
             ["UnAsk"] = "Remove YT Download Manager?\n\nYour downloaded files stay where they are.",
             ["UnDone"] = "YT Download Manager was removed.",
         };
@@ -133,6 +143,16 @@ namespace YTDM
             ["FolderBad"] = "Dieser Ordner kann nicht verwendet werden. Wähle einen anderen.",
             ["FolderGoneTitle"] = "Download-Ordner nicht verfügbar",
             ["FolderGoneText"] = "{0} ist nicht verfügbar. Downloads warten, bis er wieder da ist.",
+
+            ["UpdAvail"] = "Version {0} ist verfügbar.",
+            ["UpdNow"] = "Aktualisieren",
+            ["UpdMenu"] = "Auf Version {0} aktualisieren",
+            ["UpdLoading"] = "Version {0} wird heruntergeladen…",
+            ["UpdFailed"] = "Das Update konnte nicht heruntergeladen werden.",
+            ["UpdTitle"] = "Update verfügbar",
+            ["UpdText"] = "Version {0} von YT Download Manager ist bereit. Klicke hier zum Aktualisieren.",
+            ["UpdDoneTitle"] = "Aktualisiert",
+            ["UpdDoneText"] = "YT Download Manager ist jetzt auf Version {0}.",
 
             ["UnAsk"] = "YT Download Manager entfernen?\n\nDeine heruntergeladenen Dateien bleiben erhalten.",
             ["UnDone"] = "YT Download Manager wurde entfernt.",

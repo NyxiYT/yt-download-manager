@@ -66,6 +66,9 @@ namespace YTDM
                     var l = new TcpListener(IPAddress.Loopback, p);
                     l.Server.ExclusiveAddressUse = true;
                     l.Start(64);
+                    // Programs this app starts (the tools, the installer of an update) would otherwise inherit
+                    // the socket and keep the port taken after this app has closed.
+                    SetHandleInformation(l.Server.Handle, 1, 0);
                     listener = l;
                     Port = p;
                     Log.Info("api listening on 127.0.0.1:" + p);
@@ -77,6 +80,9 @@ namespace YTDM
             Log.Error("api: no free port");
             return false;
         }
+
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+        static extern bool SetHandleInformation(IntPtr handle, int mask, int flags);
 
         public void Stop()
         {
@@ -318,6 +324,7 @@ namespace YTDM
                 {
                     ["app"] = "ytdm", ["version"] = App.Version, ["api"] = 1, ["port"] = Port,
                     ["paired"] = Authed(r), ["pairing"] = false,
+                    ["extension"] = ExtensionHelp.Version,
                 });
             }
             if (r.Method == "POST" && r.Path == "/v1/pair")

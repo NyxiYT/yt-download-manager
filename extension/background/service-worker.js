@@ -40,6 +40,9 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
     case 'pipNative':
       pipNative(msg.info, sender).then(reply, () => reply({ ok: false }));
       return true;
+    case 'extOnDisk':
+      extOnDisk(msg.version);
+      return false;
     default:
       return false;
   }
@@ -154,6 +157,7 @@ async function dmStatus() {
       headers: dmToken ? { 'X-YDM-Token': dmToken } : {}, cache: 'no-store', signal: AbortSignal.timeout(3000),
     });
     const j = await r.json();
+    if (j.app === 'ytdm') extOnDisk(j.extension);
     return { running: j.app === 'ytdm', paired: !!j.paired, token: !!dmToken, version: j.version };
   } catch {
     return { running: false, paired: false, token: !!dmToken };
@@ -172,6 +176,7 @@ async function dmAutoConnect() {
       headers: dmToken ? { 'X-YDM-Token': dmToken } : {}, cache: 'no-store', signal: AbortSignal.timeout(3000),
     })).json();
     if (hello.app !== 'ytdm') return { ok: false };
+    extOnDisk(hello.extension);
     if (hello.paired) return { ok: true };
     const r = await fetch(`http://127.0.0.1:${dmPort}/v1/pair`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', signal: AbortSignal.timeout(10000),
@@ -226,6 +231,44 @@ function browserName() {
 
 chrome.runtime.onInstalled.addListener(() => { dmAutoConnect(); });
 chrome.runtime.onStartup.addListener(() => { dmAutoConnect(); });
+
+// Updates. The app's installer replaces the extension folder next to the app, the one the browser loaded
+// with "Load unpacked"; the browser reads it again only on a reload. The app tells its copy's version (in
+// /v1/hello), and when that is newer this extension reloads itself, once per version: right away when no
+// YouTube tab is running, otherwise when the last one closes or leaves YouTube (a reload cuts the toolbar
+// off in open tabs until they are refreshed). Installs from a store or a packed file are left alone.
+const newerVersion = (a, b) => {
+  const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0);
+  return false;
+};
+
+async function extOnDisk(version) {
+  try {
+    if (!/^\d+(\.\d+){1,3}$/.test(String(version || ''))) return;
+    const { extPending = '', extReloaded = '' } = await chrome.storage.local.get(['extPending', 'extReloaded']);
+    if (!newerVersion(version, chrome.runtime.getManifest().version) || extReloaded === version) {
+      if (extPending) await chrome.storage.local.remove('extPending');
+      return; // up to date, or this browser loads the extension from another folder (a reload changed nothing)
+    }
+    if ((await chrome.management.getSelf()).installType !== 'development') return;
+    if (extPending !== version) await chrome.storage.local.set({ extPending: version });
+    await reloadWhenIdle();
+  } catch { /* checked again next time */ }
+}
+
+async function reloadWhenIdle() {
+  const { extPending = '' } = await chrome.storage.local.get('extPending');
+  if (!extPending) return;
+  const tabs = await chrome.tabs.query({ url: 'https://www.youtube.com/*' });
+  if (tabs.some((t) => !t.discarded && t.status !== 'unloaded')) return;
+  await chrome.storage.local.set({ extReloaded: extPending });
+  await chrome.storage.local.remove('extPending');
+  chrome.runtime.reload();
+}
+
+chrome.tabs.onRemoved.addListener(() => { reloadWhenIdle().catch(() => {}); });
+chrome.tabs.onUpdated.addListener((id, change) => { if (change.url || change.discarded) reloadWhenIdle().catch(() => {}); });
 
 // Clears the finished downloads the app lists (options page "Clear"). Does nothing if it isn't running.
 async function dmClear() {
