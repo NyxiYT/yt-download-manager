@@ -18,6 +18,7 @@
     <AssemblyTitle>YT Download Manager Setup</AssemblyTitle>
     <Company>YT Download Manager</Company>
     <Description>Installs YT Download Manager with everything it needs</Description>
+    <Copyright>Copyright (c) 2026 NyxiYT</Copyright>
     <DebugType>embedded</DebugType>
     <NoWarn>CS1591;CS0649;CS0169</NoWarn>
   </PropertyGroup>

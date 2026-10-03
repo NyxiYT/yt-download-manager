@@ -16,8 +16,8 @@
     <Product>YT Download Manager</Product>
     <AssemblyTitle>YT Download Manager</AssemblyTitle>
     <Company>YT Download Manager</Company>
-    <Description>Local download manager for the YT Standalone Downloader userscript</Description>
-    <Copyright>Local build</Copyright>
+    <Description>Downloads YouTube videos for the YT Standalone Downloader browser extension</Description>
+    <Copyright>Copyright (c) 2026 NyxiYT</Copyright>
     <DebugType>embedded</DebugType>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <NoWarn>CS1591;CS0649;CS0169</NoWarn>

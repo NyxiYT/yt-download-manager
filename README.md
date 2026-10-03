@@ -43,6 +43,8 @@ YT Download Manager has two parts that work together:
 - [Feedback](#feedback)
 - [Support the project](#support-the-project)
 - [Contributing](#contributing)
+- [Code signing policy](#code-signing-policy)
+- [Privacy](PRIVACY.md)
 - [Legal note](#legal-note)
 - [License](#license)
 
@@ -340,7 +342,8 @@ It is free and open source. There are no ads, no accounts and no tracking. The e
 YouTube, to the app on your own PC, and to jsDelivr (a public file host) to fetch FFmpeg if the browser
 has to convert a file itself. The app asks GitHub for a new version at most every 12 hours. That request
 carries nothing about you or your PC. To turn it off, close the app and add `"checkUpdates": false` to
-`%LOCALAPPDATA%\YT Download Manager\settings.json`.
+`%LOCALAPPDATA%\YT Download Manager\settings.json`. Every connection is listed in the
+[privacy policy](PRIVACY.md).
 
 ## Troubleshooting
 
@@ -388,6 +391,27 @@ bc1qwvn59c0yrhc9xwd9x9hrgwm4exe84xx0tdazdv
 Bug fixes, translations and ideas are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) explains how to set up,
 build and test the project, and how to send a fix. Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 To report a security problem, see [SECURITY.md](SECURITY.md).
+
+## Code signing policy
+
+**Status:** applied for. Until it is approved, the installers are not signed; you can check them against
+[SHA256SUMS.txt](https://github.com/NyxiYT/yt-download-manager/releases/latest/download/SHA256SUMS.txt).
+
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by
+[SignPath Foundation](https://signpath.org).
+
+- **What is signed:** the installers (`YTDownloadManager-Setup-x64.exe`, `YTDownloadManager-Setup-x86.exe`) and
+  the app inside them (`YTDownloadManager.exe`). The tools the installers carry (yt-dlp, FFmpeg, Deno, Node.js)
+  are other projects' programs and are not signed by this project.
+- **How:** only files built by this repository's public [release workflow](.github/workflows/release.yml) on
+  GitHub Actions, from a version tag, are sent for signing. Nothing built on anyone's own PC is signed.
+- **Team roles:**
+  - Committers and reviewers: [NyxiYT](https://github.com/NyxiYT)
+  - Approvers: [NyxiYT](https://github.com/NyxiYT)
+
+  Changes from other people are merged only after a committer has reviewed them. Every signing request is
+  approved by an approver. Team members use two-factor authentication for GitHub and SignPath.
+- **Privacy:** see the [privacy policy](PRIVACY.md).
 
 ## Legal note
 
