@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "YT Standalone Downloader",
-  "version": "6.11.0",
+  "version": "6.12.0",
   "homepage_url": "https://github.com/NyxiYT/yt-download-manager",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtfNuS0LJPs/k/zsgIwyBLZD1NWHGpbhZ428oxpQL/U8WPKFhNi9+lo4zSUoSuWuVpTvWBloZ31RdHtBCAlbnT5gCpT9SioIxTXy4BalL1wF/Eg/znzojnMscTOBIMDlvb7ZwlE0vovWrOHrE55MbBzYhSa7Mqoc3uEHDU41iCKViRnfbvbIGaVotVXhB2wRbu16irwMG9fIQcr9pANyVjiHiR1qUNRMlCu4m+ZBhKLoZ3wsVhh4dnF4vwpPd28wanqKPbcsTH4BkWlxmeFh4a4qS77HK03+GXLTwCJzNqiSeqv6efL4CFPfa66/14dqLJ5KTty8xVqmp2VAwWx19bQIDAQAB",
   "description": "Download toolbar under YouTube videos: video up to 8K, MP3/M4A/Opus/WAV, thumbnails, subtitles and clips. Runs locally.",

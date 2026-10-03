@@ -9,6 +9,9 @@
   --accent: #065fd4;
   --track: rgba(0, 0, 0, .2);
   --ok: #188038;
+  --wait: #a35a00;
+  --field: #fff;
+  --field-hover: #f2f2f2;
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -23,6 +26,9 @@
     --accent: #3ea6ff;
     --track: rgba(255, 255, 255, .25);
     --ok: #4cc26a;
+    --wait: #f2b84b;
+    --field: #2a2a2a;
+    --field-hover: #333;
   }
 }
 
@@ -50,7 +56,7 @@ header p { margin: 2px 0 0; color: var(--text2); font-size: 13px; }
 
 .card {
   margin-bottom: 16px;
-  padding: 8px 20px 12px;
+  padding: 10px 24px 14px;
   border: 1px solid var(--divider);
   border-radius: 12px;
   background: var(--card);
@@ -74,18 +80,67 @@ h2 {
 .row[hidden] { display: none; }
 .hint { margin: 6px 0 8px; color: var(--text2); font-size: 13px; line-height: 19px; }
 .muted { color: var(--text2); }
-.state.ok { color: var(--ok); font-weight: 500; }
+/* Connection status: a dot and a word on a tinted pill. */
+.pill {
+  --c: var(--text2);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 12px 0 10px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--c) 14%, transparent);
+  color: var(--c);
+  font-weight: 500;
+}
+.pill::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent);
+}
+.pill.ok { --c: var(--ok); }
+.pill.wait { --c: var(--wait); }
+.pill span { display: inline-block; }
+.pill span::first-letter { text-transform: uppercase; }
 
-select {
-  min-width: 180px;
-  height: 34px;
-  padding: 0 10px;
+/* Dropdown in the page's colors, with its own chevron well inside the right edge. */
+.select { position: relative; display: inline-flex; flex: none; }
+.select select {
+  appearance: none;
+  min-width: 210px;
+  height: 36px;
+  margin: 0;
+  padding: 0 42px 0 14px;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--card);
+  border-radius: 10px;
+  background: var(--field);
   color: var(--text);
   font: inherit;
+  cursor: pointer;
+  transition: border-color .15s, background-color .15s;
 }
+.select select:hover { background: var(--field-hover); border-color: var(--text2); }
+.select select:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.select select option { background: var(--card); color: var(--text); }
+.select::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  width: 10px;
+  height: 6px;
+  margin-top: -3px;
+  background: var(--text2);
+  pointer-events: none;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  transition: background-color .15s;
+}
+.select:hover::after { background: var(--text); }
 .button {
   height: 34px;
   padding: 0 16px;
@@ -126,7 +181,7 @@ select {
 }
 .switch:checked { background: var(--accent); }
 .switch:checked::after { transform: translateX(16px); }
-.switch:focus-visible, select:focus-visible, .button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.switch:focus-visible, .button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .status {
   position: fixed;
@@ -143,5 +198,5 @@ select {
 }
 .status.show { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
-  .switch, .switch::after, .status { transition: none; }
+  .switch, .switch::after, .status, .select select, .select::after { transition: none; }
 }

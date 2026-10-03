@@ -52,9 +52,10 @@ function status(text) {
   async function showDm() {
     const dm = await chrome.runtime.sendMessage({ type: 'dmStatus' }).catch(() => null);
     const connected = !!dm?.token && settings.useManager !== false;
-    const state = $('dm-state');
-    state.textContent = !connected ? T('optDmNotConnected') : dm.running && dm.paired ? T('dmConnectedHint') : T('dmNotRunning');
-    state.classList.toggle('ok', connected && dm.running && dm.paired);
+    const ok = connected && dm.running && dm.paired;
+    $('dm-state-text').textContent = !connected ? T('optDmNotConnected') : ok ? T('dmConnectedHint') : T('dmNotRunning');
+    $('dm-state').className = `pill ${ok ? 'ok' : connected ? 'wait' : ''}`;
+    $('dm-version').textContent = dm?.running && dm.version ? `YT Download Manager ${dm.version}` : '';
   }
   $('dm-use').addEventListener('change', async (e) => {
     settings.useManager = e.target.checked;
