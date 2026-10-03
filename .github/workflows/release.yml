@@ -1,20 +1,26 @@
 name: Release
 
 # A version tag (v1.6.0) builds both installers, the extension zip and the userscript, installs each
-# installer on the runner to check that it works, and only then publishes the release.
+# installer on the runner to check that it works, and only then publishes the release. Then it updates the
+# package managers: the Scoop manifest in bucket/ (after a test install) and, with the WINGET_TOKEN secret,
+# a pull request to winget. Installed apps notice the new release on their own.
 on:
   push:
     tags: ["v*.*.*"]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   release:
     runs-on: windows-latest
     timeout-minutes: 60
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -76,3 +82,78 @@ jobs:
           gh release create '${{ github.ref_name }}' --verify-tag --title "YT Download Manager $env:VERSION" --notes-file notes.md `
             dist/YTDownloadManager-Setup-x64.exe dist/YTDownloadManager-Setup-x86.exe `
             dist/YTStandaloneDownloader-Extension.zip dist/yt-standalone-downloader.user.js dist/SHA256SUMS.txt
+
+      - name: Package manifests
+        shell: pwsh
+        run: ./.github/packages.ps1 -Version $env:VERSION
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: packages
+
+  # Installs the release through Scoop and removes it again, without any token (Scoop's own installer
+  # script comes from the internet).
+  scoop-test:
+    needs: release
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: packages
+      - name: Install and uninstall through Scoop
+        shell: pwsh
+        run: ./.github/scoop-test.ps1 -Manifest packages/scoop/yt-download-manager.json
+
+  packages:
+    needs: scoop-test
+    runs-on: windows-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: packages
+      - name: Update the Scoop bucket
+        shell: pwsh
+        run: |
+          $v = (Get-Content packages/scoop/yt-download-manager.json -Raw | ConvertFrom-Json).version
+          New-Item -ItemType Directory -Force bucket | Out-Null
+          Copy-Item packages/scoop/yt-download-manager.json bucket/yt-download-manager.json
+          git add bucket/yt-download-manager.json
+          git diff --cached --quiet
+          if (-not $LASTEXITCODE) { 'The bucket already has this version'; exit 0 }
+          git -c user.name=NyxiYT -c user.email=225954479+NyxiYT@users.noreply.github.com commit -m "chore: Scoop manifest $v"
+          git push origin main
+          if ($LASTEXITCODE) { throw 'push failed' }
+
+      # WINGET_TOKEN: a GitHub token with the public_repo scope, for the pull request to microsoft/winget-pkgs.
+      # Without it the manifests stay in the build's "packages" artifact.
+      - name: Check for the winget token
+        id: winget
+        shell: pwsh
+        env:
+          T: ${{ secrets.WINGET_TOKEN }}
+        run: |
+          if ($env:T) { 'ok=1' | Out-File -Append -Encoding utf8 $env:GITHUB_OUTPUT }
+          else { 'No WINGET_TOKEN secret, so no winget pull request' }
+      - name: Submit to winget
+        if: steps.winget.outputs.ok == '1'
+        shell: pwsh
+        env:
+          WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+        run: |
+          $v = (Get-Content packages/scoop/yt-download-manager.json -Raw | ConvertFrom-Json).version
+          Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe -UseBasicParsing
+          ./wingetcreate.exe submit --token $env:WINGET_TOKEN --prtitle "New version: NyxiYT.YTDownloadManager version $v" "packages/winget/$v"
+          if ($LASTEXITCODE) { throw "wingetcreate failed ($LASTEXITCODE)" }

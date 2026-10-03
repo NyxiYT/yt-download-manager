@@ -49,6 +49,9 @@ try {
   }
   if (-not $hello -or $hello.app -ne 'ytdm') { Show-Log; throw 'The app did not start or does not answer' }
   if ($env:VERSION -and $hello.version -ne $env:VERSION) { throw "The app reports version $($hello.version), expected $env:VERSION" }
+  # The extension reloads itself when this is newer than the version it runs.
+  $ext = (Get-Content (Join-Path $PSScriptRoot '..\extension\manifest.json') -Raw | ConvertFrom-Json).version
+  if ($hello.extension -ne $ext) { throw "The app reports extension $($hello.extension), the installer carries $ext" }
   $wow = $false
   [void][Smoke.K]::IsWow64Process($app.Handle, [ref]$wow)
   if ([Environment]::Is64BitOperatingSystem -and $wow -ne ($Arch -eq 'x86')) { throw "The app runs as the wrong kind of program (32-bit: $wow)" }
