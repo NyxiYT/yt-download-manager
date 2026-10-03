@@ -71,7 +71,8 @@ YT Download Manager has two parts that work together:
   for a moment so your video doesn't stutter.
 - **Runs quietly.** It starts with Windows and waits in the system tray (the small icons next to the clock).
 - **Light or dark.** The app and its installer follow your Windows setting for light or dark mode.
-- **Easy to update, repair or remove.** Open the installer again and pick **Update**, **Repair** or **Uninstall**.
+- **Updates itself.** When a new version is out, one click installs it. The browser extension follows on its own.
+- **Easy to repair or remove.** Open the installer again and pick **Repair** or **Uninstall**.
 - **Stays up to date with YouTube.** Its download engine (yt-dlp) updates itself about once a week.
 - **Connects by itself.** The extension finds the app on its own. There is nothing to set up.
 
@@ -153,6 +154,18 @@ That's it. From now on the app starts with Windows, and the extension connects t
 The steps are the same as for [Windows 64-bit](#windows-64-bit). The only difference is the file in step 1:
 download [YTDownloadManager-Setup-x86.exe](https://github.com/NyxiYT/yt-download-manager/releases/latest/download/YTDownloadManager-Setup-x86.exe)
 instead. The windows look exactly the same.
+
+### With Scoop
+
+If you use [Scoop](https://scoop.sh), open PowerShell and run:
+
+```powershell
+scoop bucket add nyxiyt https://github.com/NyxiYT/yt-download-manager
+scoop install nyxiyt/yt-download-manager
+```
+
+Scoop picks the 64-bit or 32-bit version for you. Then open **YT Download Manager** from the Start menu and
+continue with step 6 of the [Windows 64-bit](#windows-64-bit) guide to add the extension.
 
 ### Linux
 
@@ -270,14 +283,22 @@ next to a download in the download history, or open the app and click **Open** u
 
 ### How do I update?
 
-1. Download the newest installer from the [latest release](https://github.com/NyxiYT/yt-download-manager/releases/latest)
-   and open it. It sees the version you have and offers **Update**. Click it. Your settings stay.
+The app does it for you (version 1.9.0 and newer). When a new version is out, a notification says so. Click it,
+or click **Update** in the app window or at the top of the tray icon's menu. The app downloads the new version,
+installs it and starts again. Your settings and downloads stay. The browser extension updates itself as well,
+as soon as no YouTube tab is open.
 
-   ![The installer offering an update](docs/images/installer-update.png)
+You can also update by hand: download the newest installer from the
+[latest release](https://github.com/NyxiYT/yt-download-manager/releases/latest) and open it. It sees the version
+you have and offers **Update**.
 
-2. Open your browser's extensions page (`chrome://extensions`) and click the **reload** icon (the round arrow)
-   on the YT Standalone Downloader card.
-3. Refresh any open YouTube tabs (press **F5**).
+![The installer offering an update](docs/images/installer-update.png)
+
+**Coming from version 1.8.0 or older?** After this one update, open your browser's extensions page
+(`chrome://extensions`), click the **reload** icon (the round arrow) on the YT Standalone Downloader card and
+refresh your YouTube tabs. From then on the extension updates itself.
+
+Installed with Scoop? `scoop update yt-download-manager` works too.
 
 ### Something is broken. How do I repair the app?
 
@@ -317,7 +338,9 @@ Two things are up to you afterwards:
 
 It is free and open source. There are no ads, no accounts and no tracking. The extension talks only to
 YouTube, to the app on your own PC, and to jsDelivr (a public file host) to fetch FFmpeg if the browser
-has to convert a file itself.
+has to convert a file itself. The app asks GitHub for a new version at most every 12 hours. That request
+carries nothing about you or your PC. To turn it off, close the app and add `"checkUpdates": false` to
+`%LOCALAPPDATA%\YT Download Manager\settings.json`.
 
 ## Troubleshooting
 
