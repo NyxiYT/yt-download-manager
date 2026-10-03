@@ -196,8 +196,18 @@ namespace YTDM
 
         void BuildTray()
         {
-            var menu = new ContextMenuStrip { Font = Ui.Body };
-            updateItem = new ToolStripMenuItem("") { Visible = false, Font = new System.Drawing.Font(Ui.Body, System.Drawing.FontStyle.Bold) };
+            tray.ContextMenuStrip = BuildMenu();
+            tray.Icon = Ui.AppIcon(SystemInformation.SmallIconSize.Width);
+            tray.DoubleClick += (s, e) => ShowHome();
+            tray.BalloonTipClicked += (s, e) => balloonClick?.Invoke();
+            UpdateTray();
+            tray.Visible = true;
+        }
+
+        ContextMenuStrip BuildMenu()
+        {
+            var menu = Ui.Menu();
+            updateItem = new ToolStripMenuItem("") { Visible = false, Font = Ui.BodyBold };
             updateItem.Click += (s, e) => InstallUpdate(true);
             menu.Items.Add(updateItem);
             menu.Items.Add(S.T("MnOpen"), null, (s, e) => ShowHome());
@@ -208,12 +218,30 @@ namespace YTDM
             menu.Items.Add(keepItem);
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(S.T("MnExit"), null, (s, e) => ExitApp(true));
-            tray.ContextMenuStrip = menu;
-            tray.Icon = Ui.AppIcon(SystemInformation.SmallIconSize.Width);
-            tray.DoubleClick += (s, e) => ShowHome();
-            tray.BalloonTipClicked += (s, e) => balloonClick?.Invoke();
-            UpdateTray();
-            tray.Visible = true;
+            return menu;
+        }
+
+        // Another language for the app: the tray menu and the window are built again in it (the window
+        // stays where it was).
+        public void SetLanguage(string code)
+        {
+            Settings.Current.Lang = code;
+            Settings.Current.Save();
+            Log.Info("language: " + (code ?? "automatic"));
+            Post(() =>
+            {
+                var old = tray.ContextMenuStrip;
+                tray.ContextMenuStrip = BuildMenu();
+                old?.Dispose();
+                UpdateChanged();
+                UpdateTray();
+                if (home == null || home.IsDisposed) return;
+                var was = home;
+                var at = was.Location;
+                home = null;
+                ShowHome(false, at);
+                was.Close();
+            });
         }
 
         void UpdateTray()
@@ -252,17 +280,23 @@ namespace YTDM
         // never jumps in front of something the user is typing into.
         public void ShowHome() => ShowHome(false);
 
-        public void ShowHome(bool force)
+        public void ShowHome(bool force, System.Drawing.Point? at = null)
         {
             if (home != null && !home.IsDisposed)
             {
                 Raise(home, force);
                 return;
             }
-            home = new HomeForm(this);
-            home.FormClosed += (s, e) => home = null;
-            home.Show();
-            Raise(home, force);
+            var f = new HomeForm(this);
+            f.FormClosed += (s, e) => { if (home == f) home = null; };
+            if (at != null)
+            {
+                f.StartPosition = FormStartPosition.Manual;
+                f.Location = at.Value;
+            }
+            home = f;
+            f.Show();
+            Raise(f, force);
         }
 
         static void Raise(Form f, bool force)
