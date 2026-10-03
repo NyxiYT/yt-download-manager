@@ -1,0 +1,49 @@
+{
+  "version": "1.9.0",
+  "description": "Free YouTube downloader for Windows. Download videos in up to 8K quality, MP3, Shorts, thumbnails and subtitles.",
+  "homepage": "https://nyxiyt.github.io/yt-download-manager/",
+  "license": "MIT",
+  "notes": [
+    "Open YT Download Manager from the Start menu and click \"Add to browser\" to add its browser extension.",
+    "The app updates itself. \"scoop update\" works too."
+  ],
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/NyxiYT/yt-download-manager/releases/download/v1.9.0/YTDownloadManager-Setup-x64.exe#/setup.exe",
+      "hash": "53cf5675ff23ba5e68672f4779fa5218640e88bb583de1fbeda2b5d9e923834f"
+    },
+    "32bit": {
+      "url": "https://github.com/NyxiYT/yt-download-manager/releases/download/v1.9.0/YTDownloadManager-Setup-x86.exe#/setup.exe",
+      "hash": "3be48806d397109deb3ef7cdf190891ef5c05964985fd22c4619ebd56703a85c"
+    }
+  },
+  "installer": {
+    "file": "setup.exe",
+    "args": [
+      "--quiet"
+    ]
+  },
+  "uninstaller": {
+    "script": [
+      "if ($cmd -eq 'uninstall' -and (Test-Path \"$env:LOCALAPPDATA\\Programs\\YT Download Manager\\YTDownloadManager.exe\")) {",
+      "    Start-Process \"$env:LOCALAPPDATA\\Programs\\YT Download Manager\\YTDownloadManager.exe\" -ArgumentList '--uninstall', '--quiet' -Wait",
+      "}"
+    ]
+  },
+  "checkver": {
+    "github": "https://github.com/NyxiYT/yt-download-manager"
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/NyxiYT/yt-download-manager/releases/download/v$version/YTDownloadManager-Setup-x64.exe#/setup.exe"
+      },
+      "32bit": {
+        "url": "https://github.com/NyxiYT/yt-download-manager/releases/download/v$version/YTDownloadManager-Setup-x86.exe#/setup.exe"
+      }
+    },
+    "hash": {
+      "url": "https://github.com/NyxiYT/yt-download-manager/releases/download/v$version/SHA256SUMS.txt"
+    }
+  }
+}
