@@ -87,7 +87,8 @@ YT Download Manager has two parts that work together:
   use the arrow keys to go to the next Short. The window keeps the video's shape when you resize it.
 - **Back and forward through Shorts.** Going back shows the Shorts you already watched, in order.
 - **Loop and theme.** Repeat a video, or switch YouTube between light and dark with one click.
-- **10 languages.** English, German, Spanish, French, Italian, Portuguese, Polish, Russian, Japanese and Chinese.
+- **10 languages.** The extension and the app speak English, German, Spanish, French, Italian, Portuguese, Polish,
+  Russian, Japanese and Chinese.
 
 ## Download
 
