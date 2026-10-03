@@ -13,7 +13,7 @@ $ErrorActionPreference = 'Stop'
 $repo = 'https://github.com/NyxiYT/yt-download-manager'
 $id = 'NyxiYT.YTDownloadManager'
 $base = "$repo/releases/download/v$Version"
-$schema = '1.10.0'
+$schema = '1.12.0'
 
 if ($FromRelease) {
   $tmp = Join-Path ([IO.Path]::GetTempPath()) 'ytdm-SHA256SUMS.txt'
