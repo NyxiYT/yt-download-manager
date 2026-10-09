@@ -11,7 +11,7 @@ async function saveSettings(patch) {
 }
 
 let statusTimer = 0;
-function status(text) {
+function showStatus(text) {
   const s = $('status');
   s.textContent = text;
   s.classList.add('show');
@@ -77,7 +77,7 @@ function status(text) {
     const { dmJobs: current = [] } = await chrome.storage.local.get('dmJobs');
     await chrome.storage.local.set({ history: [], dmJobs: current.filter((j) => !finished([j]).length) });
     await chrome.runtime.sendMessage({ type: 'dmClear' }).catch(() => {});
-    status(T('optHistoryCleared'));
+    showStatus(T('optHistoryCleared'));
   });
 
   // Everything here mirrors what the toolbar on YouTube changes, and follows it live.
