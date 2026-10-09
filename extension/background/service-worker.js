@@ -93,21 +93,34 @@ async function pipBounds(m, sender) {
   return { ok: true };
 }
 
+// The local app: the port it listens on, this browser's token from pairing, and the user's switch for it.
+async function appConfig() {
+  const { dmToken = '', dmPort = 17724, settings = {} } = await chrome.storage.local.get(['dmToken', 'dmPort', 'settings']);
+  return { token: dmToken, port: dmPort, useManager: settings.useManager !== false };
+}
+
+// One request to the app's local API: `json` becomes the body, the token goes along when there is one.
+function appRequest(port, path, { method = 'GET', token = '', json, timeout = 3000 } = {}) {
+  const headers = {};
+  if (json !== undefined) headers['Content-Type'] = 'application/json';
+  if (token) headers['X-YDM-Token'] = token;
+  return fetch(`http://127.0.0.1:${port}${path}`, {
+    method, headers, cache: 'no-store', signal: AbortSignal.timeout(timeout), ...(json !== undefined ? { body: JSON.stringify(json) } : {}),
+  });
+}
+
 // The app, when it runs, takes over drags on Chrome's own border of that window (Chrome lets the border
 // change one side only): it is told the window's title, size, shape and limits, and when it closes.
 async function pipNative(info, sender) {
-  const { dmToken = '', dmPort = 17724, settings = {} } = await chrome.storage.local.get(['dmToken', 'dmPort', 'settings']);
-  if (!dmToken || settings.useManager === false || !info || typeof info !== 'object') return { ok: false };
+  const app = await appConfig();
+  if (!app.token || !app.useManager || !info || typeof info !== 'object') return { ok: false };
   const body = { open: !!info.open, tab: String(sender.tab?.id ?? '') };
   if (body.open) {
     for (const k of ['ratio', 'dpr', 'iw', 'ih', 'minW', 'maxW']) body[k] = Number(info[k]) || 0;
     body.title = String(info.title || '').slice(0, 400);
   }
   try {
-    const r = await fetch(`http://127.0.0.1:${dmPort}/v1/pip`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'X-YDM-Token': dmToken }, cache: 'no-store',
-      body: JSON.stringify(body), signal: AbortSignal.timeout(3000),
-    });
+    const r = await appRequest(app.port, '/v1/pip', { method: 'POST', token: app.token, json: body });
     return { ok: r.ok };
   } catch {
     return { ok: false };
@@ -151,16 +164,13 @@ function bytesToBase64(bytes) {
 
 // Is the YT Download Manager app running, and does it know this browser?
 async function dmStatus() {
-  const { dmToken = '', dmPort = 17724 } = await chrome.storage.local.get(['dmToken', 'dmPort']);
+  const app = await appConfig();
   try {
-    const r = await fetch(`http://127.0.0.1:${dmPort}/v1/hello`, {
-      headers: dmToken ? { 'X-YDM-Token': dmToken } : {}, cache: 'no-store', signal: AbortSignal.timeout(3000),
-    });
-    const j = await r.json();
+    const j = await (await appRequest(app.port, '/v1/hello', { token: app.token })).json();
     if (j.app === 'ytdm') extOnDisk(j.extension);
-    return { running: j.app === 'ytdm', paired: !!j.paired, token: !!dmToken, version: j.version };
+    return { running: j.app === 'ytdm', paired: !!j.paired, token: !!app.token, version: j.version };
   } catch {
-    return { running: false, paired: false, token: !!dmToken };
+    return { running: false, paired: false, token: !!app.token };
   }
 }
 
@@ -169,22 +179,17 @@ async function dmStatus() {
 // extension is installed or updated and when the browser starts; YouTube tabs do the same when they
 // find the app running but not connected. Turning "Use the Download Manager" off stops it.
 async function dmAutoConnect() {
-  const { dmToken = '', dmPort = 17724, settings = {} } = await chrome.storage.local.get(['dmToken', 'dmPort', 'settings']);
-  if (settings.useManager === false) return { ok: false };
+  const app = await appConfig();
+  if (!app.useManager) return { ok: false };
   try {
-    const hello = await (await fetch(`http://127.0.0.1:${dmPort}/v1/hello`, {
-      headers: dmToken ? { 'X-YDM-Token': dmToken } : {}, cache: 'no-store', signal: AbortSignal.timeout(3000),
-    })).json();
+    const hello = await (await appRequest(app.port, '/v1/hello', { token: app.token })).json();
     if (hello.app !== 'ytdm') return { ok: false };
     extOnDisk(hello.extension);
     if (hello.paired) return { ok: true };
-    const r = await fetch(`http://127.0.0.1:${dmPort}/v1/pair`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', signal: AbortSignal.timeout(10000),
-      body: JSON.stringify({ client: `${browserName()} (extension)`, auto: true }),
-    });
+    const r = await appRequest(app.port, '/v1/pair', { method: 'POST', json: { client: `${browserName()} (extension)`, auto: true }, timeout: 10000 });
     const j = await r.json();
     if (!r.ok || !j.token) return { ok: false };
-    await chrome.storage.local.set({ dmToken: j.token, dmPort: j.port || dmPort });
+    await chrome.storage.local.set({ dmToken: j.token, dmPort: j.port || app.port });
     return { ok: true };
   } catch {
     return { ok: false }; // the app isn't running (or isn't installed)
@@ -195,8 +200,8 @@ async function dmAutoConnect() {
 // accounts (age restricted, members only). Sent only when such a video comes up; the app keeps it in
 // memory. When the browser isn't signed in to YouTube, nothing is sent except "not signed in".
 async function dmSession() {
-  const { dmToken = '', dmPort = 17724, settings = {} } = await chrome.storage.local.get(['dmToken', 'dmPort', 'settings']);
-  if (!dmToken || settings.useManager === false) return { ok: false, signedIn: null };
+  const app = await appConfig();
+  if (!app.token || !app.useManager) return { ok: false, signedIn: null };
   let list = [];
   // Exactly what www.youtube.com receives (its own cookies and the .youtube.com ones).
   try { list = await chrome.cookies.getAll({ url: 'https://www.youtube.com/' }); } catch { return { ok: false, signedIn: null }; }
@@ -205,10 +210,7 @@ async function dmSession() {
   const signedIn = has('LOGIN_INFO') && ['SAPISID', '__Secure-1PAPISID', '__Secure-3PAPISID'].some(has);
   const cookies = signedIn ? `# Netscape HTTP Cookie File\n${list.map(netscapeLine).join('\n')}\n` : '';
   try {
-    const r = await fetch(`http://127.0.0.1:${dmPort}/v1/session`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'X-YDM-Token': dmToken }, cache: 'no-store',
-      body: JSON.stringify({ cookies }), signal: AbortSignal.timeout(5000),
-    });
+    const r = await appRequest(app.port, '/v1/session', { method: 'POST', token: app.token, json: { cookies }, timeout: 5000 });
     return { ok: r.ok && signedIn, signedIn };
   } catch {
     return { ok: false, signedIn };
@@ -272,12 +274,10 @@ chrome.tabs.onUpdated.addListener((id, change) => { if (change.url || change.dis
 
 // Clears the finished downloads the app lists (options page "Clear"). Does nothing if it isn't running.
 async function dmClear() {
-  const { dmToken = '', dmPort = 17724 } = await chrome.storage.local.get(['dmToken', 'dmPort']);
-  if (!dmToken) return { ok: false };
+  const app = await appConfig();
+  if (!app.token) return { ok: false };
   try {
-    const r = await fetch(`http://127.0.0.1:${dmPort}/v1/jobs/clear`, {
-      method: 'POST', headers: { 'X-YDM-Token': dmToken }, cache: 'no-store', signal: AbortSignal.timeout(3000),
-    });
+    const r = await appRequest(app.port, '/v1/jobs/clear', { method: 'POST', token: app.token });
     return { ok: r.ok };
   } catch {
     return { ok: false };
