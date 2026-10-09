@@ -4253,6 +4253,12 @@ onmessage = async ({ data: m }) => {
       document.removeEventListener('keydown', onKey, true);
       leave(ov, () => {
         ov.remove();
+        if (media instanceof HTMLMediaElement) {
+          // A removed player keeps its decoder until it is collected; let it go now.
+          media.pause();
+          media.removeAttribute('src');
+          media.load();
+        }
         URL.revokeObjectURL(url);
       });
     };
