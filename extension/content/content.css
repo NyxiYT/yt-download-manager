@@ -318,6 +318,7 @@ html[dark]{--ysd-bg:#0f0f0f;--ysd-text:#f1f1f1;--ysd-text2:#aaa;--ysd-hover:rgba
 html.ysd-docked:not(.ysd-fs) #player-container{position:fixed!important;left:auto!important;top:auto!important;right:16px!important;bottom:16px!important;
   width:var(--ysd-dock-w)!important;height:calc(var(--ysd-dock-w) * 9 / 16)!important;z-index:2140!important;border-radius:12px;overflow:hidden;
   box-shadow:0 12px 40px rgba(0,0,0,.45)}
+#player-container.ysd-glide{z-index:2019!important;transform-origin:0 0!important}
 #ysd-dockbar{position:fixed;right:16px;bottom:calc(24px + var(--ysd-dock-w) * 9 / 16);z-index:2141;display:flex;gap:2px;padding:3px;border-radius:18px;
   background:var(--ysd-surface);box-shadow:var(--ysd-shadow);opacity:0;visibility:hidden;transform:translateY(6px);
   transition:opacity .2s var(--ysd-ease),transform .2s var(--ysd-ease),visibility 0s linear .2s}

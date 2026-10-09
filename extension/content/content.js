@@ -3387,7 +3387,7 @@ onmessage = async ({ data: m }) => {
   let focusOn = false;
   let docked = false;
   let dockbar = null;
-  let focusRaf = 0;
+  let focusWatch = null; // { io, target, mast } while Big Picture is on
   let bigPictureVid = null; // the video Big Picture was on for when it went home in the mini player
   let navBypass = false;
 
@@ -3412,46 +3412,57 @@ onmessage = async ({ data: m }) => {
     }
     focusOn = on;
     document.documentElement.classList.toggle('ysd-focus', on);
-    if (on) {
-      buildDockbar();
-      addEventListener('scroll', onFocusScroll, { passive: true });
-    } else {
-      removeEventListener('scroll', onFocusScroll);
-    }
+    if (on) buildDockbar();
     updateFocus(true);
     updateBarStates();
   }
 
-  function onFocusScroll() {
-    if (focusRaf) return;
-    focusRaf = requestAnimationFrame(() => { focusRaf = 0; updateFocus(); });
-  }
+  // How much of the player's place in the page is in view below YouTube's top bar decides; with
+  // hysteresis, so the player doesn't flip back and forth around the threshold.
+  const dockWanted = (ratio, above) => (docked ? ratio < 0.55 : ratio < 0.4 && above);
 
   function updateFocus(force) {
-    const root = document.documentElement;
     const mast = document.querySelector('#masthead-container')?.getBoundingClientRect().bottom || 56;
     let dock = false;
+    let target = null;
     if (focusOn && !isFullscreen()) {
-      const target = document.querySelector('ytd-watch-flexy[theater] #player-full-bleed-container') || document.querySelector('#player-container-inner');
+      target = document.querySelector('ytd-watch-flexy[theater] #player-full-bleed-container') || document.querySelector('#player-container-inner');
       if (target) {
         const r = target.getBoundingClientRect();
         const visible = Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, mast));
-        const ratio = r.height ? visible / r.height : 1;
-        // hysteresis so the player doesn't flip back and forth around the threshold
-        dock = docked ? ratio < 0.55 : ratio < 0.4 && r.top < mast;
+        dock = dockWanted(r.height ? visible / r.height : 1, r.top < mast);
       }
     }
-    if (dock !== docked || force) {
-      const changed = dock !== docked;
-      const pc = changed && !isFullscreen() ? document.querySelector('ytd-watch-flexy #player-container') : null;
-      const from = pc?.getBoundingClientRect();
-      docked = dock;
-      root.classList.toggle('ysd-docked', dock);
-      if (changed) {
-        dispatchEvent(new Event('resize')); // YouTube's player re-measures at once, so the glide shows the new layout
-        requestAnimationFrame(() => dispatchEvent(new Event('resize')));
-        if (pc) flipPlayer(pc, from);
-      }
+    watchFocus(target, Math.round(mast));
+    setDocked(dock, force);
+  }
+
+  // While scrolling, an IntersectionObserver on that place (it stays put while the player is docked)
+  // reports when it crosses the thresholds, so scrolling never reads the page's layout.
+  function watchFocus(target, mast) {
+    if (focusWatch?.target === target && focusWatch.mast === mast) return;
+    focusWatch?.io.disconnect();
+    focusWatch = null;
+    if (!target) return;
+    const io = new IntersectionObserver((entries) => {
+      const e = entries[entries.length - 1];
+      if (focusWatch?.io === io) setDocked(dockWanted(e.intersectionRatio, e.boundingClientRect.top < e.rootBounds.top));
+    }, { rootMargin: `${-mast}px 0px 0px 0px`, threshold: [0, 0.4, 0.55, 1] });
+    io.observe(target);
+    focusWatch = { io, target, mast };
+  }
+
+  function setDocked(dock, force) {
+    if (dock === docked && !force) return;
+    const changed = dock !== docked;
+    const pc = changed && !isFullscreen() ? document.querySelector('ytd-watch-flexy #player-container') : null;
+    const from = pc?.getBoundingClientRect();
+    docked = dock;
+    document.documentElement.classList.toggle('ysd-docked', dock);
+    if (changed) {
+      dispatchEvent(new Event('resize')); // YouTube's player re-measures at once, so the glide shows the new layout
+      requestAnimationFrame(() => dispatchEvent(new Event('resize')));
+      if (pc) flipPlayer(pc, from);
     }
   }
 
@@ -3460,6 +3471,8 @@ onmessage = async ({ data: m }) => {
   let playerGlide = null;
   function flipPlayer(el, from) {
     playerGlide?.cancel(); // one still running: the new glide starts where the player is now (in `from`)
+    playerGlide = null;
+    el.classList.remove('ysd-glide');
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const to = el.getBoundingClientRect();
     if (!from?.width || !to.width) return;
@@ -3468,12 +3481,20 @@ onmessage = async ({ data: m }) => {
     const sx = from.width / to.width;
     const sy = from.height / to.height;
     if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(sx - 1) < 0.01 && Math.abs(sy - 1) < 0.01) return;
-    // Above the page while it glides (the related videos come later in the page and would cover it),
-    // under YouTube's top bar. The docked player's own stacking wins while docked.
-    playerGlide = el.animate([
-      { transformOrigin: '0 0', transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`, zIndex: 2019 },
-      { transformOrigin: '0 0', transform: 'none', zIndex: 2019 },
+    // Only the transform is animated, so the compositor runs the glide even while YouTube's scripts keep
+    // the page busy. Its stacking (above the page, under YouTube's top bar; the docked player's own wins
+    // while docked) and origin come from a class for as long as it runs.
+    el.classList.add('ysd-glide');
+    const glide = el.animate([
+      { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})` },
+      { transform: 'none' },
     ], { duration: 340, easing: 'cubic-bezier(.2,0,0,1)' });
+    playerGlide = glide;
+    glide.finished.then(() => {
+      if (playerGlide !== glide) return;
+      playerGlide = null;
+      el.classList.remove('ysd-glide');
+    }, () => {}); // canceled: the next glide (or none) set the class itself
   }
 
   // YouTube's mini player: "i" moves the playing video into it (and back); YouTube then shows the
