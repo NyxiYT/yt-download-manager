@@ -1069,7 +1069,7 @@ namespace YTDM
                 if (!told)
                 {
                     told = true;
-                    App.Current?.FolderProblem(folder, st);
+                    App.Current?.FolderProblem(folder);
                 }
                 await Task.Delay(4000, ct);
             }

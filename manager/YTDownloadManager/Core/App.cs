@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -264,7 +263,7 @@ namespace YTDM
         }
 
         // The download folder went away (drive unplugged): say so once in a while, with a way to change it.
-        public void FolderProblem(string folder, string state)
+        public void FolderProblem(string folder)
         {
             Post(() =>
             {
