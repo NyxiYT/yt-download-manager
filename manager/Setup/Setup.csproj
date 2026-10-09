@@ -20,13 +20,12 @@
     <Description>Installs YT Download Manager with everything it needs</Description>
     <Copyright>Copyright (c) 2026 NyxiYT</Copyright>
     <DebugType>embedded</DebugType>
-    <NoWarn>CS1591;CS0649;CS0169</NoWarn>
   </PropertyGroup>
 
   <!-- The whole app is compiled in: the installer runs the same setup wizard and serves the browser
        while it is open. The installed app itself is the payload below. -->
   <ItemGroup>
-    <Compile Include="..\YTDownloadManager\*.cs" Link="App\%(Filename)%(Extension)" />
+    <Compile Include="..\YTDownloadManager\**\*.cs" Exclude="..\YTDownloadManager\bin\**;..\YTDownloadManager\obj\**" Link="App\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
