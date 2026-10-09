@@ -3,6 +3,19 @@
 All notable changes to YT Download Manager are listed here. Versions follow
 [semantic versioning](https://semver.org): `MAJOR.MINOR.PATCH`.
 
+## [Unreleased]
+
+### Changed
+
+- The app needs much less memory while it downloads and gives it back afterwards. Three downloads at once
+  now peak at about 150 MB instead of 340 to 440 MB, and the app goes back to about 25 MB instead of
+  staying at 120 to 260 MB.
+- Big Picture: the player glides into the corner and back smoothly, also while YouTube's page is busy.
+  Scrolling no longer measures the page on every frame.
+- Download progress bars move without re-laying out the page.
+- The README and the website say plainly that the Windows builds are not code-signed, and how to check a
+  download against `SHA256SUMS.txt`.
+
 ## [1.10.0] - 2026-10-04
 
 ### New
