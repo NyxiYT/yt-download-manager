@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -158,7 +160,7 @@ namespace YTDM
     // shared bandwidth budget above. Clips and anything else still go through yt-dlp.
     sealed partial class JobManager
     {
-        const int ChunkSize = 10 << 20; // googlevideo slows down very large single requests
+        const int ChunkSize = PieceBuffers.Size; // googlevideo slows down very large single requests
         // One 10 MiB piece at a time gets about a third of a fast line (each request waits for its answer
         // and starts slow); six at once fill it. While a video in the browser needs the line: one.
         const int Pieces = 6;
@@ -236,13 +238,14 @@ namespace YTDM
             };
 
             // start, piece (bytes and the stream's length as the server states it)
-            var window = new Queue<KeyValuePair<long, Task<KeyValuePair<byte[], long>>>>();
+            var window = new Queue<KeyValuePair<long, Task<Piece>>>();
             CancellationTokenSource batch = null;
             long next = have;
             void Drop()
             {
                 batch?.Cancel();
-                foreach (var w in window) w.Value.ContinueWith(x => { var _ = x.Exception; }, TaskScheduler.Default);
+                foreach (var w in window)
+                    w.Value.ContinueWith(x => { if (x.Status == TaskStatus.RanToCompletion) PieceBuffers.Return(x.Result.Buf); else { var _ = x.Exception; } }, TaskScheduler.Default);
                 window.Clear();
                 batch?.Dispose();
                 batch = null;
@@ -265,28 +268,34 @@ namespace YTDM
                         while (window.Count < width && (total <= 0 ? window.Count == 0 : next < total))
                         {
                             long to = total > 0 ? Math.Min(total, next + ChunkSize) - 1 : next + ChunkSize - 1;
-                            window.Enqueue(new KeyValuePair<long, Task<KeyValuePair<byte[], long>>>(next, GetPiece(f, next, to, onBytes, batch.Token)));
+                            window.Enqueue(new KeyValuePair<long, Task<Piece>>(next, GetPiece(f, next, to, onBytes, batch.Token)));
                             next = to + 1;
                         }
                         var piece = await window.Peek().Value;
                         window.Dequeue();
-                        var data = piece.Key;
-                        using (var fs = new FileStream(part, FileMode.Append, FileAccess.Write, FileShare.Read, 1 << 16, true))
+                        try
                         {
-                            if (fs.Length != have) throw new IOException("partial file changed while downloading");
-                            await fs.WriteAsync(data, 0, data.Length);
+                            using (var fs = new FileStream(part, FileMode.Append, FileAccess.Write, FileShare.Read, 1 << 16, true))
+                            {
+                                if (fs.Length != have) throw new IOException("partial file changed while downloading");
+                                await fs.WriteAsync(piece.Buf, 0, piece.Length);
+                            }
+                        }
+                        finally
+                        {
+                            PieceBuffers.Return(piece.Buf);
                         }
                         lock (pl)
                         {
-                            have += data.Length;
-                            pending -= data.Length;
+                            have += piece.Length;
+                            pending -= piece.Length;
                         }
-                        if (total <= 0 && piece.Value > 0)
+                        if (total <= 0 && piece.Total > 0)
                         {
-                            total = piece.Value;
+                            total = piece.Total;
                             lock (L) s.Size = total;
                         }
-                        if (total <= 0 && data.Length < ChunkSize) total = have; // no length stated and the server ended early: that's the end
+                        if (total <= 0 && piece.Length < ChunkSize) total = have; // no length stated and the server ended early: that's the end
                         transient = 0;
                         if (sinceRefresh > 2 << 20) refused = 0;
                     }
@@ -372,13 +381,29 @@ namespace YTDM
             Media.Worked(info);
         }
 
-        // One piece in memory, and the stream's length if the server states it.
-        static async Task<KeyValuePair<byte[], long>> GetPiece(Fmt f, long from, long to, Action<int> onBytes, CancellationToken ct)
+        // A piece in memory: its bytes (the start of a pooled buffer) and the stream's length if the server states it.
+        struct Piece
         {
-            using (var ms = new MemoryStream((int)Math.Min(to - from + 1, ChunkSize)))
+            public byte[] Buf;
+            public int Length;
+            public long Total;
+        }
+
+        static async Task<Piece> GetPiece(Fmt f, long from, long to, Action<int> onBytes, CancellationToken ct)
+        {
+            var buf = PieceBuffers.Rent();
+            try
             {
-                var total = await GetRange(f, from, to, null, onBytes, ct, ms);
-                return new KeyValuePair<byte[], long>(ms.ToArray(), total);
+                using (var ms = new MemoryStream(buf, 0, buf.Length, true, true))
+                {
+                    var total = await GetRange(f, from, to, null, onBytes, ct, ms);
+                    return new Piece { Buf = buf, Length = (int)ms.Position, Total = total };
+                }
+            }
+            catch
+            {
+                PieceBuffers.Return(buf);
+                throw;
             }
         }
 
@@ -686,7 +711,7 @@ namespace YTDM
                             {
                                 int n = await rs.ReadAsync(buf, 0, buf.Length, stall.Token).ConfigureAwait(false);
                                 if (n <= 0) break;
-                                if (code == 200 && read + n > want) n = (int)(want - read); // server sent the whole file: take this chunk only
+                                if (read + n > want) n = (int)(want - read); // the server sent more (the whole file): take this chunk only
                                 await fs.WriteAsync(buf, 0, n).ConfigureAwait(false);
                                 read += n;
                                 stall.CancelAfter(StallMs);
@@ -728,6 +753,32 @@ namespace YTDM
                 }
                 return speed;
             }
+        }
+    }
+
+    // The buffers of downloaded pieces waiting to be written, one piece each (10 MiB). They are reused
+    // instead of allocated, and copied once more, for every piece: such large arrays are costly for the
+    // garbage collector and kept the app hundreds of MB bigger long after its downloads. Once downloads
+    // have stopped, Release gives the memory back.
+    static class PieceBuffers
+    {
+        public const int Size = 10 << 20;
+        const int MaxKept = 16; // two downloads with six pieces each, and some room
+        static readonly ConcurrentBag<byte[]> free = new ConcurrentBag<byte[]>();
+
+        public static byte[] Rent() => free.TryTake(out var b) ? b : new byte[Size];
+
+        public static void Return(byte[] b)
+        {
+            if (b != null && b.Length == Size && free.Count < MaxKept) free.Add(b);
+        }
+
+        public static void Release()
+        {
+            if (free.IsEmpty) return;
+            while (free.TryTake(out _)) { }
+            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+            GC.Collect();
         }
     }
 }

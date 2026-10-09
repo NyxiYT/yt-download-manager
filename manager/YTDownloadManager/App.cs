@@ -59,6 +59,7 @@ namespace YTDM
             {
                 CheckIdle();
                 AppUpdate.Tick();
+                if (!Jobs.Busy) PieceBuffers.Release();
             };
             idleTimer.Start();
             ScheduleUpdateCheck();
