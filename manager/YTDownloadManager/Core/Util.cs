@@ -160,6 +160,14 @@ namespace YTDM
             }
         }
 
+        // Lower-case hex, as release checksum lists write it.
+        public static string Sha256(string file)
+        {
+            using (var s = File.OpenRead(file))
+            using (var h = SHA256.Create())
+                return BitConverter.ToString(h.ComputeHash(s)).Replace("-", "").ToLowerInvariant();
+        }
+
         public static void DeleteDir(string dir)
         {
             for (int i = 0; i < 3; i++)

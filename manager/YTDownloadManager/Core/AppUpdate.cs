@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -138,11 +137,7 @@ namespace YTDM
                     shown = Progress;
                     Changed?.Invoke();
                 }, CancellationToken.None);
-                string sha;
-                using (var s = File.OpenRead(file))
-                using (var h = SHA256.Create())
-                    sha = BitConverter.ToString(h.ComputeHash(s)).Replace("-", "").ToLowerInvariant();
-                if (sha != listed) throw new InvalidDataException("checksum mismatch for " + Asset);
+                if (Files.Sha256(file) != listed) throw new InvalidDataException("checksum mismatch for " + Asset);
                 var fv = FileVersionInfo.GetVersionInfo(file).FileVersion;
                 if (!System.Version.TryParse(fv ?? "", out var got2) || got2.ToString(3) != v) throw new InvalidDataException("the installer is version " + fv + ", expected " + v);
                 Log.Info("updating to " + v);

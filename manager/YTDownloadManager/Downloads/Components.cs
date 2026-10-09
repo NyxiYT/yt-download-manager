@@ -5,7 +5,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -224,7 +223,7 @@ namespace YTDM
             var expected = await ExpectedSum(pkg, ct);
             if (expected != null)
             {
-                var actual = FileSha256(file);
+                var actual = Files.Sha256(file);
                 if (!string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase))
                 {
                     Files.TryDelete(file);
@@ -287,13 +286,6 @@ namespace YTDM
             }
             catch (Exception e) { Log.Warn("checksum list for " + pkg.Name + ": " + e.Message); }
             return null;
-        }
-
-        static string FileSha256(string file)
-        {
-            using (var s = File.OpenRead(file))
-            using (var h = SHA256.Create())
-                return BitConverter.ToString(h.ComputeHash(s)).Replace("-", "").ToLowerInvariant();
         }
 
         // yt-dlp has to keep up with YouTube; the copy we installed updates itself about once a week.
