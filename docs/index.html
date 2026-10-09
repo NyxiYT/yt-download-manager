@@ -171,6 +171,11 @@
     </ol>
     <p>Step-by-step pictures, updating and uninstalling are explained in the <a href="https://github.com/NyxiYT/yt-download-manager#installation">full guide</a>.</p>
 
+    <h3>Unsigned builds and checksums</h3>
+    <p>The Windows installers are currently not code-signed. Windows SmartScreen may show a warning the first time you open one: click <b>More info</b>, then <b>Run anyway</b>.</p>
+    <p>Every release ships <a href="https://github.com/NyxiYT/yt-download-manager/releases/latest/download/SHA256SUMS.txt">SHA256SUMS.txt</a> with the SHA-256 checksum of each file. Compare it with your download:
+      on Windows (PowerShell) <code>Get-FileHash .\YTDownloadManager-Setup-x64.exe -Algorithm SHA256</code>, on Linux <code>sha256sum -c SHA256SUMS.txt --ignore-missing</code>.</p>
+
     <h2>Frequently asked questions</h2>
     <details><summary>Is YT Download Manager free?</summary><p>Yes. It is free and open source under the MIT License, with no ads, no accounts and no tracking.</p></details>
     <details><summary>Can it download YouTube videos in 4K or 8K?</summary><p>Yes. You can pick any quality YouTube offers for a video, from 144p up to 4320p (8K), with 60 fps and HDR where YouTube offers them. 1440p, 4K and 8K need the Windows app.</p></details>
@@ -189,8 +194,7 @@
   <footer>
     <p>YT Download Manager is open source under the <a href="https://github.com/NyxiYT/yt-download-manager/blob/main/LICENSE">MIT License</a>.
       Made by <a href="https://github.com/NyxiYT">NyxiYT</a>.
-      <a href="https://github.com/NyxiYT/yt-download-manager/blob/main/PRIVACY.md">Privacy policy</a> ·
-      <a href="https://github.com/NyxiYT/yt-download-manager#code-signing-policy">Code signing policy</a></p>
+      <a href="https://github.com/NyxiYT/yt-download-manager/blob/main/PRIVACY.md">Privacy policy</a></p>
     <p>Only download videos you are allowed to download. You are responsible for following YouTube's Terms of Service and
       the copyright laws of your country. This project is not affiliated with YouTube or Google.</p>
   </footer>

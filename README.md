@@ -43,7 +43,6 @@ YT Download Manager has two parts that work together:
 - [Feedback](#feedback)
 - [Support the project](#support-the-project)
 - [Contributing](#contributing)
-- [Code signing policy](#code-signing-policy)
 - [Privacy](PRIVACY.md)
 - [Legal note](#legal-note)
 - [License](#license)
@@ -105,6 +104,27 @@ The Windows installers already contain the browser extension. You don't need to 
 **Not sure if your Windows is 64-bit or 32-bit?** Press the Windows key, type `About your PC` and open it.
 Look at **System type**. If it says "64-bit operating system", take the 64-bit file. Almost all PCs from the
 last 10 years are 64-bit.
+
+### Unsigned builds and checksums
+
+The Windows installers are currently not code-signed. Windows SmartScreen may show "Windows protected your PC"
+the first time you open one: click **More info**, then **Run anyway**.
+
+Every release ships [SHA256SUMS.txt](https://github.com/NyxiYT/yt-download-manager/releases/latest/download/SHA256SUMS.txt)
+with the SHA-256 checksum of each of its files. To check a download, compare its checksum with the one listed
+for that file.
+
+On Windows, in PowerShell:
+
+```powershell
+Get-FileHash .\YTDownloadManager-Setup-x64.exe -Algorithm SHA256
+```
+
+On Linux, in the folder with the downloads and `SHA256SUMS.txt`:
+
+```bash
+sha256sum -c SHA256SUMS.txt --ignore-missing
+```
 
 ## Installation
 
@@ -274,10 +294,10 @@ works on every PC the app runs on.
 
 ### Why does Windows say "Windows protected your PC"?
 
-Windows shows this warning for apps that are new and not signed with a paid code-signing certificate.
+The installers are currently not code-signed, and Windows shows this warning for new apps that aren't.
 It doesn't mean the app is harmful. Click **More info**, then **Run anyway**. If you want to be extra sure,
 compare the file's checksum with the one in [SHA256SUMS.txt](https://github.com/NyxiYT/yt-download-manager/releases/latest/download/SHA256SUMS.txt)
-(in PowerShell: `Get-FileHash .\YTDownloadManager-Setup-x64.exe`). The full source code is in this repository.
+(see [Unsigned builds and checksums](#unsigned-builds-and-checksums)). The full source code is in this repository.
 
 ### Where are my downloaded files?
 
@@ -392,27 +412,6 @@ bc1qwvn59c0yrhc9xwd9x9hrgwm4exe84xx0tdazdv
 Bug fixes, translations and ideas are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) explains how to set up,
 build and test the project, and how to send a fix. Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 To report a security problem, see [SECURITY.md](SECURITY.md).
-
-## Code signing policy
-
-**Status:** applied for. Until it is approved, the installers are not signed; you can check them against
-[SHA256SUMS.txt](https://github.com/NyxiYT/yt-download-manager/releases/latest/download/SHA256SUMS.txt).
-
-Free code signing provided by [SignPath.io](https://signpath.io), certificate by
-[SignPath Foundation](https://signpath.org).
-
-- **What is signed:** the installers (`YTDownloadManager-Setup-x64.exe`, `YTDownloadManager-Setup-x86.exe`) and
-  the app inside them (`YTDownloadManager.exe`). The tools the installers carry (yt-dlp, FFmpeg, Deno, Node.js)
-  are other projects' programs and are not signed by this project.
-- **How:** only files built by this repository's public [release workflow](.github/workflows/release.yml) on
-  GitHub Actions, from a version tag, are sent for signing. Nothing built on anyone's own PC is signed.
-- **Team roles:**
-  - Committers and reviewers: [NyxiYT](https://github.com/NyxiYT)
-  - Approvers: [NyxiYT](https://github.com/NyxiYT)
-
-  Changes from other people are merged only after a committer has reviewed them. Every signing request is
-  approved by an approver. Team members use two-factor authentication for GitHub and SignPath.
-- **Privacy:** see the [privacy policy](PRIVACY.md).
 
 ## Legal note
 
