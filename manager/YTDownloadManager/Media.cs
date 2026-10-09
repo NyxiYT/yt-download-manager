@@ -152,7 +152,7 @@ namespace YTDM
                     if (fromDisk != null && !fromDisk.Stale)
                     {
                         fromDisk.Auth = auth;
-                        cache[key] = fromDisk;
+                        Keep(key, fromDisk);
                         return Task.FromResult(fromDisk);
                     }
                 }
@@ -303,7 +303,7 @@ namespace YTDM
                 if (best == null) throw first ?? new Fail("errGeneric");
                 foreach (var i in tried) if (i != best) Files.TryDelete(i.Path);
                 Log.Info($"info {vid} (signed in): using way {best.Variant} after {clock.Elapsed.TotalSeconds:0.0}s");
-                lock (L) cache[key] = best;
+                lock (L) Keep(key, best);
                 return best;
             }
         }
@@ -311,6 +311,18 @@ namespace YTDM
         // Each fetch gets its own file: a yt-dlp process may still be reading the previous one.
         // Signed-in answers go to "<id>~auth-..." files, so the anonymous "<id>-*" pattern never picks them up.
         static string NewInfoPath(string key, int variant) => System.IO.Path.Combine(Paths.InfoDir, key + "-" + Time.Now + "-v" + variant + ".json");
+
+        // Answers stay in memory while their links are fresh, the latest 40 at most; the files on disk stay.
+        // Every video page asks for one, so a copy that runs for days would otherwise keep them all. Under L.
+        const int MaxCached = 40;
+        static void Keep(string key, Info info)
+        {
+            cache[key] = info;
+            if (cache.Count <= MaxCached) return;
+            foreach (var k in cache.Where(p => p.Value.Stale).Select(p => p.Key).ToList()) cache.Remove(k);
+            if (cache.Count > MaxCached)
+                foreach (var k in cache.OrderBy(p => p.Value.FetchedAt).Take(cache.Count - MaxCached).Select(p => p.Key).ToList()) cache.Remove(k);
+        }
 
         static Info LoadFile(string key, bool auth)
         {
@@ -368,7 +380,7 @@ namespace YTDM
                     info.Auth = auth;
                     info.Diag = diag;
                     Log.Info($"{who}: {Describe(info)}");
-                    lock (L) cache[key] = info;
+                    lock (L) Keep(key, info);
                     return info;
                 }
                 var plain = Diag.Plain(r.stderr);
