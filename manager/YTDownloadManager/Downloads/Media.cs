@@ -57,6 +57,24 @@ namespace YTDM
         public int CodecScore => VCodec == null ? 0 : VCodec.StartsWith("avc1") ? 3 : VCodec.StartsWith("av01") ? 2 : VCodec.StartsWith("vp9") || VCodec.StartsWith("vp09") ? 1 : 0;
     }
 
+    sealed class SubTrack
+    {
+        public string Lang, Name;
+        public bool Auto;
+
+        public static void Add(List<SubTrack> to, Dictionary<string, object> src, bool auto)
+        {
+            if (src == null) return;
+            foreach (var kv in src)
+            {
+                if (kv.Key == "live_chat") continue;
+                if (auto && kv.Key.Contains("-") && !kv.Key.EndsWith("-orig")) continue; // machine translations
+                var first = (kv.Value as object[])?.OfType<Dictionary<string, object>>().FirstOrDefault();
+                to.Add(new SubTrack { Lang = kv.Key, Name = first?.Str("name") ?? kv.Key, Auto = auto });
+            }
+        }
+    }
+
     sealed class Info
     {
         public string Id, Title, Uploader, Path;
@@ -68,7 +86,7 @@ namespace YTDM
         public bool NeedsAccount; // YouTube's own label: only for signed-in, eligible viewers (age, members, private)
         public Diag Diag = new Diag(); // what yt-dlp noticed while asking (only for fresh answers)
         public List<Fmt> Formats = new List<Fmt>();
-        public Dictionary<string, object> Subs, Auto;
+        public List<SubTrack> Subs = new List<SubTrack>(); // the subtitle languages on offer (made and automatic)
 
         // Links are bound to the address that asked for them and expire after about six hours.
         public bool Stale
@@ -411,9 +429,11 @@ namespace YTDM
                 Path = path,
                 Live = d.Str("live_status") == "is_live" || d.Str("live_status") == "is_upcoming",
                 NeedsAccount = d.Num("age_limit") >= 18 || new[] { "needs_auth", "subscriber_only", "premium_only", "private" }.Contains(d.Str("availability") ?? ""),
-                Subs = d.Obj("subtitles"),
-                Auto = d.Obj("automatic_captions"),
             };
+            // Only what the app shows of them: yt-dlp's lists also hold a link per language and format, which
+            // made each remembered answer several hundred KB bigger.
+            SubTrack.Add(info.Subs, d.Obj("subtitles"), false);
+            SubTrack.Add(info.Subs, d.Obj("automatic_captions"), true);
             int i = 0;
             foreach (var o in d.Arr("formats") ?? new object[0])
             {
@@ -600,20 +620,7 @@ namespace YTDM
                 };
             }).ToArray();
             var aac = best ?? fromComb;
-            var subs = new List<object>();
-            void AddSubs(Dictionary<string, object> src, bool auto)
-            {
-                if (src == null) return;
-                foreach (var kv in src)
-                {
-                    if (kv.Key == "live_chat") continue;
-                    if (auto && kv.Key.Contains("-") && !kv.Key.EndsWith("-orig")) continue; // machine translations
-                    var first = (kv.Value as object[])?.OfType<Dictionary<string, object>>().FirstOrDefault();
-                    subs.Add(new Dictionary<string, object> { ["lang"] = kv.Key, ["name"] = first?.Str("name") ?? kv.Key, ["auto"] = auto });
-                }
-            }
-            AddSubs(i.Subs, false);
-            AddSubs(i.Auto, true);
+            var subs = i.Subs.Select(t => (object)new Dictionary<string, object> { ["lang"] = t.Lang, ["name"] = t.Name, ["auto"] = t.Auto }).ToList();
             return new Dictionary<string, object>
             {
                 ["vid"] = i.Id,
