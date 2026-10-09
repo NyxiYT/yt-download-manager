@@ -84,7 +84,7 @@ namespace YTDM
     // into the app's data folder. Updates keep settings, the download queue and a newer yt-dlp.
     sealed class BundleInstaller
     {
-        const string MutexName = @"Local\YTDownloadManager.Instance";
+        static readonly string MutexName = @"Local\YTDownloadManager.Instance" + Paths.InstanceSuffix;
         public static string Exe => Path.Combine(Paths.InstallDir, Paths.ExeName);
 
         public bool Quiet;

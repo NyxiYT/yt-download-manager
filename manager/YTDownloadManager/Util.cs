@@ -17,8 +17,13 @@ namespace YTDM
         public const string ExeName = "YTDownloadManager.exe";
         static readonly string LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
+        // Tests run a second copy next to the installed one: YTDM_DATA_DIR gives it its own data folder, and
+        // with it its own settings (and port), and its own instance lock and signals.
+        static readonly string DataOverride = Environment.GetEnvironmentVariable("YTDM_DATA_DIR");
+
         // Everything the app writes lives here (settings, queue, logs, downloaded components, work files).
-        public static readonly string Data = Path.Combine(LocalAppData, AppName);
+        public static readonly string Data = string.IsNullOrEmpty(DataOverride) ? Path.Combine(LocalAppData, AppName) : Path.GetFullPath(DataOverride);
+        public static readonly string InstanceSuffix = string.IsNullOrEmpty(DataOverride) ? "" : "." + Rand.Sha256(Data.ToLowerInvariant()).Substring(0, 8);
         public static readonly string InstallDir = Path.Combine(LocalAppData, "Programs", AppName);
         // The browser extension the installer puts next to the app (loaded with "Load unpacked").
         public static string ExtensionDir => Path.Combine(InstallDir, "extension");

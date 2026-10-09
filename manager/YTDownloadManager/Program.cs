@@ -9,7 +9,7 @@ namespace YTDM
 {
     static class Program
     {
-        const string MutexName = @"Local\YTDownloadManager.Instance";
+        static readonly string MutexName = @"Local\YTDownloadManager.Instance" + Paths.InstanceSuffix;
 
         [STAThread]
         static int Main(string[] args)

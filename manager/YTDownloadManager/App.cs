@@ -19,9 +19,9 @@ namespace YTDM
 
         public static string Version => Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
 
-        public const string ShowEvent = @"Local\YTDownloadManager.Show";
-        public const string SetupEvent = @"Local\YTDownloadManager.Setup";
-        public const string ExitEvent = @"Local\YTDownloadManager.Exit";
+        public static readonly string ShowEvent = @"Local\YTDownloadManager.Show" + Paths.InstanceSuffix;
+        public static readonly string SetupEvent = @"Local\YTDownloadManager.Setup" + Paths.InstanceSuffix;
+        public static readonly string ExitEvent = @"Local\YTDownloadManager.Exit" + Paths.InstanceSuffix;
 
         public readonly JobManager Jobs = new JobManager();
         public readonly ApiServer Api = new ApiServer();
