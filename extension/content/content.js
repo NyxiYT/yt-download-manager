@@ -4870,7 +4870,7 @@ onmessage = async ({ data: m }) => {
     const paintBar = (j) => {
       if (!barEl) return;
       barEl.classList.toggle('ysd-indet', !!j.indet && !j.paused);
-      fill.style.width = `${j.pct || 0}%`;
+      fill.style.transform = `translateX(${(j.pct || 0) - 100}%)`; // moved, not resized: no layout while it fills
       barEl.setAttribute('aria-valuenow', String(Math.floor(j.pct || 0)));
     };
     paintBar(it);
