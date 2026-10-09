@@ -176,6 +176,19 @@ namespace YTDM
         // stretch from the start (which is what continuing after a stop relies on).
         async Task FetchStream(Job j, StreamPart s, long before, CancellationToken ct)
         {
+            PieceBuffers.StreamStarted();
+            try
+            {
+                await FetchStreamPieces(j, s, before, ct);
+            }
+            finally
+            {
+                PieceBuffers.StreamEnded();
+            }
+        }
+
+        async Task FetchStreamPieces(Job j, StreamPart s, long before, CancellationToken ct)
+        {
             var info = await InfoFor(j, false, ct);
             var f = Media.Match(info, s) ?? throw new Fail("errFormatGone");
             var dest = Path.Combine(j.Work, s.Role + "." + (string.IsNullOrEmpty(f.Ext) ? "bin" : f.Ext));
@@ -756,27 +769,46 @@ namespace YTDM
         }
     }
 
-    // The buffers of downloaded pieces waiting to be written, one piece each (10 MiB). They are reused
-    // instead of allocated, and copied once more, for every piece: such large arrays are costly for the
-    // garbage collector and kept the app hundreds of MB bigger long after its downloads. Once downloads
-    // have stopped, Release gives the memory back.
+    // The buffers of downloaded pieces waiting to be written, one piece each (10 MiB). While a stream
+    // downloads they are reused instead of allocated, and copied once more, for every piece: such large
+    // arrays are costly for the garbage collector and kept the app hundreds of MB bigger long after its
+    // downloads. They are dropped when no stream downloads any more, and Release gives the memory back to
+    // Windows once the queue is idle.
     static class PieceBuffers
     {
         public const int Size = 10 << 20;
         const int MaxKept = 16; // two downloads with six pieces each, and some room
         static readonly ConcurrentBag<byte[]> free = new ConcurrentBag<byte[]>();
+        static int streams;
+        static int used; // 1 once a buffer was made since the last Release
 
-        public static byte[] Rent() => free.TryTake(out var b) ? b : new byte[Size];
+        public static byte[] Rent()
+        {
+            Interlocked.Exchange(ref used, 1);
+            return free.TryTake(out var b) ? b : new byte[Size];
+        }
 
         public static void Return(byte[] b)
         {
-            if (b != null && b.Length == Size && free.Count < MaxKept) free.Add(b);
+            if (b != null && b.Length == Size && free.Count < MaxKept && Volatile.Read(ref streams) > 0) free.Add(b);
+        }
+
+        public static void StreamStarted() => Interlocked.Increment(ref streams);
+
+        public static void StreamEnded()
+        {
+            if (Interlocked.Decrement(ref streams) == 0) Drop();
+        }
+
+        static void Drop()
+        {
+            while (free.TryTake(out _)) { }
         }
 
         public static void Release()
         {
-            if (free.IsEmpty) return;
-            while (free.TryTake(out _)) { }
+            if (Interlocked.Exchange(ref used, 0) == 0) return;
+            Drop();
             GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             GC.Collect();
         }
