@@ -24,7 +24,7 @@ You need Windows 10 or 11 and:
 1. [Git](https://git-scm.com/download/win)
 2. [.NET SDK](https://dotnet.microsoft.com/download) 8 or newer
 3. [Python](https://www.python.org/downloads/) 3.9 or newer
-4. [Node.js](https://nodejs.org) (only to check JavaScript for mistakes)
+4. [Node.js](https://nodejs.org) (only to check JavaScript for mistakes: `npm install`, then `npm run lint`)
 5. Google Chrome (or another Chromium browser)
 
 Then get the code:
@@ -41,8 +41,11 @@ cd yt-download-manager
 - **Texts and translations:** all interface texts are in the `I18N` object near the top of
   `yt-standalone-downloader.user.js`, one block per language. Add a key to every language.
 - **The extension's background, popup and options:** edit the files in `extension/` directly.
-- **The Windows app:** edit the files in `manager/YTDownloadManager/`. Keep the interface texts in
-  `Strings.cs`, in English and German.
+- **The Windows app:** edit the files in `manager/YTDownloadManager/`, sorted by what they do:
+  `Downloads/` (the queue, the downloader, yt-dlp and FFmpeg), `Browser/` (the local API the extension
+  talks to), `Ui/` (the window, its controls and texts) and `Core/` (start, settings, Windows entries and
+  updates). The installer is in `manager/Setup/`. Keep the interface texts in `Ui/Strings.cs`, in all ten
+  languages (English is used where one is missing).
 
 ## 3. Build
 

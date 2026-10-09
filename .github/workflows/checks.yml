@@ -1,0 +1,44 @@
+name: Checks
+
+# Every push and pull request: the JavaScript lint, the generated extension files, and the app's build
+# (with the code style rules). Releases run their own, fuller workflow.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Lint the JavaScript
+        shell: pwsh
+        run: |
+          npm ci --no-fund --no-audit
+          npm run lint
+          if ($LASTEXITCODE) { throw 'lint failed' }
+
+      - name: Generated extension files are up to date
+        shell: pwsh
+        run: |
+          python extension-build/convert.py
+          git diff --exit-code -- extension/content
+          if ($LASTEXITCODE) { throw 'extension/content is out of date: run python extension-build/convert.py' }
+
+      - name: Build the app
+        shell: pwsh
+        run: |
+          dotnet build manager/YTDownloadManager/YTDownloadManager.csproj -c Release -nologo -p:EnforceCodeStyleInBuild=true -warnaserror
+          if ($LASTEXITCODE) { throw 'build failed' }

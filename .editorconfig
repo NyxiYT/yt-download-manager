@@ -1,0 +1,28 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.{cs,csproj,py,ps1}]
+indent_size = 4
+
+[*.cmd]
+end_of_line = crlf
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.cs]
+# The same conventions the code already follows; build with -p:EnforceCodeStyleInBuild=true to check them.
+csharp_new_line_before_open_brace = all
+csharp_prefer_braces = when_multiline:silent
+dotnet_sort_system_directives_first = true
+dotnet_diagnostic.IDE0005.severity = warning
+dotnet_diagnostic.IDE0051.severity = warning
+dotnet_diagnostic.IDE0052.severity = warning
+dotnet_diagnostic.IDE0060.severity = warning

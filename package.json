@@ -1,0 +1,12 @@
+{
+  "name": "yt-download-manager",
+  "private": true,
+  "description": "Development tools only: the project itself has no npm dependencies.",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "globals": "^16.5.0"
+  }
+}

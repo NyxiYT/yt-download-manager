@@ -40,6 +40,9 @@ jobs:
       - name: Check the extension
         shell: pwsh
         run: |
+          npm ci --no-fund --no-audit
+          npm run lint
+          if ($LASTEXITCODE) { throw 'lint failed' }
           python extension-build/convert.py
           git diff --exit-code -- extension/content
           if ($LASTEXITCODE) { throw 'extension/content is out of date: run python extension-build/convert.py' }

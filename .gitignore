@@ -15,3 +15,6 @@ __pycache__/
 *.user
 Thumbs.db
 desktop.ini
+
+# Development tools (npm run lint)
+node_modules/
