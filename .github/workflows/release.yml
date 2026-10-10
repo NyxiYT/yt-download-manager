@@ -1,8 +1,9 @@
 name: Release
 
-# A version tag (v1.6.0) builds both installers, the extension zip and the userscript, installs each
-# installer on the runner to check that it works, and only then publishes the release. Then it starts
-# packages.yml for Scoop and winget. Installed apps notice the new release on their own.
+# A version tag (v1.6.0) checks the versions, then runs compat.yml: it builds both installers, the extension zip
+# and the userscript, and installs and runs them on every supported version of Windows, Linux distribution and
+# browser. Only when every one of those runs passes are the same files published. Then packages.yml updates
+# Scoop and winget. Installed apps notice the new release on their own.
 on:
   push:
     tags: ["v*.*.*"]
@@ -11,22 +12,17 @@ permissions:
   contents: read
 
 jobs:
-  release:
-    runs-on: windows-latest
-    timeout-minutes: 60
-    permissions:
-      contents: write
-      actions: write
+  versions:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.check.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
 
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x
-
       - name: Check versions
+        id: check
         shell: pwsh
         run: |
           $v = '${{ github.ref_name }}'.TrimStart('v')
@@ -35,30 +31,32 @@ jobs:
             if ($have -ne $v) { throw "$p has version $have, the tag says $v" }
           }
           if (-not (Select-String -Path CHANGELOG.md -SimpleMatch "## [$v]" -Quiet)) { throw "CHANGELOG.md has no entry for $v" }
-          "VERSION=$v" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+          "version=$v" | Out-File -Append -Encoding utf8 $env:GITHUB_OUTPUT
 
-      - name: Check the extension
-        shell: pwsh
-        run: |
-          npm ci --no-fund --no-audit
-          npm run lint
-          if ($LASTEXITCODE) { throw 'lint failed' }
-          python extension-build/convert.py
-          git diff --exit-code -- extension/content
-          if ($LASTEXITCODE) { throw 'extension/content is out of date: run python extension-build/convert.py' }
-          foreach ($f in Get-ChildItem extension -Recurse -Filter *.js) { node --check $f.FullName; if ($LASTEXITCODE) { throw "$($f.Name) has a syntax error" } }
+  compat:
+    needs: versions
+    uses: ./.github/workflows/compat.yml
 
-      - name: Build
-        shell: cmd
-        run: manager\build.cmd
+  publish:
+    needs: [versions, compat]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: write
+    env:
+      VERSION: ${{ needs.versions.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
-      - name: Test the 64-bit installer
-        shell: pwsh
-        run: ./.github/smoke-test.ps1 -Setup dist/YTDownloadManager-Setup-x64.exe -Arch x64
-
-      - name: Test the 32-bit installer
-        shell: pwsh
-        run: ./.github/smoke-test.ps1 -Setup dist/YTDownloadManager-Setup-x86.exe -Arch x86
+      # The files the compatibility runs tested.
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
 
       - name: Checksums
         shell: pwsh
@@ -78,17 +76,11 @@ jobs:
           Get-Content notes.md
 
       - name: Publish
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create '${{ github.ref_name }}' --verify-tag --title "YT Download Manager $env:VERSION" --notes-file notes.md `
-            dist/YTDownloadManager-Setup-x64.exe dist/YTDownloadManager-Setup-x86.exe `
+          gh release create '${{ github.ref_name }}' --verify-tag --title "YT Download Manager $VERSION" --notes-file notes.md \
+            dist/YTDownloadManager-Setup-x64.exe dist/YTDownloadManager-Setup-x86.exe \
             dist/YTStandaloneDownloader-Extension.zip dist/yt-standalone-downloader.user.js dist/SHA256SUMS.txt
 
       # Scoop and winget: see packages.yml.
       - name: Update the package managers
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run packages.yml --repo '${{ github.repository }}' --ref main -f "version=$env:VERSION"
+        run: gh workflow run packages.yml --repo '${{ github.repository }}' --ref main -f "version=$VERSION"

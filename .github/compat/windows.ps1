@@ -396,6 +396,8 @@ Area 'window' {
 # ---------- downloads ----------
 function Probe([string]$file) {
   $probe = Join-Path $data 'bin\ffprobe.exe'
+  # FFmpeg's notes on stderr would stop the script in Windows PowerShell (even when discarded).
+  $ErrorActionPreference = 'Continue'
   $j = & $probe -v error -show_entries stream=codec_type,codec_name,width,height -of json $file 2>$null | ConvertFrom-Json
   $v = $j.streams | Where-Object { $_.codec_type -eq 'video' } | Select-Object -First 1
   $a = $j.streams | Where-Object { $_.codec_type -eq 'audio' } | Select-Object -First 1
