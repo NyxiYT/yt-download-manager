@@ -13,6 +13,7 @@ All notable changes to YT Download Manager are listed here. Versions follow
 - Big Picture: the player glides into the corner and back smoothly, also while YouTube's page is busy.
   Scrolling no longer measures the page on every frame.
 - Download progress bars move without re-laying out the page.
+- The toolbar under the video is transparent, so YouTube's ambient mode glow shows through it.
 - The README and the website say plainly that the Windows builds are not code-signed, and how to check a
   download against `SHA256SUMS.txt`.
 

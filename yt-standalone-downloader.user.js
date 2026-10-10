@@ -2858,7 +2858,7 @@ onmessage = async ({ data: m }) => {
     .ysd-ui svg{flex:none}
 
     #ysd-bar{display:flex;align-items:center;justify-content:space-between;gap:4px;min-height:48px;margin-top:8px;padding:0 2px;
-      background:var(--ysd-bg);border-bottom:1px solid var(--ysd-divider);user-select:none}
+      background:transparent;border-bottom:1px solid var(--ysd-divider);user-select:none}
     .ysd-group{display:flex;align-items:center;gap:2px;min-width:0}
     .ysd-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;width:36px;height:36px;padding:0;margin:0;
       border:0;border-radius:18px;background:transparent;color:var(--ysd-text);cursor:pointer;outline:none;
