@@ -193,7 +193,7 @@ continue with step 6 of the [Windows 64-bit](#windows-64-bit) guide to add the e
 ### Linux
 
 The Windows app doesn't run on Linux. You can still use the browser extension on its own, in Chrome,
-Chromium, Edge or Brave:
+Chromium, Edge, Brave, Opera or Vivaldi:
 
 1. Download [YTStandaloneDownloader-Extension.zip](https://github.com/NyxiYT/yt-download-manager/releases/latest/download/YTStandaloneDownloader-Extension.zip)
    and unzip it into a folder you keep (for example `~/yt-extension`).
@@ -202,9 +202,18 @@ Chromium, Edge or Brave:
 4. Select the unzipped folder (the one that contains `manifest.json`).
 5. Open a YouTube video. The toolbar appears under it.
 
-Without the app, the extension downloads inside the browser. YouTube blocks this on many internet
-connections, so it may not work for you. The extension has not been tested on Linux yet (see
-[compatibility](#system-requirements-and-compatibility)).
+Browsers from Snap or Flatpak can only open some folders:
+
+- **Snap** (Chromium on Ubuntu): unzip into a folder in your home folder that doesn't start with a dot, like
+  `~/yt-extension`.
+- **Flatpak** (from Flathub): unzip into the browser's own folder, for example
+  `~/.var/app/com.google.Chrome/yt-extension` for Chrome, or let the browser see your folder:
+  `flatpak override --user --filesystem=~/yt-extension com.google.Chrome`.
+
+Without the app, the extension downloads inside the browser. YouTube blocks this on some internet
+connections. Vivaldi asks where to save each download (its own setting). Opera on Linux has no H.264, so its
+preview player can't play MP4 files; the downloaded files themselves are fine. See
+[compatibility](#system-requirements-and-compatibility) for what was tested.
 
 ## How to use
 
@@ -255,20 +264,30 @@ a ring around the clock fills up to show the progress.
 
 ### Tested platforms
 
-| Platform | Architecture | Status |
-|---|---|---|
-| Windows 11 | x64 (64-bit) | ✅ Tested: installs, runs, downloads videos in up to 8K quality (HDR included) and MP3s |
-| Windows 11 | x64, running the 32-bit (x86) build | ✅ Tested: the 32-bit app and its 32-bit tools download in up to 8K quality, files over 4 GB included |
-| Windows 10 | x64 (64-bit) | ⚠️ Not tested |
-| Windows 10 | x86 (32-bit) | ⚠️ Not tested |
-| Linux (Ubuntu 24.04 LTS and others) | x64 | ⚠️ Not tested. Browser extension only, no app, so no 1440p, 4K or 8K in most cases |
-| macOS | any | ❌ No app. The browser extension may work, not tested |
+Every release is installed and run on these before it is published (GitHub's build servers), and was tested
+by hand on Windows 10 and 11 in virtual machines. On the build servers YouTube often refuses playback and
+downloads, so those parts are tested on the virtual machines and on Linux in containers.
 
-| Browser | Status |
+| Platform | Result |
 |---|---|
-| Google Chrome 154 | ✅ Tested |
-| Microsoft Edge, Brave, Opera, Vivaldi (version 111 or newer) | ⚠️ Not tested. They are built on the same base as Chrome |
-| Firefox | ❌ Not supported by the extension |
+| Windows 11 (x64) | ✅ App and extension: install, upgrade, uninstall, downloads up to 8K, other languages and regions |
+| Windows 11 on ARM | ✅ Both installers, through Windows' emulation |
+| Windows 10 22H2 (x64) | ✅ Extension; the app's install, upgrade and uninstall |
+| Windows 10 22H2 (32-bit) | ✅ App and extension: install, upgrade, uninstall, standard user, downloads, a dropped connection, display scaling up to 200 %, two monitors |
+| Windows Server 2022 and 2025 | ✅ App: both installers, standard user, long paths, other regions |
+| Windows 7 and 8.1 | ❌ Not supported. Chrome and Edge stopped at version 109 there, and the tools the app brings need Windows 10 |
+| Ubuntu 22.04 and 24.04, Debian 12, Fedora 44, Arch, Linux Mint 22.3 | ✅ Extension (no app on Linux), on GNOME and KDE, X11 and Wayland |
+| macOS | ❌ No app. The extension isn't tested there |
+
+| Browser | Result |
+|---|---|
+| Google Chrome | ✅ Windows and Linux (also from Flatpak) |
+| Microsoft Edge | ✅ Windows and Linux |
+| Chromium | ✅ Linux: Debian, Fedora, Arch and Mint packages, Snap and Flatpak |
+| Brave | ✅ Linux (also from Flatpak) |
+| Opera | ✅ Linux. No H.264 there, so the preview player can't play MP4 files (it says so) |
+| Vivaldi | ✅ Linux. Asks where to save each download |
+| Firefox and Firefox ESR | ❌ Not supported by the extension |
 
 ### Video quality
 
@@ -283,9 +302,10 @@ works on every PC the app runs on.
 
 | | Minimum |
 |---|---|
-| Windows | Windows 10 or 11, 64-bit or 32-bit |
-| Browser | Chrome, Edge, Brave, Opera or Vivaldi, version 111 or newer |
-| Memory (RAM) | 2 GB. The app uses under 2 MB while it waits and up to about 150 MB while several downloads run at once, plus yt-dlp and FFmpeg while they work (see [Memory use](#memory-use)) |
+| Windows | Windows 10 or 11: 64-bit, 32-bit or ARM. Windows 7 and 8.1 aren't supported |
+| Linux | The extension only. Tested on Ubuntu 22.04 and 24.04, Debian 12, Fedora 44, Arch and Linux Mint 22.3 |
+| Browser | Chrome, Edge, Chromium, Brave, Opera or Vivaldi, version 111 or newer. Not Firefox |
+| Memory (RAM) | 2 GB. The app uses under 2 MB while it waits and up to about 250 MB while several downloads run at once, plus yt-dlp and FFmpeg while they work (see [Memory use](#memory-use)) |
 | Disk space | About 300 MB for the 64-bit app (230 MB for 32-bit), plus space for your downloads. While a video downloads, it needs about twice its size for a moment |
 | Internet | Needed for every download |
 | Other software | None. The installer brings everything it needs: yt-dlp, FFmpeg, and Deno (64-bit) or Node.js (32-bit). .NET Framework 4.8 is already part of Windows 10 (version 1903 and newer) and Windows 11 |
@@ -299,9 +319,9 @@ download works and close when it's done, so they are not counted here.
 |---|---|---|
 | Waiting in the tray | 1.5 MB | 2.5 MB |
 | Its first minute after it was started or used | 9 MB | 9 MB |
-| One download (4K) | 75 MB | 80 MB |
-| Three downloads at once | 130 MB | 150 MB |
-| Right after its downloads finish | 15 to 27 MB | |
+| One download (4K) | 80 MB | 90 MB |
+| Three downloads at once | 170 MB | 240 MB |
+| Right after its downloads finish | 18 to 29 MB | |
 | 20 finished downloads, History open | 27 MB | |
 | Browser extension, per YouTube tab | under 1 MB | |
 | Browser extension, other sites | nothing, it doesn't run there | |

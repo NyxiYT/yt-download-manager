@@ -5,8 +5,29 @@ All notable changes to YT Download Manager are listed here. Versions follow
 
 ## [Unreleased]
 
+### Fixed
+
+- The app downloads streams itself again. Since 1.11.0 it handed every one to yt-dlp, which still finished the
+  download but without the app's own parallel pieces and its slowing down while a video plays. With the app's
+  downloader, three downloads at once peak at about 240 MB (1.10.0: 340 to 440 MB), not at 150 MB as the notes
+  for 1.11.0 said.
+- A file whose path would be longer than Windows allows (260 characters, a long title in a deep folder) failed
+  at the very end with "Something went wrong". The title is now cut short to fit; in a folder so deep that
+  nothing fits, the file is saved anyway.
+- A connection that drops while a video is being looked up now waits and tries again, as one that drops
+  during the download does. It used to fail the download.
+- In Windows' list of installed apps, the install date was written in the calendar of the user's region
+  (Hijri, Thai, Persian) instead of the Gregorian calendar Windows expects.
+- The preview player says when the browser can't play a file (Opera on Linux has no H.264, for one) instead of
+  showing a black picture.
+- On Linux and other systems without the Windows app, its entry in the extension's menu says that the app is
+  for Windows, instead of asking to install it.
+
 ### Changed
 
+- Before a release is published, it is installed and run on Windows 11 (also on ARM) and Windows Server 2022
+  and 2025, and the extension in Chrome, Edge, Chromium, Brave, Opera and Vivaldi on Ubuntu, Debian, Fedora,
+  Arch and Linux Mint. A release that fails any of it isn't published.
 - New versions show up within minutes. Besides every 12 hours, the app looks for one when it starts, when its
   window or tray menu opens, when the browser uses it (at most every 10 minutes), and when Windows wakes up or
   goes back online. A check reads only where GitHub's "latest release" link leads; the release itself is read
