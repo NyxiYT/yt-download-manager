@@ -14,6 +14,8 @@ All notable changes to YT Download Manager are listed here. Versions follow
   Scrolling no longer measures the page on every frame.
 - Download progress bars move without re-laying out the page.
 - The toolbar under the video is transparent, so YouTube's ambient mode glow shows through it.
+- A minute after it was last used, the app hands its memory back to Windows: about 1.5 MB instead of 9 MB
+  while it waits in the tray, and instead of 15 to 27 MB after downloads.
 - The extension no longer starts its background script for pages on other sites. It listens to tabs only
   while an update waits for the YouTube tabs to close.
 - The README and the website say plainly that the Windows builds are not code-signed, and how to check a

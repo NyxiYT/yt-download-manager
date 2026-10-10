@@ -36,6 +36,7 @@ namespace YTDM
         Form pairPrompt;
         DateTime lastFolderWarning = DateTime.MinValue;
         bool exiting, apiStarted;
+        long restedAt; // the working set right after the last Rest, 0 while the app is in use
         (string state, DateTime at, string folder) folderCache;
 
         public App(bool background)
@@ -59,6 +60,7 @@ namespace YTDM
                 CheckIdle();
                 AppUpdate.Tick();
                 if (!Jobs.Busy) PieceBuffers.Release();
+                Rest();
             };
             idleTimer.Start();
             ScheduleUpdateCheck();
@@ -516,6 +518,21 @@ namespace YTDM
             if (DateTime.UtcNow - Api.LastActivity < idle || DateTime.UtcNow - started < idle) return;
             Log.Info("idle, closing");
             ExitApp(false);
+        }
+
+        // Nothing to do for a minute (no download, no window, no browser asking): the app hands its memory
+        // back to Windows, and again whenever what it did since (a tray menu, a playing video's note) grew
+        // it by a few MB.
+        void Rest()
+        {
+            if (exiting || Jobs.Busy || home != null || pairPrompt != null || DateTime.UtcNow - Api.LastActivity < TimeSpan.FromMinutes(1))
+            {
+                restedAt = 0;
+                return;
+            }
+            if (restedAt != 0 && Environment.WorkingSet < restedAt + (4 << 20)) return;
+            Mem.Trim();
+            restedAt = Environment.WorkingSet;
         }
 
         void ScheduleUpdateCheck()

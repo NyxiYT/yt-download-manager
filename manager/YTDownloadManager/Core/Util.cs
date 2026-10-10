@@ -64,6 +64,22 @@ namespace YTDM
         public static string DefaultFolder => KnownDownloads(); // the same place the browser saves to
     }
 
+    static class Mem
+    {
+        // Frees what the app no longer uses, then hands its pages to Windows. They stay on Windows' standby
+        // list and come back without reading the disk the moment the app touches them again.
+        public static void Trim()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            SetProcessWorkingSetSize(GetCurrentProcess(), (IntPtr)(-1), (IntPtr)(-1));
+        }
+
+        [DllImport("kernel32.dll")] static extern IntPtr GetCurrentProcess();
+        [DllImport("kernel32.dll")] static extern bool SetProcessWorkingSetSize(IntPtr process, IntPtr min, IntPtr max);
+    }
+
     static class Log
     {
         static readonly object L = new object();
