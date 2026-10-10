@@ -283,7 +283,15 @@ async function youtube(page) {
     await youtube(yt);
 
     await area('toolbar', async () => {
-      if (!(await until(yt, `document.querySelector('#ysd-bar .ysd-btn')`, 30000))) throw new Error('no toolbar under the video');
+      if (!(await until(yt, `document.querySelector('#ysd-bar .ysd-btn')`, 30000))) {
+        // What the page is: its address, YouTube's layout parts the toolbar goes into, and our own parts.
+        const page = await ev(yt, `return JSON.stringify({ url: location.href.slice(0, 80), title: document.title.slice(0, 60), state: document.readyState,
+          flexy: !!document.querySelector('ytd-watch-flexy'), below: !!document.querySelector('ytd-watch-flexy #below'), grid: !!document.querySelector('ytd-watch-grid'),
+          player: !!document.querySelector('#movie_player'), ours: document.querySelectorAll('.ysd-ui').length });`).catch((e) => e.message);
+        const r = await send('Page.captureScreenshot', { format: 'png' }, yt.sessionId).catch(() => null);
+        if (r) fs.writeFileSync(OUT.replace(/\.json$/, '') + '-first-page.png', Buffer.from(r.data, 'base64'));
+        throw new Error(`no toolbar under the video ${page}`);
+      }
       const n = await ev(yt, `return document.querySelectorAll('#ysd-bar .ysd-btn').length;`);
       await ev(yt, `document.querySelector('#ysd-bar').scrollIntoView({ block: 'center' }); return true;`);
       await shot(yt, 'toolbar');
