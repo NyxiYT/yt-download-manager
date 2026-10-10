@@ -38,6 +38,8 @@ case $family in
   arch) install ca-certificates curl dbus ttf-dejavu noto-fonts xorg-server-xvfb xorg-xauth ;;
 esac
 
+command -v node >/dev/null || install nodejs # the build server brings its own
+
 # ---------- the browser ----------
 launcher="" bin="" extra=()
 [ "$(id -u)" -eq 0 ] && extra+=(--no-sandbox) # containers run as root, where Chromium needs this
