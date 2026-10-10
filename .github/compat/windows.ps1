@@ -10,7 +10,8 @@ param(
   [Parameter(Mandatory)][ValidateSet('x64', 'x86')][string]$Arch,
   [string]$Out = 'compat-results',
   [string]$Name = "windows-$Arch",
-  [string]$Previous # the last release's installer; by default downloaded with gh
+  [string]$Previous, # the last release's installer; by default downloaded with gh
+  [string[]]$Only # run just these areas
 )
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -35,6 +36,7 @@ function Save { [IO.File]::WriteAllText((Join-Path $Out "$Name.json"), ($results
 
 # Runs one area. It passes unless it throws; it returns "skip: why" to count as skipped.
 function Area([string]$area, [scriptblock]$body) {
+  if ($Only -and $Only -notcontains $area) { return }
   Write-Host "::group::$area"
   $t0 = Get-Date
   try {
@@ -475,27 +477,43 @@ Area 'downloads' {
 
 # ---------- the connection drops in the middle of a download ----------
 Area 'offline' {
-  if ($script:youtube -ne $true) { return 'skip: needs downloads, which YouTube refuses here' } # set by the first download
+  if ($script:youtube -eq $false) { return 'skip: needs downloads, which YouTube refuses here' } # set by the downloads area
   Install-App
   $dl = Join-Path $work 'offline'
   New-Item -ItemType Directory -Force $dl | Out-Null
   Set-Settings @{ folder = $dl }
   $null = Start-App
-  $id = Start-Video 'aqz-KE-bpKQ' 1080 'Connection drops'
-  $null = Wait-Job2 $id @('downloading', 'failed') 180
-  if (Refused (Job $id)) { return 'skip: YouTube refused this download' }
+  $id = Start-Video 'LXb3EKWsInQ' 2160 'Connection drops'
+  # As soon as the first piece is on disk (asking the app is too slow on a busy machine), so the drop hits the
+  # download early.
+  $part = Join-Path $data "work\$id"
+  $t0 = Get-Date
+  while (-not (Get-ChildItem $part -Filter *.part -ErrorAction SilentlyContinue) -and ((Get-Date) - $t0).TotalSeconds -lt 240) { Start-Sleep -Milliseconds 100 }
+  $j = Job $id
+  if (Refused $j) { return 'skip: YouTube refused this download' }
+  if ($j.status -ne 'downloading') { throw "the download didn't get going ($($j.status) $($j.err.key))" }
+  # On a test PC the network adapters go off (a real drop); on a build server, whose own connection must stay,
+  # a firewall rule stops the app's new connections.
+  $real = $env:COMPAT_REAL_DROP -eq '1'
   $progs = @($exe) + @(Get-ChildItem (Join-Path $data 'bin') -Filter *.exe | ForEach-Object FullName)
   try {
-    foreach ($p in $progs) { $null = New-NetFirewallRule -DisplayName 'compat-offline' -Direction Outbound -Program $p -Action Block }
-    Start-Sleep 25
+    if ($real) { Get-NetAdapter | Where-Object Status -eq 'Up' | Disable-NetAdapter -Confirm:$false }
+    else { foreach ($p in $progs) { $null = New-NetFirewallRule -DisplayName 'compat-offline' -Direction Outbound -Program $p -Action Block } }
+    $at = (Get-ChildItem $part -Filter *.part -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum
+    Start-Sleep 30
     $mid = Job $id
     if (Refused $mid) { return 'skip: YouTube refused this download' }
     if ($mid.status -eq 'failed') { throw "the download failed while offline: $($mid.err.key)" }
-  } finally { Remove-NetFirewallRule -DisplayName 'compat-offline' -ErrorAction SilentlyContinue }
+  } finally {
+    if ($real) { Get-NetAdapter | Where-Object Status -eq 'Disabled' | Enable-NetAdapter -Confirm:$false; Start-Sleep 10 }
+    else { Remove-NetFirewallRule -DisplayName 'compat-offline' -ErrorAction SilentlyContinue }
+  }
   $j = Wait-Job2 $id
   if (Refused $j) { return 'skip: YouTube refused this download after the connection came back' }
   if ($j.status -ne 'completed') { throw "the download did not finish after the connection came back: $($j.err.key)" }
-  "kept waiting while offline ($($mid.status), $($mid.notice)), finished afterwards"
+  $log = Join-Path $data 'logs\manager.log'
+  $again = @(Select-String -Path $log -Pattern "job $id.*(continuing|attempt \d|waiting)" -ErrorAction SilentlyContinue).Count
+  "$(if ($real) { 'network off' } else { 'firewall block' }) for 30 s with $([int]($at / 1MB)) MB on disk: kept waiting ($($mid.status), $($mid.notice)), finished afterwards ($again log lines about waiting or continuing)"
 }
 
 # ---------- Defender ----------
