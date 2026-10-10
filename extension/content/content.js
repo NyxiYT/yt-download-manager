@@ -2671,8 +2671,12 @@ onmessage = async ({ data: m }) => {
     retry(rec);
   }
 
+  // The app exists for Windows only; elsewhere the browser saves every download.
+  const appPlatform = /^Win/i.test(navigator.userAgentData?.platform || navigator.platform || '');
+
   // Settings entry when not connected yet: start the app if it's installed, then ask it for access.
   async function dmConnect() {
+    if (!appPlatform) { toast(t('dmWindowsOnly')); return; }
     let up = await dmHello();
     if (!up) {
       if (dmLaunch()) toast(t('dmStarting'));
@@ -2685,7 +2689,7 @@ onmessage = async ({ data: m }) => {
     else if (DM.state === 'unpaired') dmPair();
     else dmSync();
   }
-  const dmHint = () => (!DM.token ? t('dmConnect') : DM.state === 'ready' ? t('dmConnectedHint') : t('dmNotRunning'));
+  const dmHint = () => (!appPlatform ? null : !DM.token ? t('dmConnect') : DM.state === 'ready' ? t('dmConnectedHint') : t('dmNotRunning'));
 
   // ---------- play saved files ----------
   const canPlay = (rec) => rec.status === 'completed' && (sessionBlobs.has(rec.id) || (rec.where === 'folder' && dirHandle?.name === rec.folder && folderState !== 'missing'));

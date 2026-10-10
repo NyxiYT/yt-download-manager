@@ -205,6 +205,7 @@
       dmPairWaiting: "Confirm the connection in the Download Manager window on your PC.",
       dmDenied: "The Download Manager didn't allow the connection.",
       dmNotInstalled: "The Download Manager app isn't running. Install YT Download Manager, finish its setup, then try again.",
+      dmWindowsOnly: "The Download Manager app is for Windows. On this computer, the browser saves your downloads.",
       dmStarting: "Starting the Download Manager\u2026",
       dmUnavailable: "The Download Manager couldn't be started. You can start it from the Start menu, or download in the browser.",
       dmBrowserInstead: "Download in browser",
@@ -327,6 +328,7 @@
       dmPairWaiting: "Best\u00e4tige die Verbindung im Fenster des Download-Managers auf deinem PC.",
       dmDenied: "Der Download-Manager hat die Verbindung nicht zugelassen.",
       dmNotInstalled: "Die Download-Manager-App l\u00e4uft nicht. Installiere YT Download Manager, f\u00fchre die Einrichtung aus und versuche es dann erneut.",
+      dmWindowsOnly: "Die Download-Manager-App gibt es f\u00fcr Windows. Auf diesem Computer speichert der Browser deine Downloads.",
       dmStarting: "Download-Manager wird gestartet\u2026",
       dmUnavailable: "Der Download-Manager konnte nicht gestartet werden. Du kannst ihn \u00fcber das Startmen\u00fc starten oder im Browser herunterladen.",
       dmBrowserInstead: "Im Browser herunterladen",
@@ -449,6 +451,7 @@
       dmPairWaiting: "Confirma la conexi\u00f3n en la ventana del Gestor de descargas de tu PC.",
       dmDenied: "El Gestor de descargas no permiti\u00f3 la conexi\u00f3n.",
       dmNotInstalled: "La app Gestor de descargas no est\u00e1 en ejecuci\u00f3n. Instala YT Download Manager, completa su configuraci\u00f3n y vuelve a intentarlo.",
+      dmWindowsOnly: "La app Gestor de descargas es para Windows. En este ordenador, el navegador guarda tus descargas.",
       dmStarting: "Iniciando el Gestor de descargas\u2026",
       dmUnavailable: "No se pudo iniciar el Gestor de descargas. Puedes iniciarlo desde el men\u00fa Inicio o descargar en el navegador.",
       dmBrowserInstead: "Descargar en el navegador",
@@ -571,6 +574,7 @@
       dmPairWaiting: "Confirmez la connexion dans la fen\u00eatre du Gestionnaire de t\u00e9l\u00e9chargements sur votre PC.",
       dmDenied: "Le Gestionnaire de t\u00e9l\u00e9chargements n'a pas autoris\u00e9 la connexion.",
       dmNotInstalled: "L'application Gestionnaire de t\u00e9l\u00e9chargements n'est pas lanc\u00e9e. Installez YT Download Manager, terminez sa configuration, puis r\u00e9essayez.",
+      dmWindowsOnly: "L'application Gestionnaire de t\u00e9l\u00e9chargements est pour Windows. Sur cet ordinateur, le navigateur enregistre vos t\u00e9l\u00e9chargements.",
       dmStarting: "D\u00e9marrage du Gestionnaire de t\u00e9l\u00e9chargements\u2026",
       dmUnavailable: "Le Gestionnaire de t\u00e9l\u00e9chargements n'a pas pu d\u00e9marrer. Vous pouvez le lancer depuis le menu D\u00e9marrer ou t\u00e9l\u00e9charger dans le navigateur.",
       dmBrowserInstead: "T\u00e9l\u00e9charger dans le navigateur",
@@ -693,6 +697,7 @@
       dmPairWaiting: "Conferma la connessione nella finestra del Gestore download sul tuo PC.",
       dmDenied: "Il Gestore download non ha consentito la connessione.",
       dmNotInstalled: "L'app Gestore download non \u00e8 in esecuzione. Installa YT Download Manager, completa la configurazione e riprova.",
+      dmWindowsOnly: "L'app Gestore download \u00e8 per Windows. Su questo computer i download li salva il browser.",
       dmStarting: "Avvio del Gestore download\u2026",
       dmUnavailable: "Impossibile avviare il Gestore download. Puoi avviarlo dal menu Start oppure scaricare nel browser.",
       dmBrowserInstead: "Scarica nel browser",
@@ -815,6 +820,7 @@
       dmPairWaiting: "Confirme a conex\u00e3o na janela do Gerenciador de downloads no seu PC.",
       dmDenied: "O Gerenciador de downloads n\u00e3o permitiu a conex\u00e3o.",
       dmNotInstalled: "O app Gerenciador de downloads n\u00e3o est\u00e1 em execu\u00e7\u00e3o. Instale o YT Download Manager, conclua a configura\u00e7\u00e3o e tente novamente.",
+      dmWindowsOnly: "O app Gerenciador de downloads \u00e9 para Windows. Neste computador, o navegador salva seus downloads.",
       dmStarting: "Iniciando o Gerenciador de downloads\u2026",
       dmUnavailable: "N\u00e3o foi poss\u00edvel iniciar o Gerenciador de downloads. Voc\u00ea pode inici\u00e1-lo pelo menu Iniciar ou baixar no navegador.",
       dmBrowserInstead: "Baixar no navegador",
@@ -937,6 +943,7 @@
       dmPairWaiting: "Potwierd\u017a po\u0142\u0105czenie w oknie Mened\u017cera pobierania na komputerze.",
       dmDenied: "Mened\u017cer pobierania nie zezwoli\u0142 na po\u0142\u0105czenie.",
       dmNotInstalled: "Aplikacja Mened\u017cer pobierania nie dzia\u0142a. Zainstaluj YT Download Manager, doko\u0144cz konfiguracj\u0119 i spr\u00f3buj ponownie.",
+      dmWindowsOnly: "Aplikacja Mened\u017cer pobierania jest dla systemu Windows. Na tym komputerze pobrane pliki zapisuje przegl\u0105darka.",
       dmStarting: "Uruchamianie Mened\u017cera pobierania\u2026",
       dmUnavailable: "Nie uda\u0142o si\u0119 uruchomi\u0107 Mened\u017cera pobierania. Mo\u017cesz go uruchomi\u0107 z menu Start albo pobra\u0107 w przegl\u0105darce.",
       dmBrowserInstead: "Pobierz w przegl\u0105darce",
@@ -1059,6 +1066,7 @@
       dmPairWaiting: "\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u0435 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0435 \u0432 \u043e\u043a\u043d\u0435 \u041c\u0435\u043d\u0435\u0434\u0436\u0435\u0440\u0430 \u0437\u0430\u0433\u0440\u0443\u0437\u043e\u043a \u043d\u0430 \u043a\u043e\u043c\u043f\u044c\u044e\u0442\u0435\u0440\u0435.",
       dmDenied: "\u041c\u0435\u043d\u0435\u0434\u0436\u0435\u0440 \u0437\u0430\u0433\u0440\u0443\u0437\u043e\u043a \u043d\u0435 \u0440\u0430\u0437\u0440\u0435\u0448\u0438\u043b \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0435.",
       dmNotInstalled: "\u041f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0435 \u00ab\u041c\u0435\u043d\u0435\u0434\u0436\u0435\u0440 \u0437\u0430\u0433\u0440\u0443\u0437\u043e\u043a\u00bb \u043d\u0435 \u0437\u0430\u043f\u0443\u0449\u0435\u043d\u043e. \u0423\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442\u0435 YT Download Manager, \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u0435 \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0443 \u0438 \u043f\u043e\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u0441\u043d\u043e\u0432\u0430.",
+      dmWindowsOnly: "\u041f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0435 \u00ab\u041c\u0435\u043d\u0435\u0434\u0436\u0435\u0440 \u0437\u0430\u0433\u0440\u0443\u0437\u043e\u043a\u00bb \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442 \u0432 Windows. \u041d\u0430 \u044d\u0442\u043e\u043c \u043a\u043e\u043c\u043f\u044c\u044e\u0442\u0435\u0440\u0435 \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0438 \u0441\u043e\u0445\u0440\u0430\u043d\u044f\u0435\u0442 \u0431\u0440\u0430\u0443\u0437\u0435\u0440.",
       dmStarting: "\u0417\u0430\u043f\u0443\u0441\u043a \u041c\u0435\u043d\u0435\u0434\u0436\u0435\u0440\u0430 \u0437\u0430\u0433\u0440\u0443\u0437\u043e\u043a\u2026",
       dmUnavailable: "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u043f\u0443\u0441\u0442\u0438\u0442\u044c \u041c\u0435\u043d\u0435\u0434\u0436\u0435\u0440 \u0437\u0430\u0433\u0440\u0443\u0437\u043e\u043a. \u0417\u0430\u043f\u0443\u0441\u0442\u0438\u0442\u0435 \u0435\u0433\u043e \u0438\u0437 \u043c\u0435\u043d\u044e \u00ab\u041f\u0443\u0441\u043a\u00bb \u0438\u043b\u0438 \u0441\u043a\u0430\u0447\u0430\u0439\u0442\u0435 \u0432 \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0435.",
       dmBrowserInstead: "\u0421\u043a\u0430\u0447\u0430\u0442\u044c \u0432 \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0435",
@@ -1181,6 +1189,7 @@
       dmPairWaiting: "PC \u306e\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u30de\u30cd\u30fc\u30b8\u30e3\u30fc\u306e\u30a6\u30a3\u30f3\u30c9\u30a6\u3067\u63a5\u7d9a\u3092\u8a31\u53ef\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
       dmDenied: "\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u30de\u30cd\u30fc\u30b8\u30e3\u30fc\u304c\u63a5\u7d9a\u3092\u8a31\u53ef\u3057\u307e\u305b\u3093\u3067\u3057\u305f\u3002",
       dmNotInstalled: "\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u30de\u30cd\u30fc\u30b8\u30e3\u30fc\u306e\u30a2\u30d7\u30ea\u304c\u8d77\u52d5\u3057\u3066\u3044\u307e\u305b\u3093\u3002YT Download Manager \u3092\u30a4\u30f3\u30b9\u30c8\u30fc\u30eb\u3057\u3066\u30bb\u30c3\u30c8\u30a2\u30c3\u30d7\u3092\u5b8c\u4e86\u3057\u3066\u304b\u3089\u3001\u3082\u3046\u4e00\u5ea6\u304a\u8a66\u3057\u304f\u3060\u3055\u3044\u3002",
+      dmWindowsOnly: "\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u30de\u30cd\u30fc\u30b8\u30e3\u30fc\u306e\u30a2\u30d7\u30ea\u306f Windows \u7528\u3067\u3059\u3002\u3053\u306e\u30b3\u30f3\u30d4\u30e5\u30fc\u30bf\u30fc\u3067\u306f\u3001\u30d6\u30e9\u30a6\u30b6\u30fc\u304c\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u3092\u4fdd\u5b58\u3057\u307e\u3059\u3002",
       dmStarting: "\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u30de\u30cd\u30fc\u30b8\u30e3\u30fc\u3092\u8d77\u52d5\u3057\u3066\u3044\u307e\u3059\u2026",
       dmUnavailable: "\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u30de\u30cd\u30fc\u30b8\u30e3\u30fc\u3092\u8d77\u52d5\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f\u3002\u30b9\u30bf\u30fc\u30c8\u30e1\u30cb\u30e5\u30fc\u304b\u3089\u8d77\u52d5\u3059\u308b\u304b\u3001\u30d6\u30e9\u30a6\u30b6\u30fc\u3067\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
       dmBrowserInstead: "\u30d6\u30e9\u30a6\u30b6\u30fc\u3067\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9",
@@ -1303,6 +1312,7 @@
       dmPairWaiting: "\u8bf7\u5728\u7535\u8111\u4e0a\u7684\u4e0b\u8f7d\u7ba1\u7406\u5668\u7a97\u53e3\u4e2d\u786e\u8ba4\u8fde\u63a5\u3002",
       dmDenied: "\u4e0b\u8f7d\u7ba1\u7406\u5668\u672a\u5141\u8bb8\u8fde\u63a5\u3002",
       dmNotInstalled: "\u4e0b\u8f7d\u7ba1\u7406\u5668\u5e94\u7528\u672a\u8fd0\u884c\u3002\u8bf7\u5b89\u88c5 YT Download Manager \u5e76\u5b8c\u6210\u8bbe\u7f6e\uff0c\u7136\u540e\u91cd\u8bd5\u3002",
+      dmWindowsOnly: "\u4e0b\u8f7d\u7ba1\u7406\u5668\u5e94\u7528\u4ec5\u9002\u7528\u4e8e Windows\u3002\u5728\u8fd9\u53f0\u7535\u8111\u4e0a\uff0c\u7531\u6d4f\u89c8\u5668\u4fdd\u5b58\u4e0b\u8f7d\u7684\u6587\u4ef6\u3002",
       dmStarting: "\u6b63\u5728\u542f\u52a8\u4e0b\u8f7d\u7ba1\u7406\u5668\u2026",
       dmUnavailable: "\u65e0\u6cd5\u542f\u52a8\u4e0b\u8f7d\u7ba1\u7406\u5668\u3002\u4f60\u53ef\u4ee5\u4ece\u201c\u5f00\u59cb\u201d\u83dc\u5355\u542f\u52a8\u5b83\uff0c\u6216\u5728\u6d4f\u89c8\u5668\u4e2d\u4e0b\u8f7d\u3002",
       dmBrowserInstead: "\u5728\u6d4f\u89c8\u5668\u4e2d\u4e0b\u8f7d",
@@ -4209,8 +4219,12 @@ onmessage = async ({ data: m }) => {
     retry(rec);
   }
 
+  // The app exists for Windows only; elsewhere the browser saves every download.
+  const appPlatform = /^Win/i.test(navigator.userAgentData?.platform || navigator.platform || '');
+
   // Settings entry when not connected yet: start the app if it's installed, then ask it for access.
   async function dmConnect() {
+    if (!appPlatform) { toast(t('dmWindowsOnly')); return; }
     let up = await dmHello();
     if (!up) {
       if (dmLaunch()) toast(t('dmStarting'));
@@ -4223,7 +4237,7 @@ onmessage = async ({ data: m }) => {
     else if (DM.state === 'unpaired') dmPair();
     else dmSync();
   }
-  const dmHint = () => (!DM.token ? t('dmConnect') : DM.state === 'ready' ? t('dmConnectedHint') : t('dmNotRunning'));
+  const dmHint = () => (!appPlatform ? null : !DM.token ? t('dmConnect') : DM.state === 'ready' ? t('dmConnectedHint') : t('dmNotRunning'));
 
   // ---------- play saved files ----------
   const canPlay = (rec) => rec.status === 'completed' && (sessionBlobs.has(rec.id) || (rec.where === 'folder' && dirHandle?.name === rec.folder && folderState !== 'missing'));
