@@ -114,6 +114,10 @@ namespace YTDM
                 return (Cls.Transient, null, null);
             if (Has(e, "timed out|Connection reset|Connection aborted|Remote end closed|RemoteDisconnected|IncompleteRead|ConnectionResetError|Unable to connect|Connection refused|EOF occurred|SSL|urlopen error|WinError 10054|WinError 10060|WinError 10053|Got error|did not get any data|Read timed out|ProtocolError|IncompleteRead|The read operation timed out|content too short|bytes read"))
                 return (Cls.Transient, null, null);
+            // No way out to YouTube at the moment (the network dropped, or a firewall or VPN blocks it). yt-dlp
+            // words these as "ERROR: [youtube] ID: ...", like YouTube's own refusals, so they go first.
+            if (Has(e, "Failed to establish a new connection|TransportError|Network is unreachable|No route to host|WinError 100(13|50|51|65)"))
+                return (Cls.Transient, null, null);
             if (Has(e, "Unable to extract|Signature extraction failed|nsig extraction failed|n challenge|Failed to extract any player response|Precondition check failed|Unable to decode|jsinterp|player .*? not found|KeyError|TypeError|AttributeError|IndexError"))
                 return (Cls.Broken, null, null);
             if (Has(all, "HTTP Error 403")) return (Cls.Expired, null, null);
