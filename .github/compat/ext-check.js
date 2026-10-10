@@ -122,6 +122,8 @@ async function launch() {
     '--autoplay-policy=no-user-gesture-required', '--window-size=1440,900', '--disable-search-engine-choice-screen',
     '--password-store=basic', '--disable-features=DisableLoadExtensionCommandLineSwitch', ...EXTRA];
   if (flag('headless')) common.push('--headless=new');
+  // Started with administrator rights, Chrome starts itself again without them, and the pipe is lost.
+  if (process.platform === 'win32') common.push('--do-not-de-elevate');
   if (process.env.WAYLAND_DISPLAY && !flag('headless')) common.push('--ozone-platform=wayland');
   const [cmd, ...pre] = LAUNCHER ? LAUNCHER.split(' ').filter(Boolean) : [BROWSER];
   // First choice: the pipe, and the extension loaded through it (works in every branded Chrome).
@@ -307,8 +309,13 @@ async function youtube(page) {
       await click(yt, '#ysd-bar button[aria-label^="Big Picture"]');
       if (!(await until(yt, `document.documentElement.classList.contains('ysd-focus')`, 5000))) throw new Error('Big Picture did not turn on');
       // Scrolling down docks the player in the corner, scrolling back up brings it back.
-      await ev(yt, `window.scrollTo(0, 1600); return true;`);
+      // Well past the player (a page YouTube cut short for this machine may not scroll that far).
+      const far = await ev(yt, `const p = document.querySelector('#player-container').getBoundingClientRect(); window.scrollTo(0, scrollY + p.bottom + 600); await new Promise((r) => setTimeout(r, 400)); return document.querySelector('#player-container').getBoundingClientRect().bottom < 0 || scrollY > 1200;`);
       const docked = await until(yt, `document.documentElement.classList.contains('ysd-docked')`, 5000);
+      if (!docked && !far) {
+        await click(yt, '#ysd-bar button[aria-label^="Exit Big Picture"]');
+        return refused ? `skip: on, off; the page YouTube shows this machine is too short to scroll past the player` : Promise.reject(new Error('the page does not scroll past the player'));
+      }
       await sleep(600);
       await shot(yt, 'docked');
       await ev(yt, `window.scrollTo(0, 0); return true;`);

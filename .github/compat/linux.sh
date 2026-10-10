@@ -50,7 +50,8 @@ fi
 
 # ---------- the browser ----------
 launcher="" bin="" extra=()
-[ "$(id -u)" -eq 0 ] && extra+=(--no-sandbox) # containers run as root, where Chromium needs this
+# Containers run as root, where Chromium needs this, and have little shared memory.
+[ "$(id -u)" -eq 0 ] && extra+=(--no-sandbox --disable-dev-shm-usage)
 flatpak_app() {
   install flatpak
   flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo

@@ -205,8 +205,9 @@ Area 'upgrade' {
   $j = Api POST '/v1/files' @{ name = 'kept.png'; data = $png; title = 'Kept across the upgrade'; vid = 'dQw4w9WgXcQ' }
   $id = if ($j.job) { $j.job.id } else { $j.id }
   $null = Wait-Job2 $id
-  Stop-App
-  Install-App
+  # As on a user's PC, the new installer runs while the app does; it closes the app, which saves its queue.
+  $p = Start-Process $Setup -ArgumentList '--quiet' -PassThru -Wait
+  if ($p.ExitCode -ne 0) { throw "the upgrade failed with exit code $($p.ExitCode)" }
   $h2 = Start-App
   if ($h2.version -ne $version) { throw "after the upgrade the app reports $($h2.version), expected $version" }
   $s = Get-Content $settingsFile -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -395,7 +396,7 @@ Area 'window' {
 # ---------- downloads ----------
 function Probe([string]$file) {
   $probe = Join-Path $data 'bin\ffprobe.exe'
-  $j = & $probe -v error -show_entries stream=codec_type,codec_name,width,height -of json $file | ConvertFrom-Json
+  $j = & $probe -v error -show_entries stream=codec_type,codec_name,width,height -of json $file 2>$null | ConvertFrom-Json
   $v = $j.streams | Where-Object { $_.codec_type -eq 'video' } | Select-Object -First 1
   $a = $j.streams | Where-Object { $_.codec_type -eq 'audio' } | Select-Object -First 1
   [pscustomobject]@{ height = [int]$v.height; video = $v.codec_name; audio = $a.codec_name }
