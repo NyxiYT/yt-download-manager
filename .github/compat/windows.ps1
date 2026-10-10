@@ -83,7 +83,7 @@ function Set-Settings([hashtable]$values) {
 
 function Start-App([string[]]$Arguments = @('--background')) {
   Stop-App
-  $script:app = Start-Process $exe -ArgumentList $Arguments -PassThru
+  $script:app = if ($Arguments.Count) { Start-Process $exe -ArgumentList $Arguments -PassThru } else { Start-Process $exe -PassThru }
   $script:port = 17724
   for ($i = 0; $i -lt 40; $i++) {
     Start-Sleep -Milliseconds 500
@@ -147,6 +147,29 @@ public static class CompatShot {
 }
 '@
 
+Add-Type -TypeDefinition @'
+using System; using System.Runtime.InteropServices; using System.Security.Principal;
+public static class CompatLsa {
+  [StructLayout(LayoutKind.Sequential)] struct LSA_STRING { public ushort Length, MaximumLength; public IntPtr Buffer; }
+  [StructLayout(LayoutKind.Sequential)] struct LSA_ATTR { public int Length; public IntPtr Root, Name; public uint Attributes; public IntPtr Sd, Qos; }
+  [DllImport("advapi32.dll")] static extern uint LsaOpenPolicy(IntPtr system, ref LSA_ATTR attr, uint access, out IntPtr handle);
+  [DllImport("advapi32.dll")] static extern uint LsaAddAccountRights(IntPtr handle, byte[] sid, LSA_STRING[] rights, uint count);
+  [DllImport("advapi32.dll")] static extern uint LsaClose(IntPtr handle);
+  [DllImport("advapi32.dll")] static extern int LsaNtStatusToWinError(uint status);
+  public static int Grant(string account, string right) {
+    var sid = (SecurityIdentifier)new NTAccount(account).Translate(typeof(SecurityIdentifier));
+    var b = new byte[sid.BinaryLength]; sid.GetBinaryForm(b, 0);
+    var attr = new LSA_ATTR(); IntPtr h;
+    uint r = LsaOpenPolicy(IntPtr.Zero, ref attr, 0x000F0FFF, out h);
+    if (r != 0) return LsaNtStatusToWinError(r);
+    var u = new LSA_STRING { Buffer = Marshal.StringToHGlobalUni(right), Length = (ushort)(right.Length * 2), MaximumLength = (ushort)(right.Length * 2 + 2) };
+    r = LsaAddAccountRights(h, b, new[] { u }, 1);
+    LsaClose(h);
+    return r == 0 ? 0 : LsaNtStatusToWinError(r);
+  }
+}
+'@
+
 function Shoot-Window([string]$file) {
   for ($i = 0; $i -lt 20; $i++) {
     Start-Sleep -Milliseconds 500
@@ -205,6 +228,8 @@ Area 'standard-user' {
   $pw = 'Cp9!' + [guid]::NewGuid().ToString('N').Substring(0, 16)
   if (Get-LocalUser -Name $user -ErrorAction SilentlyContinue) { Remove-LocalUser -Name $user }
   $null = New-LocalUser -Name $user -Password (ConvertTo-SecureString $pw -AsPlainText -Force) -PasswordNeverExpires -AccountNeverExpires
+  $granted = [CompatLsa]::Grant($user, 'SeBatchLogonRight')
+  if ($granted -ne 0) { throw "could not let $user run a scheduled task (0x$('{0:x}' -f $granted))" }
   $shared = Join-Path $work 'user'
   New-Item -ItemType Directory -Force $shared | Out-Null
   $acl = Get-Acl $shared
@@ -247,8 +272,9 @@ try {
   Start-ScheduledTask -TaskName 'compat-user'
   $t0 = Get-Date
   while (-not (Test-Path (Join-Path $shared 'result.json')) -and ((Get-Date) - $t0).TotalSeconds -lt 300) { Start-Sleep 2 }
+  $task = Get-ScheduledTaskInfo -TaskName 'compat-user' -ErrorAction SilentlyContinue
   Unregister-ScheduledTask -TaskName 'compat-user' -Confirm:$false -ErrorAction SilentlyContinue
-  if (-not (Test-Path (Join-Path $shared 'result.json'))) { throw "the run as $user did not finish: $((Get-ScheduledTaskInfo -TaskName 'compat-user' -ErrorAction SilentlyContinue).LastTaskResult)" }
+  if (-not (Test-Path (Join-Path $shared 'result.json'))) { throw "the run as $user did not finish (task result 0x$('{0:x}' -f [int64]$task.LastTaskResult))" }
   $r = Get-Content (Join-Path $shared 'result.json') -Raw | ConvertFrom-Json
   Write-Host ($r | ConvertTo-Json)
   if ($r.error) { throw "as $user`: $($r.error)" }
@@ -284,9 +310,8 @@ Area 'names-paths' {
   }
   $made = @()
   foreach ($title in $cases.Keys) {
-    $j = Api POST '/v1/files' @{ name = 'shot.png'; data = $png; title = $title; vid = 'dQw4w9WgXcQ' }
-    $id = if ($j.job) { $j.job.id } else { $j.id }
-    $done = Wait-Job2 $id @('completed', 'failed') 60
+    $j = Api POST '/v1/jobs' @{ vid = 'jNQXAC9IVRw'; title = $title; author = ''; kind = 'thumb'; key = 'thumb'; format = 'JPG'; quality = 'HD'; opts = @{ thumb = 'hqdefault' }; force = $true }
+    $done = Wait-Job2 $j.job.id @('completed', 'failed') 90
     if ($done.status -ne 'completed') { throw "saving '$title' failed: $($done.err.key)" }
     $file = $done.file
     $base = [IO.Path]::GetFileNameWithoutExtension($file)
@@ -301,7 +326,11 @@ Area 'names-paths' {
   }
   $longest = ($made | Measure-Object Length -Maximum).Maximum
   if ($longest -le 260) { throw "the longest path was only $longest characters" }
-  "7 titles saved with the expected names; longest path $longest characters"
+  # A screenshot from the browser keeps the name the extension gave it.
+  $j = Api POST '/v1/files' @{ name = 'Screenshot 0-07.png'; data = $png; title = 'Screenshot'; vid = 'jNQXAC9IVRw' }
+  $done = Wait-Job2 $j.job.id @('completed', 'failed') 60
+  if ($done.status -ne 'completed' -or [IO.Path]::GetFileName($done.file) -ne 'Screenshot 0-07.png') { throw "a screenshot was saved as '$($done.file)' ($($done.err.key))" }
+  "7 titles and a screenshot saved with the expected names; longest path $longest characters"
 }
 
 # ---------- locales: formats, right-to-left, other calendars ----------
@@ -395,11 +424,17 @@ Area 'downloads' {
   $script:youtube = $true
 
   $ids = @((Start-Video 'jNQXAC9IVRw' 240 'Parallel one'), (Start-Video 'R6DiFlAXrS0' 720 'Parallel two'), (Start-Video 'aqz-KE-bpKQ' 360 'Parallel three'))
-  foreach ($id in $ids) { $j = Wait-Job2 $id; if ($j.status -ne 'completed') { throw "a parallel download failed: $($j.err.key)" } }
-  $notes += '3 parallel'
+  $refusedNow = 0
+  foreach ($id in $ids) {
+    $j = Wait-Job2 $id
+    if (Refused $j) { $refusedNow++ } elseif ($j.status -ne 'completed') { throw "a parallel download failed: $($j.err.key)" }
+  }
+  if ($refusedNow -eq $ids.Count) { return "skip: YouTube refused this machine after the first download ($($notes -join ', '))" }
+  $notes += "3 parallel ($refusedNow refused by YouTube)"
 
   $id = Start-Video 'aqz-KE-bpKQ' 1080 'Pause and resume'
-  $null = Wait-Job2 $id @('downloading') 180
+  $null = Wait-Job2 $id @('downloading', 'failed') 180
+  if (Refused (Job $id)) { return "skip: YouTube refused this machine part way ($($notes -join ', '))" }
   Start-Sleep 2
   $null = Api POST "/v1/jobs/$id/pause"
   $p = Wait-Job2 $id @('paused') 30
@@ -411,7 +446,8 @@ Area 'downloads' {
   $notes += 'pause/resume'
 
   $id = Start-Video 'aqz-KE-bpKQ' 720 'Cancel and retry'
-  $null = Wait-Job2 $id @('downloading') 180
+  $null = Wait-Job2 $id @('downloading', 'failed') 180
+  if (Refused (Job $id)) { return "skip: YouTube refused this machine part way ($($notes -join ', '))" }
   $null = Api POST "/v1/jobs/$id/cancel"
   $null = Wait-Job2 $id @('canceled') 30
   if (Get-ChildItem $dl -File -Filter 'Cancel and retry*') { throw 'a canceled download left files' }
@@ -424,22 +460,25 @@ Area 'downloads' {
 
 # ---------- the connection drops in the middle of a download ----------
 Area 'offline' {
-  if ($script:youtube -ne $true) { return 'skip: needs downloads, which YouTube refuses here' }
+  if ($script:youtube -ne $true) { return 'skip: needs downloads, which YouTube refuses here' } # set by the first download
   Install-App
   $dl = Join-Path $work 'offline'
   New-Item -ItemType Directory -Force $dl | Out-Null
   Set-Settings @{ folder = $dl }
   $null = Start-App
   $id = Start-Video 'aqz-KE-bpKQ' 1080 'Connection drops'
-  $null = Wait-Job2 $id @('downloading') 180
+  $null = Wait-Job2 $id @('downloading', 'failed') 180
+  if (Refused (Job $id)) { return 'skip: YouTube refused this download' }
   $progs = @($exe) + @(Get-ChildItem (Join-Path $data 'bin') -Filter *.exe | ForEach-Object FullName)
   try {
     foreach ($p in $progs) { $null = New-NetFirewallRule -DisplayName 'compat-offline' -Direction Outbound -Program $p -Action Block }
     Start-Sleep 25
     $mid = Job $id
+    if (Refused $mid) { return 'skip: YouTube refused this download' }
     if ($mid.status -eq 'failed') { throw "the download failed while offline: $($mid.err.key)" }
   } finally { Remove-NetFirewallRule -DisplayName 'compat-offline' -ErrorAction SilentlyContinue }
   $j = Wait-Job2 $id
+  if (Refused $j) { return 'skip: YouTube refused this download after the connection came back' }
   if ($j.status -ne 'completed') { throw "the download did not finish after the connection came back: $($j.err.key)" }
   "kept waiting while offline ($($mid.status), $($mid.notice)), finished afterwards"
 }

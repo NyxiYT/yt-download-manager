@@ -34,8 +34,10 @@ foreach ($t in 'yt-dlp.exe', 'ffmpeg.exe', 'ffprobe.exe', $js) {
 }
 & (Join-Path $bin 'yt-dlp.exe') --version
 if ($LASTEXITCODE) { throw 'yt-dlp does not run' }
-& (Join-Path $bin 'ffmpeg.exe') -hide_banner -version | Select-Object -First 1
+# The whole output first: in Windows PowerShell, cutting the pipe short ends FFmpeg with an error code.
+$v = & (Join-Path $bin 'ffmpeg.exe') -hide_banner -version
 if ($LASTEXITCODE) { throw 'FFmpeg does not run' }
+$v | Select-Object -First 1
 & (Join-Path $bin $js) --version
 if ($LASTEXITCODE) { throw "$js does not run" }
 

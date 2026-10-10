@@ -427,9 +427,17 @@ async function youtube(page) {
     });
 
     await area('shorts', async () => {
-      // The newest Short of YouTube's own channel.
+      // A current Short: from YouTube's own channel, else from a search.
       const p = await openPage('https://www.youtube.com/@YouTube/shorts');
-      if (!(await until(p, `document.querySelector('a[href^="/shorts/"]')`, 30000))) throw new Error('no Shorts listed on the channel page');
+      let found = await until(p, `document.querySelector('a[href^="/shorts/"]')`, 30000);
+      if (!found) {
+        await send('Page.navigate', { url: 'https://www.youtube.com/results?search_query=%23shorts' }, p.sessionId);
+        found = await until(p, `(scrollBy(0, 400), document.querySelector('a[href^="/shorts/"]'))`, 30000);
+      }
+      if (!found) {
+        const where = await ev(p, `return location.href + ' ' + document.title;`).catch(() => '');
+        throw new Error(`no Short found to open (${where})`);
+      }
       await ev(p, `location.href = document.querySelector('a[href^="/shorts/"]').href; return true;`).catch(() => {});
       await until(p, `/^\/shorts\/[\w-]{11}/.test(location.pathname) && document.readyState === 'complete'`, 30000);
       const ok = await until(p, `document.querySelector('#ysd-shorts .ysd-sbtn, #ysd-shorts button')`, 30000);
