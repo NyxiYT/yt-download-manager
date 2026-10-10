@@ -442,15 +442,25 @@ async function youtube(page) {
       await send('Page.navigate', { url: `https://www.youtube.com/watch?v=${other}` }, page.sessionId);
       await youtube(page);
       await until(page, `document.querySelector('#ysd-bar .ysd-btn')`, 30000);
+      // The quality list comes from the browser now; pressing Download starts the app first.
+      const before = Date.now();
       await click(page, '#ysd-bar button[aria-label="Download video"]');
+      if (!(await until(page, `document.querySelector('.ysd-pop .ysd-primary')`, 60000))) throw new Error('no quality list with the app closed');
+      await click(page, '.ysd-pop .ysd-primary');
       let up = false;
       for (let i = 0; i < 60 && !up; i++) {
         await sleep(1000);
         up = await fetch('http://127.0.0.1:17724/v1/hello').then((r) => r.ok, () => false);
       }
       if (!up) throw new Error('the app did not start from the page');
-      const j2 = await hand(page, other);
-      notes.push(`closed app started by the page; download went to it (${j2.status}${j2.err ? ` ${j2.err.key}` : ''})`);
+      const started = Math.round((Date.now() - before) / 1000);
+      let j2 = null;
+      for (let i = 0; i < 120 && !(j2 && ['completed', 'failed'].includes(j2.status)); i++) {
+        await sleep(1000);
+        j2 = (await appApi('/v1/jobs').catch(() => ({ jobs: [] }))).jobs.find((x) => x.vid === other);
+      }
+      if (!j2) throw new Error('the app started, but the download did not reach it');
+      notes.push(`closed app started by the page in ${started} s; download went to it (${j2.status}${j2.err ? ` ${j2.err.key}` : ''})`);
       await send('Target.closeTarget', { targetId: page.targetId });
       return notes.join('; ');
     });
