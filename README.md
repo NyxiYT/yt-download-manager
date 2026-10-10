@@ -285,10 +285,24 @@ works on every PC the app runs on.
 |---|---|
 | Windows | Windows 10 or 11, 64-bit or 32-bit |
 | Browser | Chrome, Edge, Brave, Opera or Vivaldi, version 111 or newer |
-| Memory (RAM) | 2 GB. The app uses about 10 MB while it waits and up to about 150 MB while several downloads run at once, plus yt-dlp and FFmpeg while they work |
+| Memory (RAM) | 2 GB. The app uses about 10 MB while it waits and up to about 150 MB while several downloads run at once, plus yt-dlp and FFmpeg while they work (see [Memory use](#memory-use)) |
 | Disk space | About 300 MB for the 64-bit app (230 MB for 32-bit), plus space for your downloads. While a video downloads, it needs about twice its size for a moment |
 | Internet | Needed for every download |
 | Other software | None. The installer brings everything it needs: yt-dlp, FFmpeg, and Deno (64-bit) or Node.js (32-bit). .NET Framework 4.8 is already part of Windows 10 (version 1903 and newer) and Windows 11 |
+
+### Memory use
+
+Measured with the 64-bit app on Windows 11. yt-dlp and FFmpeg are separate programs: they run only while a
+download works and close when it's done, so they are not counted here.
+
+| What the app is doing | Usually | At most |
+|---|---|---|
+| Waiting in the tray | 9 MB | 9 MB |
+| One download (4K) | 75 MB | 80 MB |
+| Three downloads at once | 130 MB | 150 MB |
+| After its downloads finish | 20 to 27 MB | |
+| 20 finished downloads, History open | 27 MB | |
+| Browser extension, per YouTube tab | under 1 MB | |
 
 ## FAQ
 
