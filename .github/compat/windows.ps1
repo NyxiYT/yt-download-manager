@@ -227,6 +227,7 @@ Area 'install-uninstall' {
 Area 'standard-user' {
   $user = "J$([char]0xFC)rgen M$([char]0xFC)ller"
   $pw = 'Cp9!' + [guid]::NewGuid().ToString('N').Substring(0, 16)
+  Get-CimInstance Win32_UserProfile | Where-Object { $_.LocalPath -like "*\$user*" } | Remove-CimInstance -ErrorAction SilentlyContinue
   if (Get-LocalUser -Name $user -ErrorAction SilentlyContinue) { Remove-LocalUser -Name $user }
   $null = New-LocalUser -Name $user -Password (ConvertTo-SecureString $pw -AsPlainText -Force) -PasswordNeverExpires -AccountNeverExpires
   $granted = [CompatLsa]::Grant($user, 'SeBatchLogonRight')
@@ -280,7 +281,7 @@ try {
   Write-Host ($r | ConvertTo-Json)
   if ($r.error) { throw "as $user`: $($r.error)" }
   if ($r.admin) { throw 'the test user is an administrator' }
-  if ($r.profile -notlike "*$user") { throw "unexpected profile folder $($r.profile)" }
+  if ($r.profile -notlike "*\$user*") { throw "unexpected profile folder $($r.profile)" }
   if ($r.install -ne 0 -or -not $r.installed) { throw "install as a standard user failed ($($r.install))" }
   if ($r.hello -ne $version) { throw "the app did not answer for the standard user ($($r.hello))" }
   if ($r.uninstall -ne 0 -or $r.leftover) { throw "uninstall as a standard user failed or left files ($($r.uninstall))" }
@@ -294,6 +295,7 @@ Area 'names-paths' {
   # path longer than Windows' limit of 259 characters. That limit is on by default, as on a home PC.
   Set-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name LongPathsEnabled -Value 0 -Type DWord
   $deep = Join-Path $work ("Ordner mit Leerzeichen $([char]0xC4)$([char]0xD6)$([char]0xDC) " + (@(1..8 | ForEach-Object { "Unterordner Nummer $_" }) -join '\'))
+  if (Test-Path -LiteralPath "\\?\$work\Ordner mit Leerzeichen $([char]0xC4)$([char]0xD6)$([char]0xDC) Unterordner Nummer 1") { Remove-Item -LiteralPath "\\?\$work\Ordner mit Leerzeichen $([char]0xC4)$([char]0xD6)$([char]0xDC) Unterordner Nummer 1" -Recurse -Force }
   $null = [IO.Directory]::CreateDirectory("\\?\$deep")
   Set-Settings @{ folder = $deep; lang = $null }
   $null = Start-App
@@ -416,6 +418,7 @@ function Refused($job) { $job.status -eq 'failed' -and @('errBlocked', 'errSignI
 Area 'downloads' {
   Install-App
   $dl = Join-Path $work 'downloads'
+  Remove-Item -Recurse -Force $dl -ErrorAction SilentlyContinue
   New-Item -ItemType Directory -Force $dl | Out-Null
   Set-Settings @{ folder = $dl; lang = $null }
   $null = Start-App
