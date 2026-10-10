@@ -34,7 +34,7 @@ apt_repo() { # name key-url line
 # Basics every session needs: fonts (pages measure text), D-Bus, a few libraries the browsers expect.
 case $family in
   debian) install ca-certificates curl dbus dbus-x11 fonts-dejavu-core fonts-noto-core xauth xvfb ;;
-  fedora) install ca-certificates curl dbus-daemon dbus-tools dejavu-sans-fonts google-noto-sans-fonts xorg-x11-server-Xvfb xorg-x11-xauth ;;
+  fedora) install ca-certificates curl dbus-daemon dbus-tools dbus-x11 dejavu-sans-fonts google-noto-sans-fonts xorg-x11-server-Xvfb xorg-x11-xauth ;;
   arch) install ca-certificates curl dbus ttf-dejavu noto-fonts xorg-server-xvfb xorg-xauth ;;
 esac
 

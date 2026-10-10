@@ -24,7 +24,7 @@ const OUT = opt('out', 'ext-result.json');
 const EXT = path.resolve(opt('ext', path.join(__dirname, '..', '..', 'extension')));
 const NAME = opt('name', path.basename(BROWSER || 'browser'));
 const LAUNCHER = opt('launcher', '');
-const PORT = Number(opt('port', LAUNCHER ? 9333 : 0));
+const PORT = Number(opt('port', 9333));
 const PROFILE = opt('profile', fs.mkdtempSync(path.join(os.tmpdir(), 'ysd-')));
 const SKIP = new Set(opt('skip', '').split(',').filter(Boolean)); // areas not to run here
 const EXTRA = opt('extra', '').split(' ').filter(Boolean); // more browser switches
@@ -41,6 +41,7 @@ function sessionKind() {
   const desktop = process.env.XDG_CURRENT_DESKTOP || 'none';
   return `${desktop} on ${process.env.WAYLAND_DISPLAY ? 'Wayland' : process.env.DISPLAY ? 'X11' : 'headless'}`;
 }
+fs.mkdirSync(path.dirname(path.resolve(OUT)), { recursive: true });
 const save = () => fs.writeFileSync(OUT, JSON.stringify(result, null, 1));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -62,63 +63,80 @@ function request(write) {
 }
 
 let child;
+let stderr = '';
+// Starts the browser with the given switches, talking over a pipe (file descriptors 3 and 4). Resolves with
+// the browser's version, or rejects when it doesn't answer.
+async function startPipe(cmd, argv) {
+  child = spawn(cmd, argv, { stdio: ['ignore', 'ignore', 'pipe', 'pipe', 'pipe'] });
+  const me = child;
+  me.stdio[2].on('data', (d) => { stderr = (stderr + d).slice(-4000); });
+  for (const s of me.stdio.slice(2)) s.on('error', () => {}); // a browser that closes the pipe just stops answering
+  me.on('exit', (c) => { result.browserExit = c; result.browserStderr = stderr.slice(-1500); });
+  let buf = Buffer.alloc(0);
+  me.stdio[4].on('data', (d) => {
+    buf = Buffer.concat([buf, d]);
+    let i;
+    while ((i = buf.indexOf(0)) >= 0) { dispatch(JSON.parse(buf.subarray(0, i).toString('utf8'))); buf = buf.subarray(i + 1); }
+  });
+  send = request((x) => { if (!me.stdio[3].destroyed) me.stdio[3].write(x + '\0'); });
+  return (await send('Browser.getVersion', {}, undefined, 45000)).product;
+}
+
+// The same over a debugging port (for browsers in a sandbox that keeps the pipe out).
+async function startPort(cmd, argv) {
+  child = spawn(cmd, argv, { stdio: ['ignore', 'ignore', 'pipe'] });
+  child.stderr.on('data', (d) => { stderr = (stderr + d).slice(-4000); });
+  child.on('exit', (c) => { result.browserExit = c; result.browserStderr = stderr.slice(-1500); });
+  let ws;
+  for (let i = 0; i < 60 && !ws; i++) {
+    await sleep(1000);
+    try {
+      const v = await (await fetch(`http://127.0.0.1:${PORT || 9333}/json/version`)).json();
+      ws = new WebSocket(v.webSocketDebuggerUrl);
+    } catch { /* not up yet */ }
+  }
+  if (!ws) throw new Error('the browser did not open its debugging port');
+  await new Promise((r, j) => { ws.onopen = r; ws.onerror = () => j(new Error('debugging port refused')); });
+  ws.onmessage = (e) => dispatch(JSON.parse(e.data));
+  send = request((x) => ws.send(x));
+  return (await send('Browser.getVersion')).product;
+}
+
+async function stop() {
+  if (!child || child.exitCode !== null) return;
+  const gone = new Promise((r) => child.once('exit', r));
+  child.kill();
+  await Promise.race([gone, sleep(8000)]);
+  await sleep(1000); // the profile's lock goes with the last process
+}
+
 async function launch() {
   const common = [`--user-data-dir=${PROFILE}`, '--no-first-run', '--no-default-browser-check', '--mute-audio', '--lang=en-US',
     '--autoplay-policy=no-user-gesture-required', '--window-size=1440,900', '--disable-search-engine-choice-screen',
     '--password-store=basic', '--disable-features=DisableLoadExtensionCommandLineSwitch', ...EXTRA];
   if (flag('headless')) common.push('--headless=new');
   if (process.env.WAYLAND_DISPLAY && !flag('headless')) common.push('--ozone-platform=wayland');
-  if (LAUNCHER) {
-    // A sandboxed browser: no extra file descriptors reach it, so a port, and --load-extension.
-    const [cmd, ...pre] = LAUNCHER.split(' ').filter(Boolean);
-    child = spawn(cmd, [...pre, ...common, `--remote-debugging-port=${PORT}`, `--load-extension=${EXT}`, 'about:blank'], { stdio: 'ignore' });
-    let ws;
-    for (let i = 0; i < 60 && !ws; i++) {
-      await sleep(1000);
-      try {
-        const v = await (await fetch(`http://127.0.0.1:${PORT}/json/version`)).json();
-        ws = new WebSocket(v.webSocketDebuggerUrl);
-      } catch { /* not up yet */ }
-    }
-    if (!ws) throw new Error('the browser did not open its debugging port');
-    await new Promise((r, j) => { ws.onopen = r; ws.onerror = () => j(new Error('debugging port refused')); });
-    ws.onmessage = (e) => dispatch(JSON.parse(e.data));
-    send = request((s) => ws.send(s));
-    return 'load-extension';
-  }
-  child = spawn(BROWSER, [...common, '--remote-debugging-pipe', '--enable-unsafe-extension-debugging', 'about:blank'],
-    { stdio: ['ignore', 'ignore', 'pipe', 'pipe', 'pipe'] });
-  let err = '';
-  child.stdio[2].on('data', (d) => { err = (err + d).slice(-4000); });
-  child.on('exit', (c) => { result.browserExit = c; result.browserStderr = err.slice(-1500); });
-  let buf = Buffer.alloc(0);
-  child.stdio[4].on('data', (d) => {
-    buf = Buffer.concat([buf, d]);
-    let i;
-    while ((i = buf.indexOf(0)) >= 0) { dispatch(JSON.parse(buf.subarray(0, i).toString('utf8'))); buf = buf.subarray(i + 1); }
-  });
-  send = request((s) => child.stdio[3].write(s + '\0'));
-  result.version = (await send('Browser.getVersion', {}, undefined, 60000)).product;
+  const [cmd, ...pre] = LAUNCHER ? LAUNCHER.split(' ').filter(Boolean) : [BROWSER];
+  // First choice: the pipe, and the extension loaded through it (works in every branded Chrome).
   try {
+    result.version = await startPipe(cmd, [...pre, ...common, '--remote-debugging-pipe', '--enable-unsafe-extension-debugging', 'about:blank']);
     const r = await send('Extensions.loadUnpacked', { path: EXT });
     if (r.id !== EXT_ID) throw new Error(`loaded as ${r.id}`);
     return 'pipe';
   } catch (e) {
-    // Browsers without that command load the extension from the command line instead.
-    result.loadUnpacked = e.message;
-    child.kill();
-    await sleep(1500);
-    child = spawn(BROWSER, [...common, '--remote-debugging-pipe', `--load-extension=${EXT}`, 'about:blank'], { stdio: ['ignore', 'ignore', 'ignore', 'pipe', 'pipe'] });
-    buf = Buffer.alloc(0);
-    child.stdio[4].on('data', (d) => {
-      buf = Buffer.concat([buf, d]);
-      let i;
-      while ((i = buf.indexOf(0)) >= 0) { dispatch(JSON.parse(buf.subarray(0, i).toString('utf8'))); buf = buf.subarray(i + 1); }
-    });
-    send = request((s) => child.stdio[3].write(s + '\0'));
-    result.version = (await send('Browser.getVersion', {}, undefined, 60000)).product;
-    return 'load-extension';
+    result.firstTry = e.message;
+    await stop();
   }
+  // Then the command line (browsers without that command), over the pipe or, failing that, a port.
+  try {
+    result.version = await startPipe(cmd, [...pre, ...common, '--remote-debugging-pipe', `--load-extension=${EXT}`, 'about:blank']);
+    return 'load-extension over a pipe';
+  } catch (e) {
+    result.secondTry = e.message;
+    await stop();
+  }
+  result.version = await startPort(cmd, [...pre, ...common, `--remote-debugging-port=${PORT || 9333}`, `--load-extension=${EXT}`, 'about:blank']);
+  return 'load-extension over a port';
 }
 
 // ---------- pages ----------

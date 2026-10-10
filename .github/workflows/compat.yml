@@ -153,7 +153,7 @@ jobs:
           - { os: ubuntu-24.04, container: "fedora:latest", browser: chromium, session: kde-wayland }
           - { os: ubuntu-24.04, container: "archlinux:latest", browser: chromium, session: x11 }
           - { os: ubuntu-24.04, container: "archlinux:latest", browser: chromium, session: wayland }
-          - { os: ubuntu-24.04, container: "linuxmintd/mint23-amd64", browser: chromium, session: x11 }
+          - { os: ubuntu-24.04, container: "linuxmintd/mint22.3-amd64", browser: chromium, session: x11 }
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container }}
     timeout-minutes: 45
