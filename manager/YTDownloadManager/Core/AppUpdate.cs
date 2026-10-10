@@ -4,28 +4,35 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 
 namespace YTDM
 {
-    // New versions of the app come from the project's GitHub releases. The app asks at most every 12 hours
-    // (at start when the last check is older, then while it runs) and sends back the ETag of the last
-    // answer: as long as nothing new was released, GitHub answers "304 Not Modified" without any content.
-    // Only a new release is read and remembered. Nothing about the PC or its user is sent.
+    // New versions of the app come from the project's GitHub releases. The app asks when an answer is worth
+    // having: when it starts, when its window or tray menu opens, when the browser uses it, and when Windows
+    // wakes up or goes back online (each at most every few minutes), and otherwise every 12 hours. A check
+    // reads only where GitHub's "latest release" link points to, a redirect without content. The release
+    // itself is read from GitHub's API only when that version is new to the app, with the ETag of the last
+    // answer. Nothing about the PC or its user is sent.
     // Updating downloads that release's installer for this build (64-bit or 32-bit), checks it against the
     // release's SHA256SUMS.txt, and runs it quietly; the installer closes this copy, keeps the settings and
     // the queue, and starts the new version. "checkUpdates": false in settings.json turns the check off.
     static class AppUpdate
     {
         const string Latest = "https://api.github.com/repos/NyxiYT/yt-download-manager/releases/latest";
+        const string LatestLink = "https://github.com/NyxiYT/yt-download-manager/releases/latest";
         static readonly long Every = 12L * 3600 * 1000;
         static string Arch => Environment.Is64BitProcess ? "x64" : "x86";
         static string Asset => "YTDownloadManager-Setup-" + Arch + ".exe";
         static string Dir => Path.Combine(Paths.Data, "work", "update");
 
         static int checking;
+        static int due; // 1: a check was asked for and waits for the network
+        static long lastTry;
         public static bool Busy { get; private set; }
         public static bool Failed { get; private set; }
         public static double Progress { get; private set; }
@@ -44,12 +51,29 @@ namespace YTDM
         public static bool Newer(string a, string b) =>
             System.Version.TryParse(a ?? "", out var x) && System.Version.TryParse(b ?? "", out var y) && x > y;
 
-        // Called every few seconds by the app; asks GitHub only when the last check is old enough.
+        // Called every few seconds by the app; asks GitHub when a check was asked for, or when the last one is
+        // 12 hours old.
         public static void Tick()
         {
+            if (Volatile.Read(ref due) == 1 || Time.Now - Settings.Current.Update.Checked >= Every) Run();
+        }
+
+        // Something happened after which a new version should show at once: checks now if the last check (or
+        // attempt) is older than `age`. `later`: on the next tick instead, once the network is back.
+        public static void Soon(TimeSpan age, bool later = false)
+        {
+            long ms = (long)age.TotalMilliseconds, now = Time.Now;
+            if (now - Settings.Current.Update.Checked < ms || now - Interlocked.Read(ref lastTry) < ms) return;
+            Interlocked.Exchange(ref due, 1);
+            if (!later) Run();
+        }
+
+        static void Run()
+        {
             if (!Settings.Current.CheckUpdates || Busy || !Net.Online) return;
-            if (Time.Now - Settings.Current.Update.Checked < Every) return;
             if (Interlocked.Exchange(ref checking, 1) == 1) return;
+            Interlocked.Exchange(ref due, 0);
+            Interlocked.Exchange(ref lastTry, Time.Now);
             Task.Run(async () =>
             {
                 try { await Check(); }
@@ -57,11 +81,70 @@ namespace YTDM
             });
         }
 
+        // Windows waking up or getting back online: the network needs a moment, so the check waits for a tick.
+        public static void Watch()
+        {
+            SystemEvents.PowerModeChanged += PowerChanged;
+            NetworkChange.NetworkAvailabilityChanged += NetworkChanged;
+        }
+
+        public static void Unwatch()
+        {
+            SystemEvents.PowerModeChanged -= PowerChanged;
+            NetworkChange.NetworkAvailabilityChanged -= NetworkChanged;
+        }
+
+        static void PowerChanged(object s, PowerModeChangedEventArgs e)
+        {
+            if (e.Mode == PowerModes.Resume) Soon(TimeSpan.FromMinutes(15), true);
+        }
+
+        static void NetworkChanged(object s, NetworkAvailabilityEventArgs e)
+        {
+            if (e.IsAvailable) Soon(TimeSpan.FromMinutes(15), true);
+        }
+
+        // The version GitHub's "latest release" link leads to, read from the redirect alone (no content, and
+        // not counted against the API's 60 requests an hour). Null when that didn't work.
+        static async Task<string> LatestTag()
+        {
+            try
+            {
+                var req = (HttpWebRequest)WebRequest.Create(LatestLink);
+                req.Method = "HEAD";
+                req.AllowAutoRedirect = false;
+                req.UserAgent = "YTDownloadManager/" + App.Version;
+                req.Timeout = 30000;
+                using (var resp = (HttpWebResponse)await req.GetResponseAsync())
+                {
+                    var m = Regex.Match(resp.Headers[HttpResponseHeader.Location] ?? "", @"/releases/tag/v?(\d+(\.\d+){1,3})$");
+                    return m.Success ? m.Groups[1].Value : null;
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Warn("app update link: " + e.Message);
+                return null;
+            }
+        }
+
         static async Task Check()
         {
             var u = Settings.Current.Update;
             if (!Busy) Files.DeleteDir(Dir); // the installer of the last update
             var url = Environment.GetEnvironmentVariable("YTDM_UPDATE_URL"); // tests: another release list
+            if (string.IsNullOrEmpty(url))
+            {
+                // Known already: the release is read again only for a newer version whose installer it lacked.
+                var tag = await LatestTag();
+                if (tag != null && tag == u.Version && (!string.IsNullOrEmpty(u.Url) || !Newer(tag, App.Version)))
+                {
+                    Log.Info("app update check: latest " + tag + ", known");
+                    u.Checked = Time.Now;
+                    Settings.Current.Save();
+                    return;
+                }
+            }
             var req = (HttpWebRequest)WebRequest.Create(string.IsNullOrEmpty(url) ? Latest : url);
             req.UserAgent = "YTDownloadManager/" + App.Version;
             req.Accept = "application/vnd.github+json";

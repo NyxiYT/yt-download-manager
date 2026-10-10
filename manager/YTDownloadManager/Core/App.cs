@@ -63,6 +63,8 @@ namespace YTDM
                 Rest();
             };
             idleTimer.Start();
+            AppUpdate.Watch();
+            AppUpdate.Soon(TimeSpan.FromMinutes(10), true); // on the first tick: at login the network can need a moment
             ScheduleUpdateCheck();
             AppUpdate.Changed += () => Post(UpdateChanged);
             UpdateChanged();
@@ -209,6 +211,7 @@ namespace YTDM
         ContextMenuStrip BuildMenu()
         {
             var menu = Ui.Menu();
+            menu.Opening += (s, e) => AppUpdate.Soon(TimeSpan.FromMinutes(1));
             updateItem = new ToolStripMenuItem("") { Visible = false, Font = Ui.BodyBold };
             updateItem.Click += (s, e) => InstallUpdate(true);
             menu.Items.Add(updateItem);
@@ -284,6 +287,7 @@ namespace YTDM
 
         public void ShowHome(bool force, System.Drawing.Point? at = null)
         {
+            AppUpdate.Soon(TimeSpan.FromMinutes(1));
             if (home != null && !home.IsDisposed)
             {
                 Raise(home, force);
@@ -554,6 +558,7 @@ namespace YTDM
             if (ask && n > 0 && MessageBox.Show(S.T("ExitAsk", n), S.T("AppName"), MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
             exiting = true;
             idleTimer.Stop();
+            AppUpdate.Unwatch();
             tray.Visible = false;
             try { home?.Close(); } catch { }
             Jobs.Shutdown();

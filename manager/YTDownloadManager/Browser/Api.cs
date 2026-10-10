@@ -314,7 +314,11 @@ namespace YTDM
         async Task<Resp> Route(Req r)
         {
             if (!HostOk(r) || !OriginOk(r)) throw new ApiError(403, "errForbidden");
-            if (r.Path != "/v1/playback" && r.Path != "/v1/pip") LastActivity = DateTime.UtcNow; // watching a video alone doesn't keep the app open
+            if (r.Path != "/v1/playback" && r.Path != "/v1/pip")
+            {
+                LastActivity = DateTime.UtcNow; // watching a video alone doesn't keep the app open
+                AppUpdate.Soon(TimeSpan.FromMinutes(10));
+            }
             var app = App.Current;
             var jobs = app.Jobs;
 

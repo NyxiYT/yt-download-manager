@@ -3,6 +3,15 @@
 All notable changes to YT Download Manager are listed here. Versions follow
 [semantic versioning](https://semver.org): `MAJOR.MINOR.PATCH`.
 
+## [Unreleased]
+
+### Changed
+
+- New versions show up within minutes. Besides every 12 hours, the app looks for one when it starts, when its
+  window or tray menu opens, when the browser uses it (at most every 10 minutes), and when Windows wakes up or
+  goes back online. A check reads only where GitHub's "latest release" link leads; the release itself is read
+  only when that version is new.
+
 ## [1.11.0] - 2026-10-10
 
 ### Changed
