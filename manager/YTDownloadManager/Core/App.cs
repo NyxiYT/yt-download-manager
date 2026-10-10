@@ -469,8 +469,9 @@ namespace YTDM
         {
             try
             {
-                if (file != null && File.Exists(file))
+                if (file != null && File.Exists(Files.Long(file)))
                 {
+                    if (file.Length > Files.MaxPath) return OpenFolder(); // Explorer can't point at a file past the limit
                     Process.Start(new ProcessStartInfo("explorer.exe", "/select," + Args.Quote(file)) { UseShellExecute = true });
                     return true;
                 }

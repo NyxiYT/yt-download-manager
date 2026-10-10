@@ -532,7 +532,7 @@ namespace YTDM
                 {
                     j.Status = "completed";
                     j.File = dest;
-                    j.Size = new FileInfo(dest).Length;
+                    j.Size = new FileInfo(Files.Long(dest)).Length;
                     j.FinishedAt = Time.Now;
                     j.Pct = 100;
                     j.Got = j.Total = j.Size;
