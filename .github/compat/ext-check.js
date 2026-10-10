@@ -234,6 +234,9 @@ async function consent(page) {
 // The page plays the video muted.
 async function youtube(page) {
   await consent(page);
+  // Google itself may stop a build server before YouTube loads ("unusual traffic from your computer network").
+  const sorry = await ev(page, `return /(^|\.)google\.[a-z.]+$/.test(location.hostname) && location.pathname.startsWith('/sorry') ? 'Google asks this machine to prove it is not a robot' : '';`).catch(() => '');
+  if (sorry) { refused = sorry; return; }
   await until(page, `document.querySelector('#movie_player video')`, 30000);
   await ev(page, `const v = document.querySelector('#movie_player video'); if (v) { v.muted = true; v.play().catch(() => {}); } return true;`).catch(() => {});
   // YouTube's own verdict on this machine, as its player got it (its error panel may be hidden by a blocker).
@@ -290,6 +293,7 @@ async function youtube(page) {
           player: !!document.querySelector('#movie_player'), ours: document.querySelectorAll('.ysd-ui').length });`).catch((e) => e.message);
         const r = await send('Page.captureScreenshot', { format: 'png' }, yt.sessionId).catch(() => null);
         if (r) fs.writeFileSync(OUT.replace(/\.json$/, '') + '-first-page.png', Buffer.from(r.data, 'base64'));
+        if (refused) return `skip: ${refused}`;
         throw new Error(`no toolbar under the video ${page}`);
       }
       const n = await ev(yt, `return document.querySelectorAll('#ysd-bar .ysd-btn').length;`);
@@ -531,7 +535,7 @@ async function youtube(page) {
       await youtube(p);
       const ok = await until(p, `document.querySelector('#ysd-bar .ysd-btn')`, 30000);
       await send('Target.closeTarget', { targetId: p.targetId });
-      if (!ok) throw new Error('no toolbar on a video in a playlist');
+      if (!ok) return refused ? `skip: ${refused}` : Promise.reject(new Error('no toolbar on a video in a playlist'));
       return 'toolbar on a playlist video';
     });
 
@@ -539,7 +543,10 @@ async function youtube(page) {
       await send('Storage.setCookies', { cookies: [{ name: 'PREF', value: 'hl=ar&f6=40000000', domain: '.youtube.com', path: '/', secure: true }] });
       const p = await openPage(`https://www.youtube.com/watch?v=${VIDEO}&hl=ar&persist_hl=1`);
       await youtube(p);
-      if (!(await until(p, `document.querySelector('#ysd-bar .ysd-btn')`, 30000))) throw new Error('no toolbar on the Arabic page');
+      if (!(await until(p, `document.querySelector('#ysd-bar .ysd-btn')`, 30000))) {
+        await send('Target.closeTarget', { targetId: p.targetId });
+        return refused ? `skip: ${refused}` : Promise.reject(new Error('no toolbar on the Arabic page'));
+      }
       const r = await ev(p, `const b = document.querySelector('#ysd-bar').getBoundingClientRect(); return { lang: document.documentElement.lang, dir: document.documentElement.dir || getComputedStyle(document.querySelector('ytd-app') || document.body).direction, left: Math.round(b.left), right: Math.round(b.right), vw: innerWidth, scroll: document.documentElement.scrollWidth > innerWidth + 1 };`);
       await send('Target.closeTarget', { targetId: p.targetId });
       if (r.left < 0 || r.right > r.vw || r.scroll) throw new Error(`the toolbar leaves the page (${JSON.stringify(r)})`);
