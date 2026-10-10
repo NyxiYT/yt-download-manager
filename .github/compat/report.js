@@ -24,7 +24,7 @@ function table(list, title) {
   const areas = [...new Set(list.flatMap((r) => Object.keys(r.areas)))];
   const cell = (a) => (!a ? '' : a.result === 'pass' ? 'pass' : a.result === 'fail' ? '**FAIL**' : 'skip');
   let md = `### ${title}\n\n| Run | ${areas.join(' | ')} |\n|---|${areas.map(() => '---').join('|')}|\n`;
-  for (const r of list) md += `| ${r.name}<br><sub>${r.os || r.version || ''} ${r.session || ''}</sub> | ${areas.map((a) => cell(r.areas[a])).join(' | ')} |\n`;
+  for (const r of list) md += `| ${r.name}${r.attempt > 1 ? ' (second try)' : ''}<br><sub>${r.os || r.version || ''} ${r.session || ''}</sub> | ${areas.map((a) => cell(r.areas[a])).join(' | ')} |\n`;
   const notes = list.flatMap((r) => Object.entries(r.areas).filter(([, a]) => a.result !== 'pass').map(([k, a]) => `- ${r.name}, ${k}: ${a.result}. ${a.note}`));
   const errors = list.filter((r) => r.error).map((r) => `- ${r.name}: ${r.error.split('\n')[0]}`);
   return md + (notes.length || errors.length ? `\n${[...errors, ...notes].join('\n')}\n` : '') + '\n';

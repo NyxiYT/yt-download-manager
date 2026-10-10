@@ -36,7 +36,7 @@ const EXT_ID = 'cgjpjebkpfjhaedhimgenbemfmgmkmjj';
 const VIDEO = 'jNQXAC9IVRw'; // "Me at the zoo": 19 seconds, always there
 fs.mkdirSync(DOWNLOADS, { recursive: true });
 
-const result = { name: NAME, browser: BROWSER, platform: `${os.type()} ${os.release()} ${os.arch()}`, session: sessionKind(), areas: {} };
+const result = { name: NAME, browser: BROWSER, platform: `${os.type()} ${os.release()} ${os.arch()}`, session: sessionKind(), attempt: Number(process.env.YSD_ATTEMPT || 1), areas: {} };
 function sessionKind() {
   if (process.platform !== 'linux') return process.platform;
   const desktop = process.env.XDG_CURRENT_DESKTOP || 'none';
@@ -411,7 +411,7 @@ async function youtube(page) {
       const appApi = async (p) => (await fetch(`http://127.0.0.1:17724${p}`, { headers: { 'X-YDM-Token': token, Origin: `chrome-extension://${EXT_ID}` } })).json();
       // A download from the page goes to the app.
       const hand = async (page, vid) => {
-        const before = (await appApi('/v1/jobs')).jobs.length;
+        const known = new Set((await appApi('/v1/jobs')).jobs.map((x) => x.id));
         await click(page, '#ysd-bar button[aria-label="Download video"]');
         if (!(await until(page, `document.querySelector('.ysd-pop .ysd-primary')`, 60000))) {
           const note = await ev(page, `return (document.querySelector('.ysd-pop')?.innerText || '').replace(/\\s+/g, ' ').slice(0, 160);`).catch(() => '');
@@ -421,8 +421,11 @@ async function youtube(page) {
         for (let i = 0; i < 120; i++) {
           await sleep(1000);
           const jobs = await appApi('/v1/jobs').catch(() => null);
-          const j = jobs?.jobs.find((x) => x.vid === vid);
-          if (jobs && jobs.jobs.length > before && j && ['completed', 'failed'].includes(j.status)) return j;
+          const j = jobs?.jobs.find((x) => x.vid === vid && !known.has(x.id));
+          if (j && ['completed', 'failed'].includes(j.status)) return j;
+          // A video the app has already: it says so, which is its answer too.
+          const done = await ev(page, `return /already downloaded/i.test(document.querySelector('.ysd-pop, #ysd-panel')?.innerText || '');`).catch(() => false);
+          if (done) return { status: 'already downloaded' };
         }
         throw new Error(`the download of ${vid} did not reach the app`);
       };

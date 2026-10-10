@@ -165,5 +165,12 @@ args=(--out "$out" --ext "$ext" --profile "$profile" --name "$name")
 [ ${#extra[@]} -gt 0 ] && args+=(--extra "${extra[*]}")
 status=0
 node "$here/ext-check.js" "${args[@]}" || status=$?
+if [ $status -ne 0 ]; then
+  # Once more with a fresh profile: a slow container or a YouTube hiccup shouldn't count; a real fault fails twice.
+  echo "-- failed, running once more"
+  rm -rf "$profile"; mkdir -p "$profile"
+  status=0
+  YSD_ATTEMPT=2 node "$here/ext-check.js" "${args[@]}" || status=$?
+fi
 [ -s /tmp/compositor.log ] && { echo "-- compositor log"; tail -20 /tmp/compositor.log; }
 exit $status

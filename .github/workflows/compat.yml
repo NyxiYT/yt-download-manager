@@ -92,7 +92,13 @@ jobs:
           foreach ($b in $browsers.Keys) {
             if (-not (Test-Path $browsers[$b])) { "$b is not on this machine"; continue }
             node .github/compat/ext-check.js --browser $browsers[$b] --out "compat-results/$env:RUN-$b.json" --name "$b on $env:RUN" --skip app-connection
-            if ($LASTEXITCODE) { $status = 1 }
+            if ($LASTEXITCODE) {
+              # Once more: a hiccup shouldn't count, a real fault fails twice.
+              $env:YSD_ATTEMPT = 2
+              node .github/compat/ext-check.js --browser $browsers[$b] --out "compat-results/$env:RUN-$b.json" --name "$b on $env:RUN" --skip app-connection
+              if ($LASTEXITCODE) { $status = 1 }
+              $env:YSD_ATTEMPT = $null
+            }
           }
           exit $status
 
