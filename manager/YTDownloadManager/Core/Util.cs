@@ -243,8 +243,18 @@ namespace YTDM
         public static string UniquePath(string folder, string name, string ext)
         {
             var p = Path.Combine(folder, name + "." + ext);
-            for (int i = 2; File.Exists(p) || File.Exists(p + ".partial"); i++) p = Path.Combine(folder, name + " (" + i + ")." + ext);
+            for (int i = 2; File.Exists(Long(p)) || File.Exists(Long(p + ".partial")); i++) p = Path.Combine(folder, name + " (" + i + ")." + ext);
             return p;
+        }
+
+        // The longest path Windows takes as it is, unless its long-path setting is on (it's off by default).
+        public const int MaxPath = 259;
+
+        // A longer path in the form Windows takes anyway: \\?\C:\... or \\?\UNC\server\...
+        public static string Long(string p)
+        {
+            if (p == null || p.Length <= MaxPath || p.StartsWith(@"\\?\", StringComparison.Ordinal)) return p;
+            return p.StartsWith(@"\\", StringComparison.Ordinal) ? @"\\?\UNC\" + p.Substring(2) : @"\\?\" + p;
         }
     }
 

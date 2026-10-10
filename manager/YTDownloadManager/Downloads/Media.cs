@@ -772,9 +772,10 @@ namespace YTDM
         // Same naming as the browser script: just the title ("Title.mp4", "Title.mp3"), plus the clip's
         // time range or the subtitles' language where there is one. No video ID, quality or format;
         // a second copy becomes "Title (2).mp4".
-        public static string BaseName(Job j)
+        // max: the most characters of the title (or of the file's own name) that go into it.
+        public static string BaseName(Job j, int max = 150)
         {
-            var b = Files.SafeName(j.Title);
+            var b = Files.SafeName(j.Title, max);
             var trim = j.Opts.Obj("trim");
             var clip = trim != null ? $" ({Clock(trim.Num("start"))}-{Clock(trim.Num("end"))})" : "";
             switch (j.Kind)
@@ -782,7 +783,7 @@ namespace YTDM
                 case "video": return b + clip;
                 case "thumb": return b;
                 case "subs": return b + "." + Files.SafeName(j.Opts.Str("lang") ?? "sub", 32);
-                case "file": return Files.SafeName(System.IO.Path.GetFileNameWithoutExtension(j.Opts.Str("name") ?? "file"));
+                case "file": return Files.SafeName(System.IO.Path.GetFileNameWithoutExtension(j.Opts.Str("name") ?? "file"), max);
                 default: return b + clip;
             }
         }

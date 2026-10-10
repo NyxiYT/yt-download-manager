@@ -81,7 +81,7 @@ namespace YTDM
                 {
                     d["fileName"] = Path.GetFileName(File);
                     d["folder"] = Path.GetDirectoryName(File);
-                    d["exists"] = System.IO.File.Exists(File);
+                    d["exists"] = System.IO.File.Exists(Files.Long(File));
                 }
             }
             else
@@ -317,7 +317,7 @@ namespace YTDM
             {
                 var active = jobs.FirstOrDefault(x => x.Dedupe == j.Dedupe && !x.Finished);
                 if (active != null) return (active, "active");
-                var done = jobs.Where(x => x.Dedupe == j.Dedupe && x.Status == "completed" && x.File != null && System.IO.File.Exists(x.File)).OrderByDescending(x => x.At).FirstOrDefault();
+                var done = jobs.Where(x => x.Dedupe == j.Dedupe && x.Status == "completed" && x.File != null && System.IO.File.Exists(Files.Long(x.File))).OrderByDescending(x => x.At).FirstOrDefault();
                 if (done != null && !force) return (done, "done");
                 jobs.Add(j);
             }
@@ -1076,22 +1076,34 @@ namespace YTDM
             SetNotice(j, null);
             var size = new FileInfo(src).Length;
             if (Files.FreeSpace(folder) < size + 16L * 1024 * 1024) throw new Fail("errDiskFull");
-            var name = Media.BaseName(j);
+            var name = FittingName(j, folder, ext);
             var dest = Files.UniquePath(folder, name, ext);
             var tmp = dest + ".partial";
             try
             {
-                if (Files.SameVolume(src, folder)) System.IO.File.Move(src, tmp);
-                else await CopyFile(src, tmp, ct);
-                if (System.IO.File.Exists(dest)) dest = Files.UniquePath(folder, name, ext);
-                System.IO.File.Move(tmp, dest);
+                if (Files.SameVolume(src, folder)) System.IO.File.Move(src, Files.Long(tmp));
+                else await CopyFile(src, Files.Long(tmp), ct);
+                if (System.IO.File.Exists(Files.Long(dest))) dest = Files.UniquePath(folder, name, ext);
+                System.IO.File.Move(Files.Long(tmp), Files.Long(dest));
             }
             catch
             {
-                Files.TryDelete(tmp);
+                Files.TryDelete(Files.Long(tmp));
                 throw;
             }
             return dest;
+        }
+
+        // The file's name, with the title cut short where the whole path would pass Windows' limit (leaving
+        // room for " (2)" and ".partial"). In a folder so deep that even a short title can't fit, the name stays
+        // whole and the file is written past the limit.
+        static string FittingName(Job j, string folder, string ext)
+        {
+            var name = Media.BaseName(j);
+            int over = Path.Combine(folder, name + " (99)." + ext + ".partial").Length - Files.MaxPath;
+            if (over <= 0) return name;
+            int title = Files.SafeName(j.Kind == "file" ? Path.GetFileNameWithoutExtension(j.Opts.Str("name") ?? "file") : j.Title).Length;
+            return title - over >= 16 ? Media.BaseName(j, title - over) : name;
         }
 
         static async Task CopyFile(string src, string dest, CancellationToken ct)
