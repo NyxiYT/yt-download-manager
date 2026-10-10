@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
@@ -40,7 +41,8 @@ namespace YTDM
                 k.SetValue("InstallLocation", Path.GetDirectoryName(exe));
                 k.SetValue("UninstallString", "\"" + exe + "\" --uninstall");
                 k.SetValue("QuietUninstallString", "\"" + exe + "\" --uninstall --quiet");
-                k.SetValue("InstallDate", DateTime.Now.ToString("yyyyMMdd"));
+                // Windows reads this as a Gregorian date, whatever calendar the user's region uses.
+                k.SetValue("InstallDate", DateTime.Now.ToString("yyyyMMdd", CultureInfo.InvariantCulture));
                 k.SetValue("EstimatedSize", (int)Math.Max(1, sizeKb), RegistryValueKind.DWord);
                 k.SetValue("NoModify", 1, RegistryValueKind.DWord);
                 k.SetValue("NoRepair", 1, RegistryValueKind.DWord);
