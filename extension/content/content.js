@@ -2732,10 +2732,22 @@ onmessage = async ({ data: m }) => {
       e.stopPropagation(); // keep YouTube's shortcuts (space, k, f...) away from the page while the viewer is open
       if (e.key === 'Escape') close();
     };
-    const ov = h('div', { class: 'ysd-viewer ysd-ui', role: 'dialog', onclick: (e) => { if (e.target === ov) close(); } },
-      h('div', { class: 'ysd-vbox' },
-        h('div', { class: 'ysd-vhead' }, h('span', {}, rec.file || rec.title), iconBtn('close', t('close'), close)),
-        media));
+    const box = h('div', { class: 'ysd-vbox' },
+      h('div', { class: 'ysd-vhead' }, h('span', {}, rec.file || rec.title), iconBtn('close', t('close'), close)),
+      media);
+    const ov = h('div', { class: 'ysd-viewer ysd-ui', role: 'dialog', onclick: (e) => { if (e.target === ov) close(); } }, box);
+    if (media instanceof HTMLMediaElement) {
+      // A format or codec this browser can't decode (Opera on Linux has no H.264, for one): say so instead
+      // of showing a black picture or playing only the sound.
+      const cantPlay = () => {
+        if (box.querySelector('.ysd-vmsg')) return;
+        media.pause();
+        media.hidden = true;
+        box.append(h('p', { class: 'ysd-vmsg', role: 'alert' }, t('cantPlay')));
+      };
+      media.addEventListener('error', cantPlay);
+      if (media.tagName === 'VIDEO') media.addEventListener('loadedmetadata', () => { if (!media.videoWidth) cantPlay(); });
+    }
     document.body.append(ov);
     document.addEventListener('keydown', onKey, true);
   }
