@@ -251,6 +251,7 @@ async function extOnDisk(version) {
     const { extPending = '', extReloaded = '' } = await chrome.storage.local.get(['extPending', 'extReloaded']);
     if (!newerVersion(version, chrome.runtime.getManifest().version) || extReloaded === version) {
       if (extPending) await chrome.storage.local.remove('extPending');
+      watchTabs(false);
       return; // up to date, or this browser loads the extension from another folder (a reload changed nothing)
     }
     if ((await chrome.management.getSelf()).installType !== 'development') return;
@@ -261,6 +262,7 @@ async function extOnDisk(version) {
 
 async function reloadWhenIdle() {
   const { extPending = '' } = await chrome.storage.local.get('extPending');
+  watchTabs(!!extPending);
   if (!extPending) return;
   const tabs = await chrome.tabs.query({ url: 'https://www.youtube.com/*' });
   if (tabs.some((t) => !t.discarded && t.status !== 'unloaded')) return;
@@ -269,8 +271,18 @@ async function reloadWhenIdle() {
   chrome.runtime.reload();
 }
 
-chrome.tabs.onRemoved.addListener(() => { reloadWhenIdle().catch(() => {}); });
-chrome.tabs.onUpdated.addListener((id, change) => { if (change.url || change.discarded) reloadWhenIdle().catch(() => {}); });
+// While these listen, the browser starts this worker for every tab that loads a page, on any site. They
+// listen only while an update waits for the YouTube tabs to close.
+const onTabRemoved = () => { reloadWhenIdle().catch(() => {}); };
+const onTabUpdated = (id, change) => { if (change.url || change.discarded) reloadWhenIdle().catch(() => {}); };
+function watchTabs(on) {
+  for (const [event, listener] of [[chrome.tabs.onRemoved, onTabRemoved], [chrome.tabs.onUpdated, onTabUpdated]]) {
+    if (on && !event.hasListener(listener)) event.addListener(listener);
+    else if (!on && event.hasListener(listener)) event.removeListener(listener);
+  }
+}
+watchTabs(true); // added at once, so a waiting update still wakes this worker; dropped when none waits
+chrome.storage.local.get('extPending').then(({ extPending }) => watchTabs(!!extPending), () => {});
 
 // Clears the finished downloads the app lists (options page "Clear"). Does nothing if it isn't running.
 async function dmClear() {
