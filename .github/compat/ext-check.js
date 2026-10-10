@@ -203,14 +203,23 @@ async function area(name, fn) {
   save();
 }
 
-// The page plays the video muted; the consent page some regions get first is declined.
-async function youtube(page) {
+// The consent page some regions get first (on youtube.com or consent.youtube.com) is declined.
+async function consent(page) {
   await until(page, `document.readyState === 'complete'`, 30000);
   await ev(page, `const b = [...document.querySelectorAll('button')].find((x) => /^(Reject all|Alle ablehnen)$/i.test(x.innerText.trim())); if (b) { b.click(); await new Promise((r) => setTimeout(r, 4000)); } return !!b;`).catch(() => {});
+  await until(page, `location.hostname === 'www.youtube.com' && document.readyState === 'complete'`, 20000);
+}
+
+// The page plays the video muted.
+async function youtube(page) {
+  await consent(page);
   await until(page, `document.querySelector('#movie_player video')`, 30000);
   await ev(page, `const v = document.querySelector('#movie_player video'); if (v) { v.muted = true; v.play().catch(() => {}); } return true;`).catch(() => {});
-  const why = await ev(page, `const e = document.querySelector('.ytp-error, yt-playability-error-supported-renderers, #error-screen'); return e && e.offsetParent ? e.innerText.trim().replace(/\\s+/g, ' ').slice(0, 160) : '';`).catch(() => '');
-  if (why && /bot|sign in|confirm/i.test(why)) refused = why;
+  // YouTube's own verdict on this machine, as its player got it (its error panel may be hidden by a blocker).
+  const why = await ev(page, `const pr = document.querySelector('#movie_player')?.getPlayerResponse?.() || window.ytInitialPlayerResponse;
+    const ps = pr?.playabilityStatus; if (ps && ps.status !== 'OK') return (ps.reason || ps.status) + '';
+    const e = document.querySelector('.ytp-error, yt-playability-error-supported-renderers, #error-screen'); return e && e.offsetParent ? e.innerText.trim().replace(/\\s+/g, ' ').slice(0, 160) : '';`).catch(() => '');
+  if (why && /bot|sign in|confirm|LOGIN_REQUIRED/i.test(why)) refused = why;
 }
 
 (async () => {
@@ -429,6 +438,7 @@ async function youtube(page) {
     await area('shorts', async () => {
       // A current Short: from YouTube's own channel, else from a search.
       const p = await openPage('https://www.youtube.com/@YouTube/shorts');
+      await consent(p);
       let found = await until(p, `document.querySelector('a[href^="/shorts/"]')`, 30000);
       if (!found) {
         await send('Page.navigate', { url: 'https://www.youtube.com/results?search_query=%23shorts' }, p.sessionId);
@@ -440,6 +450,7 @@ async function youtube(page) {
       }
       await ev(p, `location.href = document.querySelector('a[href^="/shorts/"]').href; return true;`).catch(() => {});
       await until(p, `/^\/shorts\/[\w-]{11}/.test(location.pathname) && document.readyState === 'complete'`, 30000);
+      await consent(p);
       const ok = await until(p, `document.querySelector('#ysd-shorts .ysd-sbtn, #ysd-shorts button')`, 30000);
       const why = ok ? '' : await ev(p, `return JSON.stringify({ url: location.pathname, shorts: !!document.querySelector('ytd-shorts'), reels: document.querySelectorAll('ytd-reel-video-renderer').length, player: !!document.querySelector('#shorts-player'), box: !!document.querySelector('#ysd-shorts'), bar: !!document.querySelector('reel-action-bar-view-model, ytd-reel-video-renderer #actions') });`).catch((e) => e.message);
       await send('Target.closeTarget', { targetId: p.targetId });

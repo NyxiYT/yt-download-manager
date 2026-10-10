@@ -12,6 +12,8 @@ here=$(cd "$(dirname "$0")" && pwd)
 repo=$(cd "$here/../.." && pwd)
 SUDO=""; [ "$(id -u)" -ne 0 ] && SUDO=sudo
 . /etc/os-release
+# Linux Mint's container images keep Ubuntu's os-release; their package sources tell them apart.
+if grep -qs packages.linuxmint.com /etc/apt/sources.list.d/*.list; then ID=linuxmint PRETTY_NAME="Linux Mint ($PRETTY_NAME base)"; fi
 family=$ID; case " ${ID_LIKE:-} " in *" debian "*|*" ubuntu "*) family=debian ;; esac
 [ "$ID" = ubuntu ] && family=debian
 
@@ -38,7 +40,13 @@ case $family in
   arch) install ca-certificates curl dbus ttf-dejavu noto-fonts xorg-server-xvfb xorg-xauth ;;
 esac
 
-command -v node >/dev/null || install nodejs # the build server brings its own
+# Node 18 or newer (the build server brings its own; older distributions package an older one).
+if ! node -e 'process.exit(+process.versions.node.split(".")[0] >= 18 ? 0 : 1)' 2>/dev/null; then
+  install xz-utils 2>/dev/null || install xz
+  v=$(curl -fsSL https://nodejs.org/dist/index.json | grep -o '"version":"v22[^"]*"' | head -1 | cut -d'"' -f4)
+  curl -fsSL "https://nodejs.org/dist/$v/node-$v-linux-x64.tar.xz" | $SUDO tar -xJ -C /opt
+  export PATH="/opt/node-$v-linux-x64/bin:$PATH"
+fi
 
 # ---------- the browser ----------
 launcher="" bin="" extra=()
