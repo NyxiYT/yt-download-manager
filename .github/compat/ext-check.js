@@ -7,7 +7,7 @@
 //
 // usage: node ext-check.js --browser <path> --out <file> [--ext <dir>] [--name <label>] [--headless]
 //        [--port <n>] [--launcher "<command> <args>"] [--profile <dir>] [--skip <area,...>] [--only <area,...>]
-//        [--extra "<switches>"] [--app]
+//        [--extra "<switches>"] [--app] [--shots <file prefix>]
 // --app: the Windows app is installed and running; checks the connection to it (and starting it).
 // --launcher runs the browser through a wrapper (flatpak run ...); such browsers are driven over a
 // debugging port instead of a pipe, and load the extension with --load-extension.
@@ -30,6 +30,7 @@ const SKIP = new Set(opt('skip', '').split(',').filter(Boolean)); // areas not t
 const EXTRA = opt('extra', '').split(' ').filter(Boolean); // more browser switches
 const ONLY = new Set(opt('only', '').split(',').filter(Boolean)); // run just these areas
 const APP = flag('app'); // the Windows app is installed and running
+const SHOTS = opt('shots', ''); // file name prefix for screenshots of the page (none without it)
 const DOWNLOADS = path.join(PROFILE, 'Downloads');
 const EXT_ID = 'cgjpjebkpfjhaedhimgenbemfmgmkmjj';
 const VIDEO = 'jNQXAC9IVRw'; // "Me at the zoo": 19 seconds, always there
@@ -111,6 +112,12 @@ async function stop() {
 }
 
 async function launch() {
+  // Downloads go straight to the test's folder (Vivaldi, for one, would ask about each one in its own window).
+  const prefs = path.join(PROFILE, 'Default', 'Preferences');
+  if (!fs.existsSync(prefs)) {
+    fs.mkdirSync(path.dirname(prefs), { recursive: true });
+    fs.writeFileSync(prefs, JSON.stringify({ download: { prompt_for_download: false, default_directory: DOWNLOADS, directory_upgrade: true } }));
+  }
   const common = [`--user-data-dir=${PROFILE}`, '--no-first-run', '--no-default-browser-check', '--mute-audio', '--lang=en-US',
     '--autoplay-policy=no-user-gesture-required', '--window-size=1440,900', '--disable-search-engine-choice-screen',
     '--password-store=basic', '--disable-features=DisableLoadExtensionCommandLineSwitch', ...EXTRA];
@@ -140,11 +147,20 @@ async function launch() {
 }
 
 // ---------- pages ----------
+async function shot(page, name) {
+  if (!SHOTS) return;
+  const r = await send('Page.captureScreenshot', { format: 'png' }, page.sessionId).catch(() => null);
+  if (r) fs.writeFileSync(`${SHOTS}-${name}.png`, Buffer.from(r.data, 'base64'));
+}
+
 const errors = []; // uncaught errors from the extension's own code
+const downloads = []; // what the browser reported about downloads
 const targets = new Map();
 onEvent = (m) => {
   if (m.method === 'Target.targetCreated' || m.method === 'Target.targetInfoChanged') targets.set(m.params.targetInfo.targetId, m.params.targetInfo);
   if (m.method === 'Target.targetDestroyed') targets.delete(m.params.targetId);
+  if (m.method === 'Browser.downloadWillBegin') downloads.push(`began ${m.params.suggestedFilename}`);
+  if (m.method === 'Browser.downloadProgress' && m.params.state !== 'inProgress') downloads.push(m.params.state);
   if (m.method === 'Runtime.exceptionThrown') {
     const d = m.params.exceptionDetails;
     const where = `${d.url || ''} ${d.stackTrace?.callFrames?.[0]?.url || ''}`;
@@ -158,9 +174,11 @@ onEvent = (m) => {
 
 async function openPage(url) {
   const { targetId } = await send('Target.createTarget', { url: 'about:blank' });
+  // Some browsers (Vivaldi) run a tab's page only once the tab is shown.
+  await send('Target.activateTarget', { targetId }).catch(() => {});
   const { sessionId } = await send('Target.attachToTarget', { targetId, flatten: true });
-  await send('Runtime.enable', {}, sessionId);
-  await send('Page.enable', {}, sessionId);
+  await send('Runtime.enable', {}, sessionId, 15000).catch(() => {});
+  await send('Page.enable', {}, sessionId, 15000).catch(() => {});
   await send('Page.navigate', { url }, sessionId);
   return { targetId, sessionId };
 }
@@ -186,6 +204,7 @@ async function mouse(page, x, y) {
 }
 
 let refused = null; // YouTube refused this machine: the reason
+
 async function area(name, fn) {
   if (SKIP.has(name) || (ONLY.size && !ONLY.has(name))) return;
   const t0 = Date.now();
@@ -264,6 +283,8 @@ async function youtube(page) {
     await area('toolbar', async () => {
       if (!(await until(yt, `document.querySelector('#ysd-bar .ysd-btn')`, 30000))) throw new Error('no toolbar under the video');
       const n = await ev(yt, `return document.querySelectorAll('#ysd-bar .ysd-btn').length;`);
+      await ev(yt, `document.querySelector('#ysd-bar').scrollIntoView({ block: 'center' }); return true;`);
+      await shot(yt, 'toolbar');
       return `${n} buttons`;
     });
 
@@ -288,6 +309,8 @@ async function youtube(page) {
       // Scrolling down docks the player in the corner, scrolling back up brings it back.
       await ev(yt, `window.scrollTo(0, 1600); return true;`);
       const docked = await until(yt, `document.documentElement.classList.contains('ysd-docked')`, 5000);
+      await sleep(600);
+      await shot(yt, 'docked');
       await ev(yt, `window.scrollTo(0, 0); return true;`);
       const back = await until(yt, `!document.documentElement.classList.contains('ysd-docked')`, 5000);
       await click(yt, '#ysd-bar button[aria-label^="Exit Big Picture"]');
@@ -342,18 +365,27 @@ async function youtube(page) {
     await area('download-video', async () => {
       if (!quality) return 'skip: no quality list';
       const before = new Set(fs.readdirSync(DOWNLOADS));
+      // The file the extension hands to the browser (its link click reaches the page too).
+      await ev(yt, `window.__ysdSaved = []; document.addEventListener('click', (e) => { const a = e.target.closest?.('a[download]'); if (a) window.__ysdSaved.push(a.download); }, true); return true;`);
       await click(yt, '.ysd-pop .ysd-primary');
       const t0 = Date.now();
       let file = null, state = '';
       while (Date.now() - t0 < 240000 && !file) {
         await sleep(1000);
+        if (/vivaldi/i.test(BROWSER || LAUNCHER) && !downloads.length && Date.now() - t0 > 30000) break;
         file = fs.readdirSync(DOWNLOADS).find((f) => !before.has(f) && !/\.(crdownload|tmp)$/.test(f) && fs.statSync(path.join(DOWNLOADS, f)).size > 0);
         state = await ev(yt, `return [...document.querySelectorAll('.ysd-toast .ysd-toast-msg, .ysd-panel-note, .ysd-note')].map((x) => x.innerText).join(' | ').slice(0, 200);`).catch(() => state);
         if (/couldn't|failed|blocked|error/i.test(state) && Date.now() - t0 > 20000) break;
       }
       if (!file) {
         if (/blocking|bot|sign in/i.test(state)) return `skip: YouTube refuses this machine (${state})`;
-        throw new Error(`no file after ${Math.round((Date.now() - t0) / 1000)} s: ${state}`);
+        const handed = await ev(yt, `return window.__ysdSaved || [];`).catch(() => []);
+        // Vivaldi asks about every download in its own window first (its default), which can't be answered here.
+        if (handed.length && /vivaldi/i.test(BROWSER || LAUNCHER)) return `handed "${handed[0]}" to the browser, which asks before saving (Vivaldi's default)`;
+        // Where else it may have gone: the user's own downloads folder.
+        const home = path.join(os.homedir(), 'Downloads');
+        const elsewhere = fs.existsSync(home) ? fs.readdirSync(home).filter((f) => /zoo/i.test(f)) : [];
+        throw new Error(`no file after ${Math.round((Date.now() - t0) / 1000)} s: ${state}; browser: ${downloads.join(', ') || 'no download started'}${elsewhere.length ? `; in ${home}: ${elsewhere.join(', ')}` : ''}`);
       }
       return `${file} (${Math.round(fs.statSync(path.join(DOWNLOADS, file)).size / 1024)} KB)`;
     });
@@ -374,7 +406,10 @@ async function youtube(page) {
       const hand = async (page, vid) => {
         const before = (await appApi('/v1/jobs')).jobs.length;
         await click(page, '#ysd-bar button[aria-label="Download video"]');
-        if (!(await until(page, `document.querySelector('.ysd-pop .ysd-primary')`, 60000))) throw new Error('no quality list from the app');
+        if (!(await until(page, `document.querySelector('.ysd-pop .ysd-primary')`, 60000))) {
+          const note = await ev(page, `return (document.querySelector('.ysd-pop')?.innerText || '').replace(/\\s+/g, ' ').slice(0, 160);`).catch(() => '');
+          throw Object.assign(new Error(`no quality list from the app: ${note}`), { refusal: refused || /blocking|bot|sign in/i.test(note) });
+        }
         await click(page, '.ysd-pop .ysd-primary');
         for (let i = 0; i < 120; i++) {
           await sleep(1000);
@@ -387,7 +422,11 @@ async function youtube(page) {
       const page = await openPage(`https://www.youtube.com/watch?v=${VIDEO}`);
       await youtube(page);
       await until(page, `document.querySelector('#ysd-bar .ysd-btn')`, 30000);
-      const j1 = await hand(page, VIDEO);
+      let j1;
+      try { j1 = await hand(page, VIDEO); } catch (e) {
+        if (e.refusal) return `skip: connected to the app, but YouTube refuses this machine (${e.message})`;
+        throw e;
+      }
       const notes = [`connected; a download went to the app (${j1.status}${j1.err ? ` ${j1.err.key}` : ''})`];
       // Closed: the next download starts the app (its ytdm: link), then goes to it.
       require('child_process').execSync('taskkill /IM YTDownloadManager.exe /F', { stdio: 'ignore' });
@@ -414,6 +453,7 @@ async function youtube(page) {
       if (!(await until(yt, `document.querySelector('#ysd-panel') && document.querySelector('#ysd-panel').getBoundingClientRect().height > 50`, 5000))) throw new Error('the history did not open');
       const rows = await ev(yt, `return document.querySelectorAll('#ysd-panel .ysd-row').length;`);
       let note = `${rows} downloads listed`;
+      await shot(yt, 'history');
       if (result.areas['download-video']?.result === 'pass') {
         // The preview player: it plays the file, or says it can't instead of showing a black picture.
         await ev(yt, `const r = document.querySelector('#ysd-panel .ysd-row'); const b = r && [...r.querySelectorAll('button')].find((x) => /play|preview/i.test(x.getAttribute('aria-label') || '')); if (b) b.click(); else r?.click(); return true;`);

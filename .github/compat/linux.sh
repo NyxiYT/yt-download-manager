@@ -35,7 +35,7 @@ apt_repo() { # name key-url line
 
 # Basics every session needs: fonts (pages measure text), D-Bus, a few libraries the browsers expect.
 case $family in
-  debian) install ca-certificates curl dbus dbus-x11 fonts-dejavu-core fonts-noto-core xauth xvfb ;;
+  debian) install ca-certificates curl dbus dbus-x11 fonts-dejavu-core fonts-noto-core gsettings-desktop-schemas xauth xvfb ;;
   fedora) install ca-certificates curl dbus-daemon dbus-tools dbus-x11 dejavu-sans-fonts google-noto-sans-fonts xorg-x11-server-Xvfb xorg-x11-xauth ;;
   arch) install ca-certificates curl dbus ttf-dejavu noto-fonts xorg-server-xvfb xorg-xauth ;;
 esac
@@ -83,7 +83,15 @@ case $browser in
     $SUDO snap install chromium >/dev/null
     # A Snap sees the home folder (not its hidden folders), so the extension and profile go there.
     mkdir -p "$HOME/ysd-snap"; cp -r "$repo/extension" "$HOME/ysd-snap/extension"
-    ext="$HOME/ysd-snap/extension" profile="$HOME/ysd-snap/profile" bin=/snap/bin/chromium ;;
+    ext="$HOME/ysd-snap/extension" profile="$HOME/ysd-snap/profile" bin=/snap/bin/chromium
+    # A Snap starts only inside a user's own session; a build server's service has none, so one is opened.
+    if [ -n "${GITHUB_ACTIONS:-}" ]; then
+      $SUDO loginctl enable-linger "$(id -un)"
+      export XDG_RUNTIME_DIR=/run/user/$(id -u)
+      for _ in $(seq 30); do [ -S "$XDG_RUNTIME_DIR/bus" ] && break; sleep 1; done
+      export DBUS_SESSION_BUS_ADDRESS=unix:path=$XDG_RUNTIME_DIR/bus
+      launcher="systemd-run --user --scope --quiet /snap/bin/chromium"
+    fi ;;
   edge)
     apt_repo microsoft-edge https://packages.microsoft.com/keys/microsoft.asc "https://packages.microsoft.com/repos/edge stable main"
     install microsoft-edge-stable; bin=$(command -v microsoft-edge) ;;
@@ -115,7 +123,7 @@ wait_wayland() {
   [ -S "$XDG_RUNTIME_DIR/$1" ] || { echo "no Wayland display $1"; tail -30 /tmp/compositor.log; exit 3; }
   export WAYLAND_DISPLAY=$1; unset DISPLAY
 }
-eval "$(dbus-launch --sh-syntax)"
+[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] || eval "$(dbus-launch --sh-syntax)"
 case $session in
   x11) start_x; export XDG_CURRENT_DESKTOP=none ;;
   wayland)
@@ -131,7 +139,9 @@ case $session in
     mutter --x11 --replace --sm-disable >/tmp/compositor.log 2>&1 &
     sleep 3; export XDG_CURRENT_DESKTOP=GNOME XDG_SESSION_TYPE=x11 ;;
   kde-wayland)
-    case $family in debian) install kwin-wayland ;; fedora) install kwin-wayland ;; arch) install kwin ;; esac
+    case $family in debian) install kwin-wayland libcap2-bin ;; fedora) install kwin-wayland libcap ;; arch) install kwin libcap ;; esac
+    # KWin asks for real-time scheduling through file capabilities, which a container doesn't grant.
+    [ "$(id -u)" -eq 0 ] && setcap -r "$(command -v kwin_wayland)" 2>/dev/null || true
     kwin_wayland --virtual --width 1440 --height 900 --socket wayland-ysd --no-lockscreen >/tmp/compositor.log 2>&1 &
     wait_wayland wayland-ysd; export XDG_CURRENT_DESKTOP=KDE XDG_SESSION_TYPE=wayland ;;
   kde-x11)

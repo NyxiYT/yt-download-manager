@@ -275,7 +275,7 @@ try {
   $task = Get-ScheduledTaskInfo -TaskName 'compat-user' -ErrorAction SilentlyContinue
   Unregister-ScheduledTask -TaskName 'compat-user' -Confirm:$false -ErrorAction SilentlyContinue
   if (-not (Test-Path (Join-Path $shared 'result.json'))) { throw "the run as $user did not finish (task result 0x$('{0:x}' -f [int64]$task.LastTaskResult))" }
-  $r = Get-Content (Join-Path $shared 'result.json') -Raw | ConvertFrom-Json
+  $r = Get-Content (Join-Path $shared 'result.json') -Raw -Encoding UTF8 | ConvertFrom-Json
   Write-Host ($r | ConvertTo-Json)
   if ($r.error) { throw "as $user`: $($r.error)" }
   if ($r.admin) { throw 'the test user is an administrator' }
@@ -289,8 +289,8 @@ try {
 # ---------- file names and long paths ----------
 Area 'names-paths' {
   Install-App
-  # A folder of about 230 characters with spaces and non-ASCII letters; with the file names below the
-  # paths pass 260 characters. Windows' own limit is on by default, as on a home PC.
+  # A folder of about 205 characters with spaces and non-ASCII letters, where a long title would make the
+  # path longer than Windows' limit of 259 characters. That limit is on by default, as on a home PC.
   Set-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name LongPathsEnabled -Value 0 -Type DWord
   $deep = Join-Path $work ("Ordner mit Leerzeichen $([char]0xC4)$([char]0xD6)$([char]0xDC) " + (@(1..8 | ForEach-Object { "Unterordner Nummer $_" }) -join '\'))
   $null = [IO.Directory]::CreateDirectory("\\?\$deep")
@@ -306,7 +306,7 @@ Area 'names-paths' {
     'nul' = '_nul'
     'COM1' = '_COM1'
     'Trailing dots... ' = 'Trailing dots'
-    $long = $null # cut to 150 characters, never inside an emoji
+    $long = $null # cut to fit the path, never inside an emoji
   }
   $made = @()
   foreach ($title in $cases.Keys) {
@@ -318,19 +318,28 @@ Area 'names-paths' {
     $want = $cases[$title]
     if ($null -ne $want -and $base -ne $want) { throw "'$title' was saved as '$base', expected '$want'" }
     if ($null -eq $want) {
-      if ($base.Length -gt 150) { throw "a long title gave a $($base.Length)-character name" }
+      if ($base.Length -ge 150) { throw "a long title wasn't cut to fit the path ($($base.Length) characters)" }
       if ([char]::IsHighSurrogate($base[$base.Length - 1])) { throw 'a long title was cut inside an emoji' }
     }
     if (-not [IO.File]::Exists("\\?\$file")) { throw "$file is missing" }
     $made += $file
   }
   $longest = ($made | Measure-Object Length -Maximum).Maximum
-  if ($longest -le 260) { throw "the longest path was only $longest characters" }
+  if ($longest -gt 259) { throw "a saved file's path is $longest characters, longer than Windows takes as it is" }
+  # A folder so deep (about 230 characters) that not even a short name fits: the file is still saved.
+  $deeper = $deep + '\' + ((@(1..2 | ForEach-Object { "Noch tiefer $_" })) -join '\')
+  $null = [IO.Directory]::CreateDirectory("\\?\$deeper")
+  Set-Settings @{ folder = $deeper }
+  $null = Start-App
+  $j = Api POST '/v1/jobs' @{ vid = 'jNQXAC9IVRw'; title = $long; author = ''; kind = 'thumb'; key = 'thumb'; format = 'JPG'; quality = 'HD'; opts = @{ thumb = 'hqdefault' }; force = $true }
+  $done = Wait-Job2 $j.job.id @('completed', 'failed') 90
+  if ($done.status -ne 'completed' -or -not [IO.File]::Exists("\\?\$($done.file)")) { throw "saving into a $($deeper.Length)-character folder failed: $($done.err.key)" }
+  $deepest = $done.file.Length
   # A screenshot from the browser keeps the name the extension gave it.
   $j = Api POST '/v1/files' @{ name = 'Screenshot 0-07.png'; data = $png; title = 'Screenshot'; vid = 'jNQXAC9IVRw' }
   $done = Wait-Job2 $j.job.id @('completed', 'failed') 60
   if ($done.status -ne 'completed' -or [IO.Path]::GetFileName($done.file) -ne 'Screenshot 0-07.png') { throw "a screenshot was saved as '$($done.file)' ($($done.err.key))" }
-  "7 titles and a screenshot saved with the expected names; longest path $longest characters"
+  "7 titles and a screenshot saved with the expected names, paths up to $longest characters; a $deepest-character path in a deeper folder"
 }
 
 # ---------- locales: formats, right-to-left, other calendars ----------
