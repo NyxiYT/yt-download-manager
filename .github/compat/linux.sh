@@ -17,7 +17,13 @@ if grep -qs packages.linuxmint.com /etc/apt/sources.list.d/*.list; then ID=linux
 family=$ID; case " ${ID_LIKE:-} " in *" debian "*|*" ubuntu "*) family=debian ;; esac
 [ "$ID" = ubuntu ] && family=debian
 
+# Packages, tried three times: a mirror that has a bad moment shouldn't fail the run.
 install() {
+  local i
+  for i in 1 2 3; do install_once "$@" && return 0; echo "installing $* failed, trying again"; sleep 15; done
+  return 1
+}
+install_once() {
   case $family in
     debian) $SUDO apt-get update -qq && DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -y -qq --no-install-recommends "$@" >/dev/null ;;
     fedora) $SUDO dnf install -y -q "$@" >/dev/null ;;
