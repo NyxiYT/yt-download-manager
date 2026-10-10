@@ -14,8 +14,11 @@ PC. This page lists every connection it makes and why.
   yt-dlp reads, and deletes that file right after. They are only ever sent to YouTube. The log records only
   which cookies came (by name), never their values.
 - **GitHub** (`api.github.com`, `github.com` and its download servers):
-  - Checks for a new version of the app at most every 12 hours. The request carries the app's version in its
-    user agent and nothing else. An update is downloaded only when you click **Update**.
+  - Checks for a new version of the app when it starts, when its window or tray menu opens, when the browser
+    uses it, and when Windows wakes up or goes back online (each at most every few minutes), and every 12 hours
+    otherwise. A check reads where the "latest release" link on `github.com` leads to; only when that is a
+    version the app doesn't know yet does it read the release from `api.github.com`. The requests carry the
+    app's version in their user agent and nothing else. An update is downloaded only when you click **Update**.
   - yt-dlp updates itself about once a week from its own GitHub releases.
   - If a tool is missing (only when the app wasn't installed with its installer), it is downloaded from the
     tool's official GitHub releases: yt-dlp, FFmpeg (yt-dlp/FFmpeg-Builds) and Deno.

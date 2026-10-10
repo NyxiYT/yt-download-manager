@@ -326,7 +326,9 @@ next to a download in the download history, or open the app and click **Open** u
 
 ### How do I update?
 
-The app does it for you (version 1.9.0 and newer). When a new version is out, a notification says so. Click it,
+The app does it for you (version 1.9.0 and newer). It looks for a new version when it starts, when you open its
+window or tray menu, when you use it from YouTube, and when your PC wakes up or goes back online, so a new
+version shows up within minutes. When one is out, a notification says so. Click it,
 or click **Update** in the app window or at the top of the tray icon's menu. The app downloads the new version,
 installs it and starts again. Your settings and downloads stay. The browser extension updates itself as well,
 as soon as no YouTube tab is open.
@@ -381,7 +383,8 @@ Two things are up to you afterwards:
 
 It is free and open source. There are no ads, no accounts and no tracking. The extension talks only to
 YouTube, to the app on your own PC, and to jsDelivr (a public file host) to fetch FFmpeg if the browser
-has to convert a file itself. The app asks GitHub for a new version at most every 12 hours. That request
+has to convert a file itself. The app asks GitHub for a new version when it starts or is used, at most every
+10 minutes, and every 12 hours otherwise. That request
 carries nothing about you or your PC. To turn it off, close the app and add `"checkUpdates": false` to
 `%LOCALAPPDATA%\YT Download Manager\settings.json`. Every connection is listed in the
 [privacy policy](PRIVACY.md).
