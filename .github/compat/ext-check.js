@@ -216,10 +216,14 @@ async function youtube(page) {
 (async () => {
   try {
     result.loadedBy = await launch();
-    await send('Target.setDiscoverTargets', { discover: true });
     await send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: DOWNLOADS, eventsEnabled: true }).catch(() => {});
-    await sleep(2000);
-    const sw = [...targets.values()].find((t) => t.type === 'service_worker' && t.url.includes(EXT_ID));
+    // The extension's pages and worker, as the browser lists them (some browsers never answer a subscription).
+    let sw;
+    for (let i = 0; i < 20 && !sw; i++) {
+      await sleep(500);
+      for (const t of (await send('Target.getTargets', {}, undefined, 10000).catch(() => ({ targetInfos: [] }))).targetInfos) targets.set(t.targetId, t);
+      sw = [...targets.values()].find((t) => t.type === 'service_worker' && t.url.includes(EXT_ID));
+    }
     if (sw) {
       const { sessionId } = await send('Target.attachToTarget', { targetId: sw.targetId, flatten: true });
       await send('Runtime.enable', {}, sessionId).catch(() => {});

@@ -100,7 +100,11 @@ export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/tmp/xdg-$(id -u)}
 mkdir -p "$XDG_RUNTIME_DIR"; chmod 700 "$XDG_RUNTIME_DIR"
 unset WAYLAND_DISPLAY
 start_x() { Xvfb :99 -screen 0 1440x900x24 -nolisten tcp >/dev/null 2>&1 & export DISPLAY=:99; sleep 2; }
-wait_wayland() { for _ in $(seq 60); do [ -S "$XDG_RUNTIME_DIR/$1" ] && break; sleep 0.5; done; [ -S "$XDG_RUNTIME_DIR/$1" ] || { echo "no Wayland display $1"; exit 3; }; export WAYLAND_DISPLAY=$1; unset DISPLAY; }
+wait_wayland() {
+  for _ in $(seq 60); do [ -S "$XDG_RUNTIME_DIR/$1" ] && break; sleep 0.5; done
+  [ -S "$XDG_RUNTIME_DIR/$1" ] || { echo "no Wayland display $1"; tail -30 /tmp/compositor.log; exit 3; }
+  export WAYLAND_DISPLAY=$1; unset DISPLAY
+}
 eval "$(dbus-launch --sh-syntax)"
 case $session in
   x11) start_x; export XDG_CURRENT_DESKTOP=none ;;

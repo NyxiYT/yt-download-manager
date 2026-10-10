@@ -9,7 +9,8 @@ param(
   [Parameter(Mandatory)][string]$Setup,
   [Parameter(Mandatory)][ValidateSet('x64', 'x86')][string]$Arch,
   [string]$Out = 'compat-results',
-  [string]$Name = "windows-$Arch"
+  [string]$Name = "windows-$Arch",
+  [string]$Previous # the last release's installer; by default downloaded with gh
 )
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -160,15 +161,19 @@ function Shoot-Window([string]$file) {
 
 # ---------- upgrade over the last release ----------
 Area 'upgrade' {
-  $tags = @(gh release list --repo NyxiYT/yt-download-manager --exclude-drafts --exclude-pre-releases --limit 10 --json tagName -q '.[].tagName')
-  $prev = $tags | Where-Object { $_ -ne "v$version" } | Select-Object -First 1
-  if (-not $prev) { throw 'no earlier release found' }
-  $dir = Join-Path $work 'prev'
-  New-Item -ItemType Directory -Force $dir | Out-Null
-  gh release download $prev --repo NyxiYT/yt-download-manager --pattern "YTDownloadManager-Setup-$Arch.exe" --dir $dir --clobber
-  if ($LASTEXITCODE) { throw "could not download $prev" }
+  if ($Previous) { $prevSetup = (Resolve-Path $Previous).Path; $prev = (Get-Item $prevSetup).VersionInfo.FileVersion }
+  else {
+    $tags = @(gh release list --repo NyxiYT/yt-download-manager --exclude-drafts --exclude-pre-releases --limit 10 --json tagName -q '.[].tagName')
+    $prev = $tags | Where-Object { $_ -ne "v$version" } | Select-Object -First 1
+    if (-not $prev) { throw 'no earlier release found' }
+    $dir = Join-Path $work 'prev'
+    New-Item -ItemType Directory -Force $dir | Out-Null
+    gh release download $prev --repo NyxiYT/yt-download-manager --pattern "YTDownloadManager-Setup-$Arch.exe" --dir $dir --clobber
+    if ($LASTEXITCODE) { throw "could not download $prev" }
+    $prevSetup = Join-Path $dir "YTDownloadManager-Setup-$Arch.exe"
+  }
   Uninstall-App
-  Install-App (Join-Path $dir "YTDownloadManager-Setup-$Arch.exe")
+  Install-App $prevSetup
   $keep = Join-Path $work 'kept folder'
   New-Item -ItemType Directory -Force $keep | Out-Null
   Set-Settings @{ folder = $keep; lang = 'de' }
