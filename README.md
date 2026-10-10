@@ -285,7 +285,7 @@ works on every PC the app runs on.
 |---|---|
 | Windows | Windows 10 or 11, 64-bit or 32-bit |
 | Browser | Chrome, Edge, Brave, Opera or Vivaldi, version 111 or newer |
-| Memory (RAM) | 2 GB. The app uses about 10 MB while it waits and up to about 150 MB while several downloads run at once, plus yt-dlp and FFmpeg while they work (see [Memory use](#memory-use)) |
+| Memory (RAM) | 2 GB. The app uses under 2 MB while it waits and up to about 150 MB while several downloads run at once, plus yt-dlp and FFmpeg while they work (see [Memory use](#memory-use)) |
 | Disk space | About 300 MB for the 64-bit app (230 MB for 32-bit), plus space for your downloads. While a video downloads, it needs about twice its size for a moment |
 | Internet | Needed for every download |
 | Other software | None. The installer brings everything it needs: yt-dlp, FFmpeg, and Deno (64-bit) or Node.js (32-bit). .NET Framework 4.8 is already part of Windows 10 (version 1903 and newer) and Windows 11 |
@@ -297,12 +297,18 @@ download works and close when it's done, so they are not counted here.
 
 | What the app is doing | Usually | At most |
 |---|---|---|
-| Waiting in the tray | 9 MB | 9 MB |
+| Waiting in the tray | 1.5 MB | 2.5 MB |
+| Its first minute after it was started or used | 9 MB | 9 MB |
 | One download (4K) | 75 MB | 80 MB |
 | Three downloads at once | 130 MB | 150 MB |
-| After its downloads finish | 20 to 27 MB | |
+| Right after its downloads finish | 15 to 27 MB | |
 | 20 finished downloads, History open | 27 MB | |
 | Browser extension, per YouTube tab | under 1 MB | |
+| Browser extension, other sites | nothing, it doesn't run there | |
+
+A minute after it was last used, the app hands its memory back to Windows, and gets it back the moment it is
+needed. With **Start with Windows** turned off in the app window, it closes itself 3 minutes after it was last
+used, and the extension starts it again when you download something.
 
 ## FAQ
 
