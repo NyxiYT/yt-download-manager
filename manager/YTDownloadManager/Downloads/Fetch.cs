@@ -715,8 +715,10 @@ namespace YTDM
                     long read = 0;
                     var buf = new byte[1 << 16];
                     using (var rs = resp.GetResponseStream())
-                    using (var fs = sink ?? new FileStream(part, FileMode.Append, FileAccess.Write, FileShare.Read, 1 << 16, true))
+                    using (var file = sink == null ? new FileStream(part, FileMode.Append, FileAccess.Write, FileShare.Read, 1 << 16, true) : null)
                     {
+                        // A sink belongs to the caller, who reads it afterwards: only the file is closed here.
+                        var fs = sink ?? file;
                         if (sink == null && fs.Length != from) throw new IOException("partial file changed while downloading");
                         try
                         {
