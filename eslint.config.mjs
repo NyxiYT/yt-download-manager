@@ -32,4 +32,10 @@ export default [
       eqeqeq: ['error', 'smart'],
     },
   },
+  {
+    // Test scripts the build server runs with Node.
+    files: ['.github/**/*.js'],
+    languageOptions: { sourceType: 'commonjs', globals: { ...globals.node } },
+    rules: { 'no-console': 'off' },
+  },
 ];

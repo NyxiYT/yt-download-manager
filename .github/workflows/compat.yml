@@ -1,0 +1,227 @@
+name: Compatibility
+
+# Builds the installers, the extension and the userscript, then installs and runs them on every platform the
+# project supports: the Windows app on Windows Server 2025 and 2022 and on Windows 11 on ARM (64-bit and
+# 32-bit installers), and the browser extension in Chrome, Edge, Brave, Opera, Vivaldi and Chromium on Ubuntu
+# 22.04 and 24.04, Debian 12, Fedora, Arch and Linux Mint, as distribution packages, Snap and Flatpak, on X11
+# and Wayland, and under GNOME and KDE. Firefox is linted. Each run leaves a result file; the report job
+# merges them into a table. Runs before every release (release.yml publishes only when this passes), every
+# Monday, and on demand.
+on:
+  workflow_call:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 4 * * 1"
+  push:
+    branches: [compat-tests]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Check the extension
+        shell: pwsh
+        run: |
+          npm ci --no-fund --no-audit
+          npm run lint
+          if ($LASTEXITCODE) { throw 'lint failed' }
+          python extension-build/convert.py
+          git diff --exit-code -- extension/content
+          if ($LASTEXITCODE) { throw 'extension/content is out of date: run python extension-build/convert.py' }
+          foreach ($f in Get-ChildItem extension -Recurse -Filter *.js) { node --check $f.FullName; if ($LASTEXITCODE) { throw "$($f.Name) has a syntax error" } }
+
+      - name: Build
+        shell: cmd
+        run: manager\build.cmd
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  windows:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, windows-2022, windows-11-arm]
+        arch: [x64, x86]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    env:
+      CI: "true"
+      GH_TOKEN: ${{ github.token }}
+      RUN: ${{ matrix.os }}-${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The extension without the app first (as on a PC where it isn't installed).
+      - name: Browsers without the app
+        if: matrix.arch == 'x64'
+        shell: pwsh
+        run: |
+          $browsers = [ordered]@{
+            chrome = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
+            edge = 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
+          }
+          $status = 0
+          foreach ($b in $browsers.Keys) {
+            if (-not (Test-Path $browsers[$b])) { "$b is not on this machine"; continue }
+            node .github/compat/ext-check.js --browser $browsers[$b] --out "compat-results/$env:RUN-$b.json" --name "$b on $env:RUN" --skip app-connection
+            if ($LASTEXITCODE) { $status = 1 }
+          }
+          exit $status
+
+      - name: App
+        if: always()
+        shell: powershell
+        run: ./.github/compat/windows.ps1 -Setup "dist/YTDownloadManager-Setup-${{ matrix.arch }}.exe" -Arch ${{ matrix.arch }} -Name "app $env:RUN" -Out compat-results
+
+      # With the app: the extension connects to it, hands it a download, and starts it when it's closed.
+      - name: Browser with the app
+        if: always() && matrix.arch == 'x64'
+        shell: pwsh
+        run: |
+          # The page may start the app through its ytdm: link without asking (the dialog can't be clicked here).
+          $allow = '[{"protocol":"ytdm","allowed_origins":["https://www.youtube.com"]}]'
+          foreach ($k in 'HKLM:\SOFTWARE\Policies\Google\Chrome', 'HKLM:\SOFTWARE\Policies\Microsoft\Edge') {
+            New-Item -Force $k | Out-Null
+            Set-ItemProperty $k -Name AutoLaunchProtocolsFromOrigins -Value $allow
+          }
+          Start-Process "dist/YTDownloadManager-Setup-${{ matrix.arch }}.exe" -ArgumentList '--quiet' -Wait
+          Start-Process "$env:LOCALAPPDATA\Programs\YT Download Manager\YTDownloadManager.exe" -ArgumentList '--background'
+          Start-Sleep 5
+          $chrome = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
+          if (-not (Test-Path $chrome)) { $chrome = 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe' }
+          node .github/compat/ext-check.js --browser $chrome --out "compat-results/$env:RUN-app-connection.json" --name "extension with the app on $env:RUN" --app --only extension-loads,app-connection
+          $s = $LASTEXITCODE
+          Start-Process "dist/YTDownloadManager-Setup-${{ matrix.arch }}.exe" -ArgumentList '--uninstall', '--quiet' -Wait
+          exit $s
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-${{ matrix.os }}-${{ matrix.arch }}
+          path: compat-results/
+
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, browser: chrome, session: x11 }
+          - { os: ubuntu-24.04, browser: chrome, session: wayland }
+          - { os: ubuntu-24.04, browser: chromium-snap, session: x11 }
+          - { os: ubuntu-24.04, browser: edge, session: x11 }
+          - { os: ubuntu-24.04, browser: brave, session: x11 }
+          - { os: ubuntu-24.04, browser: opera, session: x11 }
+          - { os: ubuntu-24.04, browser: vivaldi, session: x11 }
+          - { os: ubuntu-24.04, browser: chrome-flatpak, session: x11 }
+          - { os: ubuntu-24.04, browser: chromium-flatpak, session: x11 }
+          - { os: ubuntu-24.04, browser: brave-flatpak, session: x11 }
+          - { os: ubuntu-22.04, browser: chrome, session: x11 }
+          - { os: ubuntu-22.04, browser: chromium-snap, session: x11 }
+          - { os: ubuntu-24.04, container: "debian:12", browser: chromium, session: x11 }
+          - { os: ubuntu-24.04, container: "debian:12", browser: chromium, session: gnome-x11 }
+          - { os: ubuntu-24.04, container: "debian:12", browser: chromium, session: kde-x11 }
+          - { os: ubuntu-24.04, container: "fedora:latest", browser: chromium, session: x11 }
+          - { os: ubuntu-24.04, container: "fedora:latest", browser: chromium, session: gnome-wayland }
+          - { os: ubuntu-24.04, container: "fedora:latest", browser: chromium, session: kde-wayland }
+          - { os: ubuntu-24.04, container: "archlinux:latest", browser: chromium, session: x11 }
+          - { os: ubuntu-24.04, container: "archlinux:latest", browser: chromium, session: wayland }
+          - { os: ubuntu-24.04, container: "linuxmintd/mint23-amd64", browser: chromium, session: x11 }
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    timeout-minutes: 45
+    steps:
+      - name: Tools for the checkout
+        if: matrix.container
+        run: |
+          if command -v apt-get >/dev/null; then apt-get update -qq && apt-get install -y -qq git ca-certificates curl >/dev/null
+          elif command -v dnf >/dev/null; then dnf install -y -q git curl >/dev/null
+          elif command -v pacman >/dev/null; then pacman -Sy --noconfirm --needed git curl >/dev/null; fi
+
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: ${{ matrix.browser }}, ${{ matrix.session }}
+        run: bash .github/compat/linux.sh ${{ matrix.browser }} ${{ matrix.session }} "compat-results/${{ matrix.browser }}-${{ matrix.session }}-${{ strategy.job-index }}.json"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-linux-${{ strategy.job-index }}
+          path: compat-results/
+
+  firefox:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Firefox
+        run: node .github/compat/firefox.js compat-results/firefox.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-firefox
+          path: compat-results/
+
+  report:
+    needs: [windows, linux, firefox]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: results-*
+          path: compat-results
+
+      - name: Table
+        run: node .github/compat/report.js compat-results compat-report.md
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compat-report
+          path: compat-report.md
