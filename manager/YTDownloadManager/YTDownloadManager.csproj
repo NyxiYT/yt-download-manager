@@ -45,6 +45,8 @@
     <EmbeddedResource Include="app.ico" LogicalName="app.ico" />
     <!-- The public keys update checksums are signed with (see UpdateSignature) -->
     <EmbeddedResource Include="update-keys.pem" LogicalName="update-keys.pem" Condition="Exists('update-keys.pem')" />
+    <!-- The exact tool builds, for a tool that is missing (see Components.Locked) -->
+    <EmbeddedResource Include="..\components.lock.json" LogicalName="components.lock.json" />
   </ItemGroup>
 
   <ItemGroup>

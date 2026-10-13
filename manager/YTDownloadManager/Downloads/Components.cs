@@ -33,38 +33,38 @@ namespace YTDM
 
         public sealed class Package
         {
-            public string Id, Name, Url, SumsUrl, SumsName;
+            public string Id, Name, Version, Url, Sha256;
             public long ApproxBytes;
         }
 
         // 32-bit Windows gets the 32-bit builds. Deno has none: there the installer brings Node.js instead.
         static readonly bool X64 = Environment.Is64BitOperatingSystem;
-        static readonly string YtDlpExe = X64 ? "yt-dlp.exe" : "yt-dlp_x86.exe";
-        static readonly string FfmpegZip = X64 ? "ffmpeg-master-latest-win64-gpl.zip" : "ffmpeg-master-latest-win32-gpl.zip";
 
-        public static readonly Package YtDlpPkg = new Package
+        // The exact builds, from manager/components.lock.json (built into the app): the same ones the
+        // installers carry, each with its SHA-256. Read when a tool is missing, not before.
+        static readonly Lazy<Dictionary<string, Package>> Locked = new Lazy<Dictionary<string, Package>>(() =>
         {
-            Id = "yt-dlp", Name = "yt-dlp",
-            Url = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/" + YtDlpExe,
-            SumsUrl = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/SHA2-256SUMS", SumsName = YtDlpExe,
-            ApproxBytes = 18_000_000,
-        };
+            var arch = X64 ? "x64" : "x86";
+            string text;
+            using (var st = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("components.lock.json") ?? throw new InvalidDataException("components.lock.json is missing from the app"))
+            using (var r = new StreamReader(st)) text = r.ReadToEnd();
+            var tools = Json.ParseObj(text).Obj("tools");
+            Package From(string id, string name, long bytes)
+            {
+                var f = tools.Obj(id)?.Obj(arch);
+                return f == null ? null : new Package { Id = id, Name = name, Version = f.Str("version"), Url = f.Str("url"), Sha256 = f.Str("sha256"), ApproxBytes = bytes };
+            }
+            return new Dictionary<string, Package>
+            {
+                ["yt-dlp"] = From("yt-dlp", "yt-dlp", 18_000_000),
+                ["ffmpeg"] = From("ffmpeg", "FFmpeg", 140_000_000),
+                ["deno"] = From("deno", "Deno", 45_000_000),
+            };
+        });
 
-        public static readonly Package FfmpegPkg = new Package
-        {
-            Id = "ffmpeg", Name = "FFmpeg",
-            Url = "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/" + FfmpegZip,
-            SumsUrl = "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/checksums.sha256", SumsName = FfmpegZip,
-            ApproxBytes = 140_000_000,
-        };
-
-        public static readonly Package DenoPkg = new Package
-        {
-            Id = "deno", Name = "Deno",
-            Url = "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-pc-windows-msvc.zip",
-            SumsUrl = "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-pc-windows-msvc.zip.sha256sum", SumsName = "deno-x86_64-pc-windows-msvc.zip",
-            ApproxBytes = 45_000_000,
-        };
+        public static Package YtDlpPkg => Locked.Value["yt-dlp"];
+        public static Package FfmpegPkg => Locked.Value["ffmpeg"];
+        public static Package DenoPkg => Locked.Value["deno"];
 
         public static List<Package> Missing()
         {
@@ -72,6 +72,7 @@ namespace YTDM
             if (YtDlp == null) l.Add(YtDlpPkg);
             if (Ffmpeg == null || Ffprobe == null) l.Add(FfmpegPkg);
             if (Js == null && X64) l.Add(DenoPkg);
+            l.RemoveAll(p => p == null);
             return l;
         }
 
@@ -228,7 +229,7 @@ namespace YTDM
             var file = Path.Combine(dl, Path.GetFileName(new Uri(pkg.Url).AbsolutePath));
             Files.TryDelete(file);
             await Net.DownloadFile(pkg.Url, file, progress, ct);
-            Verify(file, await ExpectedSum(pkg, ct), pkg.Name);
+            Verify(file, pkg.Sha256, pkg.Name + " " + pkg.Version);
 
             if (pkg.Id == "yt-dlp")
             {
@@ -254,9 +255,8 @@ namespace YTDM
             Detect();
         }
 
-        // A download is used only when it matches its published checksum. Without one (the list couldn't be
-        // read, or doesn't name the file) it isn't used either: the install fails, and "Try again" in the app's
-        // window starts over.
+        // A download is used only when it matches its SHA-256 from components.lock.json. Without one it isn't used
+        // either: the install fails, and "Try again" in the app's window starts over.
         internal static void Verify(string file, string expected, string name)
         {
             if (expected == null)
@@ -281,26 +281,6 @@ namespace YTDM
                 Files.TryDelete(old);
             }
             File.Move(src, dest);
-        }
-
-        static async Task<string> ExpectedSum(Package pkg, CancellationToken ct)
-        {
-            try
-            {
-                var text = await Net.GetText(pkg.SumsUrl, ct);
-                // "hash  name" lists, or a single hash in any layout (e.g. PowerShell's "Hash : ..." output).
-                var loose = new List<string>();
-                foreach (var line in text.Split('\n'))
-                {
-                    var m = Regex.Match(line, "\\b([0-9a-fA-F]{64})\\b");
-                    if (!m.Success) continue;
-                    if (line.IndexOf(pkg.SumsName, StringComparison.OrdinalIgnoreCase) >= 0) return m.Groups[1].Value;
-                    if (!Regex.IsMatch(line, "\\.(zip|exe|7z|tar|xz)\\b", RegexOptions.IgnoreCase)) loose.Add(m.Groups[1].Value);
-                }
-                if (loose.Count == 1) return loose[0];
-            }
-            catch (Exception e) { Log.Warn("checksum list for " + pkg.Name + ": " + e.Message); }
-            return null;
         }
 
         // yt-dlp has to keep up with YouTube; the copy we installed updates itself about once a week.

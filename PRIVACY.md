@@ -22,8 +22,9 @@ PC. This page lists every connection it makes and why.
     version the app doesn't know yet does it read the release from `api.github.com`. The requests carry the
     app's version in their user agent and nothing else. An update is downloaded only when you click **Update**.
   - yt-dlp updates itself about once a week from its own GitHub releases.
-  - If a tool is missing (only when the app wasn't installed with its installer), it is downloaded from the
-    tool's official GitHub releases: yt-dlp, FFmpeg (yt-dlp/FFmpeg-Builds) and Deno.
+  - If a tool is missing (only when the app wasn't installed with its installer), the exact build the app
+    was made with is downloaded from GitHub: yt-dlp, FFmpeg (BtbN/FFmpeg-Builds, or yt-dlp/FFmpeg-Builds on
+    32-bit Windows) and Deno.
 - **Your browser:** the app answers only on `127.0.0.1` (your own PC). Only browsers you connected can use it.
 
 To turn off the update check, open the app, click **Advanced** at the bottom of its window and turn off

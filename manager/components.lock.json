@@ -1,0 +1,57 @@
+{
+  "about": "Exact builds of the tools: written by .github/components-lock.py, read by manager/fetch-components.ps1 (installers) and the app (a missing tool). Updated weekly by a pull request.",
+  "tools": {
+    "yt-dlp": {
+      "x64": {
+        "version": "2026.08.19",
+        "url": "https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp.exe",
+        "sha256": "66674953fe251b89f4d08c5f0e35e0728679bd67ab3d7d05c0562af101dd3e7a"
+      },
+      "x86": {
+        "version": "2026.08.19",
+        "url": "https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp_x86.exe",
+        "sha256": "a8f91bd41452506bc81ebd2f369b186fea0ee7075413ba00cef9fd346a0a5d0c"
+      }
+    },
+    "ffmpeg": {
+      "x64": {
+        "version": "n9.0.2-17-g2a571b6068",
+        "source": "https://github.com/BtbN/FFmpeg-Builds/releases/tag/autobuild-2026-09-30-13-08",
+        "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-30-13-08/ffmpeg-n9.0.2-17-g2a571b6068-win64-gpl-9.0.zip",
+        "sha256": "a0e45723c72141975f51d8666302e614711745f3102b704ca3f82c897a58d278"
+      },
+      "x64-shared": {
+        "version": "n9.0.2-17-g2a571b6068",
+        "source": "https://github.com/BtbN/FFmpeg-Builds/releases/tag/autobuild-2026-09-30-13-08",
+        "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-30-13-08/ffmpeg-n9.0.2-17-g2a571b6068-win64-gpl-shared-9.0.zip",
+        "sha256": "3da6c7b60bb9ccd73ec5b5e815ba804a0879eb362ba0e3beebce50174c022696"
+      },
+      "x86": {
+        "version": "N-127043-g5a54fcf75e",
+        "source": "https://github.com/yt-dlp/FFmpeg-Builds/releases/tag/autobuild-2026-09-30-18-57",
+        "url": "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2026-09-30-18-57/ffmpeg-N-127043-g5a54fcf75e-win32-gpl.zip",
+        "sha256": "d3170c0ecf219f3f57297c7c31cf1d0c247faadf72b0d815df49df88b953ce70"
+      },
+      "x86-shared": {
+        "version": "N-127043-g5a54fcf75e",
+        "source": "https://github.com/yt-dlp/FFmpeg-Builds/releases/tag/autobuild-2026-09-30-18-57",
+        "url": "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2026-09-30-18-57/ffmpeg-N-127043-g5a54fcf75e-win32-gpl-shared.zip",
+        "sha256": "2cb8be8d95a5f89daf6e500bb056c633a5e020c6d05ef61ab1c8b831ae5e619f"
+      }
+    },
+    "deno": {
+      "x64": {
+        "version": "2.9.7",
+        "url": "https://github.com/denoland/deno/releases/download/v2.9.7/deno-x86_64-pc-windows-msvc.zip",
+        "sha256": "a0c3101b4158d1dfb7d6a78a7bf0f3de80c96bb423c152beec8beb22786f2238"
+      }
+    },
+    "node": {
+      "x86": {
+        "version": "22.23.3",
+        "url": "https://nodejs.org/dist/v22.23.3/node-v22.23.3-win-x86.zip",
+        "sha256": "1e07ac00e61b41b7ecf242de8e38883d237d5ad3fdcad7c16f2dd3a88670e2b6"
+      }
+    }
+  }
+}

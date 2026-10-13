@@ -1,0 +1,53 @@
+name: Tool versions
+
+# Every Monday: the newest builds of yt-dlp, FFmpeg, Deno and Node.js go into manager/components.lock.json
+# (see .github/components-lock.py), as a pull request to look at and merge. Nothing changes without one.
+on:
+  schedule:
+    - cron: "23 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Look up the newest builds
+        id: lock
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python -I .github/components-lock.py | tee "$RUNNER_TEMP/versions.txt"
+          if git diff --quiet -- manager/components.lock.json; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Open or update the pull request
+        if: steps.lock.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch=bump/components
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -C "$branch"
+          git commit -q -m "ci: newer tool builds in components.lock.json" -- manager/components.lock.json
+          git push --force origin "$branch"
+          {
+            echo "The newest builds, checked against the checksums each project publishes:"
+            echo
+            echo '```'
+            cat "$RUNNER_TEMP/versions.txt"
+            echo '```'
+            echo
+            echo "Merging makes the next installers carry them; apps installed without the installer fetch them too."
+          } > "$RUNNER_TEMP/body.md"
+          if gh pr view "$branch" --json state -q .state 2>/dev/null | grep -q OPEN; then
+            gh pr edit "$branch" --body-file "$RUNNER_TEMP/body.md"
+          else
+            gh pr create --head "$branch" --base main --title "ci: newer tool builds" --body-file "$RUNNER_TEMP/body.md"
+          fi
