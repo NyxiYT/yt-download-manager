@@ -248,10 +248,11 @@ SHIM = r"""
       settle(fn);
     };
     if (o.timeout) timer = setTimeout(() => stop(o.ontimeout), o.timeout);
-    send({
+    const body = o.data instanceof Blob ? stage(id, o.data).then(() => ({ staged: id, bodyType: o.data.type })) : Promise.resolve({ body: o.data ?? null });
+    body.then((b) => send({
       type: 'fetch', id, url: o.url, method: o.method || 'GET', headers: o.headers || {},
-      body: o.data ?? null, binary, anonymous: o.anonymous !== false,
-    }).then((r) => {
+      ...b, binary, anonymous: o.anonymous !== false,
+    })).then((r) => {
       if (!r || r.error) {
         settle(r?.aborted ? o.onabort : o.onerror, r);
         return;
@@ -264,6 +265,19 @@ SHIM = r"""
       settle(o.onload, { status: r.status, response, responseText: r.text || '', responseHeaders: r.headers || '', finalUrl: r.url });
     }, (e) => settle(o.onerror, e));
     return { abort: () => stop(o.onabort) };
+  }
+
+  // A file as a request body goes to the service worker in pieces: messages carry JSON only (so base64),
+  // and at most 64 MiB each.
+  async function stage(id, blob) {
+    const PIECE = 8 << 20;
+    for (let at = 0; at < blob.size; at += PIECE) {
+      const bytes = new Uint8Array(await blob.slice(at, at + PIECE).arrayBuffer());
+      let s = '';
+      for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+      const r = await send({ type: 'stage', id, at, data: btoa(s) });
+      if (!r?.ok) throw new Error('the file could not be handed over');
+    }
   }
 
   function base64ToBytes(b64) {

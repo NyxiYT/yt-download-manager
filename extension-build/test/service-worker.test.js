@@ -48,7 +48,8 @@ function load({ app = {}, ext = {} } = {}) {
       return json({ key: ext.key });
     }
     const u = new URL(url);
-    requests.push({ path: u.pathname, query: u.search, token: opts.headers?.['X-YDM-Token'] || '', body: opts.body ? JSON.parse(opts.body) : null });
+    const isJson = typeof opts.body === 'string';
+    requests.push({ path: u.pathname, query: u.search, token: opts.headers?.['X-YDM-Token'] || '', body: isJson ? JSON.parse(opts.body) : null, raw: isJson ? null : opts.body });
     const tokens = app.tokens || [];
     switch (u.pathname) {
       case '/v1/hello': {
@@ -68,7 +69,9 @@ function load({ app = {}, ext = {} } = {}) {
     }
   }
   const navigator = { userAgent: 'Chrome/140', userAgentData: { brands: [{ brand: 'Google Chrome' }] } };
-  const api = new Function('chrome', 'fetch', 'navigator', `${CODE}\nreturn { hmacHex, tokenKey };`)(chrome, fetch, navigator);
+  // Its timers don't keep the test run waiting (one waits five minutes to drop unused pieces).
+  const setTimeout = (fn, ms) => { const t = globalThis.setTimeout(fn, ms); t.unref?.(); return t; };
+  const api = new Function('chrome', 'fetch', 'navigator', 'setTimeout', `${CODE}\nreturn { hmacHex, tokenKey };`)(chrome, fetch, navigator, setTimeout);
   const send = (msg) => new Promise((resolve) => listeners[0](msg, { id: 'self' }, resolve));
   const sent = (p) => requests.filter((r) => r.path === p);
   return { api, send, sent, store, requests };
@@ -159,4 +162,26 @@ test('with an install key, an app without proofs counts as not running', async (
   assert.equal((await send({ type: 'dmStatus' })).running, false);
   assert.equal((await send({ type: 'dmAutoConnect' })).ok, false);
   assert.ok(sent('/v1/hello').every((h) => h.token === ''));
+});
+
+// Files for the app (screenshots) come from the content script in pieces and leave as one request body.
+test('a request body handed over in pieces is sent whole', async () => {
+  const { send, requests } = load({ app: { proofs: false }, ext: {} });
+  const bytes = crypto.randomBytes(20000);
+  const b64 = (b) => Buffer.from(b).toString('base64');
+  assert.equal((await send({ type: 'stage', id: 'r1', at: 0, data: b64(bytes.subarray(0, 12000)) })).ok, true);
+  assert.equal((await send({ type: 'stage', id: 'r1', at: 12000, data: b64(bytes.subarray(12000)) })).ok, true);
+  await send({ type: 'fetch', id: 'r1', url: 'http://127.0.0.1:17724/v1/files?name=a.png', method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, staged: 'r1', bodyType: 'image/png' });
+  const sentBody = requests.find((r) => r.path === '/v1/files').raw;
+  assert.ok(Buffer.from(await sentBody.arrayBuffer()).equals(bytes));
+  // Used once: the pieces are gone afterwards.
+  const again = await send({ type: 'fetch', id: 'r2', url: 'http://127.0.0.1:17724/v1/files?name=a.png', method: 'POST', headers: {}, staged: 'r1' });
+  assert.equal(again.error, 'request body missing');
+});
+
+test('pieces out of order are refused', async () => {
+  const { send } = load();
+  assert.equal((await send({ type: 'stage', id: 'r1', at: 5, data: 'AAAA' })).ok, false);
+  assert.equal((await send({ type: 'stage', id: 'r2', at: 0, data: 'AAAA' })).ok, true);
+  assert.equal((await send({ type: 'stage', id: 'r2', at: 2, data: 'AAAA' })).ok, false);
 });

@@ -12,6 +12,9 @@ const ALLOWED = [
 ];
 const METHODS = new Set(['GET', 'HEAD', 'POST']);
 const running = new Map(); // request id -> AbortController
+// Request bodies the content script hands over in pieces (a screenshot for the app): request id -> pieces.
+const staged = new Map();
+const MAX_STAGED = 64 * 1024 * 1024;
 
 chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   if (sender.id !== chrome.runtime.id || !msg) return false;
@@ -21,6 +24,10 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
       return true; // answers asynchronously
     case 'abort':
       running.get(msg.id)?.abort();
+      staged.delete(msg.id);
+      return false;
+    case 'stage':
+      reply(stagePiece(msg));
       return false;
     case 'dmStatus':
       dmStatus().then(reply);
@@ -207,17 +214,40 @@ async function pipNative(info, sender) {
   }
 }
 
+// One piece of a request body, in order; the whole stays below MAX_STAGED and is dropped after five minutes.
+function stagePiece(m) {
+  let parts = staged.get(m.id);
+  if (!parts) {
+    if (m.at !== 0) return { ok: false };
+    staged.set(m.id, (parts = []));
+    setTimeout(() => staged.delete(m.id), 300000);
+  }
+  const have = parts.reduce((n, p) => n + p.length, 0);
+  let bytes;
+  try { bytes = Uint8Array.from(atob(String(m.data || '')), (c) => c.charCodeAt(0)); } catch { bytes = null; }
+  if (!bytes || m.at !== have || have + bytes.length > MAX_STAGED) {
+    staged.delete(m.id);
+    return { ok: false };
+  }
+  parts.push(bytes);
+  return { ok: true };
+}
+
 async function proxyFetch(m) {
   const url = String(m.url || '');
   const method = String(m.method || 'GET').toUpperCase();
+  const parts = m.staged ? staged.get(m.staged) : null;
+  staged.delete(m.staged);
   if (!ALLOWED.some((re) => re.test(url)) || !METHODS.has(method)) return { error: 'not allowed' };
+  if (m.staged && !parts) return { error: 'request body missing' };
   const ac = new AbortController();
   running.set(m.id, ac);
   try {
     const headers = { ...(m.headers || {}) };
     delete headers['User-Agent']; // can't be set from an extension; the servers don't need it
+    const body = parts ? new Blob(parts, { type: String(m.bodyType || '') }) : m.body;
     const r = await fetch(url, {
-      method, headers, body: method === 'POST' ? m.body : undefined,
+      method, headers, body: method === 'POST' ? body : undefined,
       credentials: m.anonymous ? 'omit' : 'include', cache: 'no-store', signal: ac.signal,
     });
     const buf = method === 'HEAD' ? new ArrayBuffer(0) : await r.arrayBuffer();

@@ -54,6 +54,8 @@ namespace YTDM
         public int Port { get; private set; }
         public DateTime LastActivity = DateTime.UtcNow;
         const int MaxBody = 30 * 1024 * 1024;
+        // A file the browser made (a screenshot), sent as it is (application/octet-stream, see /v1/files).
+        internal const int MaxFile = 64 * 1024 * 1024;
         static readonly HashSet<string> Kinds = new HashSet<string> { "video", "mp3", "m4a", "opus", "wav", "thumb", "subs" };
         static readonly HashSet<string> SubFormats = new HashSet<string> { "srt", "vtt", "ttml", "srv3" };
         static readonly HashSet<string> Thumbs = new HashSet<string> { "oardefault", "maxresdefault", "sddefault", "hqdefault", "mqdefault" };
@@ -176,7 +178,7 @@ namespace YTDM
             if (req.Headers.TryGetValue("Content-Length", out var clText))
             {
                 if (!int.TryParse(clText, NumberStyles.None, CultureInfo.InvariantCulture, out var cl) || cl < 0) throw new ApiError(400, "errGeneric");
-                if (cl > MaxBody) throw new ApiError(413, "errGeneric");
+                if (cl > MaxBodyFor(req.Path, req.Headers.TryGetValue("Content-Type", out var type) ? type : null)) throw new ApiError(413, "errGeneric");
                 var body = new byte[cl];
                 int have = all.Length - (end + 4);
                 Array.Copy(all, end + 4, body, 0, Math.Min(have, cl));
@@ -191,13 +193,19 @@ namespace YTDM
             }
             else if (req.Headers.TryGetValue("Transfer-Encoding", out var te) && te.IndexOf("chunked", StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                req.Body = ReadChunked(s, all, end + 4);
+                req.Body = ReadChunked(s, all, end + 4, MaxBodyFor(req.Path, req.Headers.TryGetValue("Content-Type", out var type) ? type : null));
             }
             return req;
         }
 
+        internal static bool IsRaw(string contentType) =>
+            contentType != null && contentType.Split(';')[0].Trim().Equals("application/octet-stream", StringComparison.OrdinalIgnoreCase);
+
+        // Only a file sent as it is may be larger than the JSON requests.
+        internal static int MaxBodyFor(string path, string contentType) => path == "/v1/files" && IsRaw(contentType) ? MaxFile : MaxBody;
+
         // Chunked request bodies (some HTTP clients send these instead of a Content-Length).
-        static byte[] ReadChunked(NetworkStream s, byte[] head, int start)
+        static byte[] ReadChunked(NetworkStream s, byte[] head, int start, int max)
         {
             var pending = new MemoryStream();
             pending.Write(head, start, head.Length - start);
@@ -219,7 +227,7 @@ namespace YTDM
                 }
                 var sizeText = Encoding.ASCII.GetString(data, pos, lineEnd).Split(';')[0].Trim();
                 if (!int.TryParse(sizeText, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var size) || size < 0) throw new ApiError(400, "errGeneric");
-                if (body.Length + size > MaxBody) throw new ApiError(413, "errGeneric");
+                if (body.Length + size > max) throw new ApiError(413, "errGeneric");
                 int need = pos + lineEnd + 2 + size + 2;
                 while (pending.Length < need)
                 {
@@ -425,8 +433,18 @@ namespace YTDM
                     return Ok(new Dictionary<string, object> { ["removed"] = jobs.ClearFinished(), ["rev"] = jobs.Rev });
                 case "POST /v1/files":
                 {
-                    Parse(r);
-                    var job = BuildFileJob(r.Json);
+                    // The file as it is, with its details in the query string; browsers from before 1.12 send JSON
+                    // with the file in base64 (which fits only about 22 MB into a request).
+                    Job job;
+                    if (IsRaw(r.Headers.TryGetValue("Content-Type", out var type) ? type : null)) job = BuildFileJob(r.Q, r.Body);
+                    else
+                    {
+                        Parse(r);
+                        byte[] data;
+                        try { data = Convert.FromBase64String(r.Json.Str("data") ?? ""); }
+                        catch { throw new ApiError(400, "errGeneric"); }
+                        job = BuildFileJob(r.Json.Str, data);
+                    }
                     var (j, _) = jobs.Add(job, true);
                     return Ok(new Dictionary<string, object> { ["job"] = j.ToJson(true), ["rev"] = jobs.Rev });
                 }
@@ -537,21 +555,19 @@ namespace YTDM
         }
 
         // Files the browser made itself (screenshots) are saved to the same folder through the queue.
-        static Job BuildFileJob(Dictionary<string, object> b)
+        // meta: the file's details by name (name, vid, title, author, format, quality).
+        internal static Job BuildFileJob(Func<string, string> meta, byte[] data)
         {
-            var name = b.Str("name") ?? "";
+            var name = meta("name") ?? "";
             var ext = Path.GetExtension(name).TrimStart('.').ToLowerInvariant();
             if (ext != "png" && ext != "jpg" && ext != "jpeg" && ext != "webp") throw new ApiError(400, "errGeneric");
-            byte[] data;
-            try { data = Convert.FromBase64String(b.Str("data") ?? ""); }
-            catch { throw new ApiError(400, "errGeneric"); }
-            if (data.Length == 0 || data.Length > 25 * 1024 * 1024) throw new ApiError(400, "errGeneric");
-            var vid = b.Str("vid");
+            if (data == null || data.Length == 0 || data.Length > MaxFile) throw new ApiError(400, "errGeneric");
+            var vid = meta("vid");
             var j = new Job
             {
                 Id = Rand.Id(), Vid = Media.ValidId(vid) ? vid : "", Kind = "file", Key = "file", At = Time.Now,
-                Title = Clip(b.Str("title"), 400), Author = Clip(b.Str("author"), 200), Format = Clip(b.Str("format"), 16) ?? ext.ToUpperInvariant(),
-                Quality = Clip(b.Str("quality"), 32), Opts = new Dictionary<string, object> { ["name"] = Clip(name, 200), ["ext"] = ext },
+                Title = Clip(meta("title"), 400), Author = Clip(meta("author"), 200), Format = Clip(meta("format"), 16) ?? ext.ToUpperInvariant(),
+                Quality = Clip(meta("quality"), 32), Opts = new Dictionary<string, object> { ["name"] = Clip(name, 200), ["ext"] = ext },
             };
             j.Dedupe = "file|" + j.Id;
             Directory.CreateDirectory(j.Work);
