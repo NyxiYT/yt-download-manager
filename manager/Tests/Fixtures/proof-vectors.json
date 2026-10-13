@@ -1,0 +1,11 @@
+{
+ "about": "HMAC-SHA256(key, nonce + \"|\" + port), lower-case hex. tokenHash is SHA-256 of the token as the app stores it; its 32 bytes are the key for tokenProof. Computed with Python hmac; the app (AppProofTests) and the extension (extension-build/test) must match it.",
+ "key": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+ "token": "Zx9-token_for-tests",
+ "tokenHash": "f85a2289bda52e742d5ab4ec4485a773cb1453cf959c23192153dd9cef525f45",
+ "nonce": "0123456789abcdef0123456789abcdef",
+ "port": 17724,
+ "proof": "203d635dc6bb8722058e6ddbed90421dbaa9ca1e41b7995e54fde5283db8b1cc",
+ "tokenProof": "453e162a27a4ac13c0b77cf4352f7e3d2a101c00100db3f53c03da872ebb0501",
+ "otherPortProof": "45eedac55809a99d751ce7c9444b1cfef021d6f8b32fa9c981bd9c374a77be0a"
+}

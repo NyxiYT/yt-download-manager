@@ -34,6 +34,9 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
     case 'dmSession':
       dmSession().then(reply);
       return true;
+    case 'dmProve':
+      dmProve().then(reply);
+      return true;
     case 'pipBounds':
       pipBounds(msg, sender).then(reply, () => reply({ ok: false }));
       return true;
@@ -93,10 +96,86 @@ async function pipBounds(m, sender) {
   return { ok: true };
 }
 
-// The local app: the port it listens on, this browser's token from pairing, and the user's switch for it.
+// The local app: the port it listens on, this browser's token from pairing, whether the app has proved
+// itself with that token before (see proveApp), and the user's switch for it.
 async function appConfig() {
-  const { dmToken = '', dmPort = 17724, settings = {} } = await chrome.storage.local.get(['dmToken', 'dmPort', 'settings']);
-  return { token: dmToken, port: dmPort, useManager: settings.useManager !== false };
+  const { dmToken = '', dmPort = 17724, dmVerified = false, settings = {} } = await chrome.storage.local.get(['dmToken', 'dmPort', 'dmVerified', 'settings']);
+  return { token: dmToken, port: dmPort, verified: !!dmVerified, useManager: settings.useManager !== false };
+}
+
+// Another program can listen on the app's port while the app isn't running, so the app proves who it is
+// before it gets a token or a request with one, and always before it gets the YouTube sign-in. It answers
+// a random nonce with HMAC-SHA256(key, "<nonce>|<port>"): with the install key the installer put next to
+// this extension (app-key.json, which web pages can't read), and with the SHA-256 of each paired browser's
+// token. States: 'ok' (proved with the install key or this browser's token), 'unproven' (an app that can
+// prove itself, but this browser has nothing to check it with yet: no install key and no token it knows),
+// 'legacy' (an app from before the proofs: downloads only, never the sign-in), 'fail' (a wrong or missing
+// proof where one is due: treated as not running) and 'absent'.
+const toHex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+const utf8 = (text) => new TextEncoder().encode(text);
+
+async function hmacHex(keyBytes, text) {
+  const key = await crypto.subtle.importKey('raw', keyBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return toHex(await crypto.subtle.sign('HMAC', key, utf8(text)));
+}
+
+const tokenKey = async (token) => new Uint8Array(await crypto.subtle.digest('SHA-256', utf8(token)));
+
+let installKey; // undefined: not read yet; null: this copy wasn't put here by the app's installer
+async function appKey() {
+  if (installKey === undefined) {
+    try {
+      const j = await (await fetch(chrome.runtime.getURL('app-key.json'), { cache: 'no-store' })).json();
+      installKey = /^[0-9a-f]{64}$/.test(j?.key || '') ? Uint8Array.from(j.key.match(/../g), (x) => parseInt(x, 16)) : null;
+    } catch {
+      installKey = null;
+    }
+  }
+  return installKey;
+}
+
+async function proveApp(app) {
+  const nonce = toHex(crypto.getRandomValues(new Uint8Array(16)));
+  let hello;
+  try {
+    hello = await (await appRequest(app.port, `/v1/hello?nonce=${nonce}`)).json();
+  } catch {
+    return { state: 'absent' };
+  }
+  if (hello?.app !== 'ytdm') return { state: 'absent' };
+  const key = await appKey();
+  // An app that proved itself once (or came with an install key) doesn't turn into one from before the proofs.
+  if (!Array.isArray(hello.tokenProofs)) return { state: key || app.verified ? 'fail' : 'legacy', hello };
+  const text = `${nonce}|${app.port}`;
+  const byKey = !!key && hello.proof === await hmacHex(key, text);
+  const byToken = !!app.token && hello.tokenProofs.includes(await hmacHex(await tokenKey(app.token), text));
+  if (key && !byKey) return { state: 'fail', hello };
+  if (byToken && !app.verified) await chrome.storage.local.set({ dmVerified: true });
+  return { state: byKey || byToken ? 'ok' : 'unproven', paired: byToken, hello };
+}
+
+// An app from before the proofs says whether it knows the token only when it is sent along.
+async function legacyPaired(app) {
+  if (!app.token) return false;
+  try {
+    return !!(await (await appRequest(app.port, '/v1/hello', { token: app.token })).json()).paired;
+  } catch {
+    return false;
+  }
+}
+
+// May requests with this browser's token go to the app now? Downloads also work with an app from before
+// the proofs.
+async function appTrusted(app) {
+  const p = await proveApp(app);
+  return (p.state === 'ok' && p.paired) || (p.state === 'legacy' && await legacyPaired(app));
+}
+
+// For the content script, before it pairs or sends its token (see dmProve in the userscript).
+async function dmProve() {
+  const p = await proveApp(await appConfig());
+  const h = p.hello || {};
+  return { state: p.state, paired: !!p.paired, hello: { app: h.app, version: h.version, extension: h.extension, pairing: !!h.pairing } };
 }
 
 // One request to the app's local API: `json` becomes the body, the token goes along when there is one.
@@ -114,6 +193,7 @@ function appRequest(port, path, { method = 'GET', token = '', json, timeout = 30
 async function pipNative(info, sender) {
   const app = await appConfig();
   if (!app.token || !app.useManager || !info || typeof info !== 'object') return { ok: false };
+  if (!(await appTrusted(app))) return { ok: false };
   const body = { open: !!info.open, tab: String(sender.tab?.id ?? '') };
   if (body.open) {
     for (const k of ['ratio', 'dpr', 'iw', 'ih', 'minW', 'maxW']) body[k] = Number(info[k]) || 0;
@@ -165,13 +245,11 @@ function bytesToBase64(bytes) {
 // Is the YT Download Manager app running, and does it know this browser?
 async function dmStatus() {
   const app = await appConfig();
-  try {
-    const j = await (await appRequest(app.port, '/v1/hello', { token: app.token })).json();
-    if (j.app === 'ytdm') extOnDisk(j.extension);
-    return { running: j.app === 'ytdm', paired: !!j.paired, token: !!app.token, version: j.version };
-  } catch {
-    return { running: false, paired: false, token: !!app.token };
-  }
+  const p = await proveApp(app);
+  if (p.state === 'absent' || p.state === 'fail') return { running: false, paired: false, token: !!app.token };
+  extOnDisk(p.hello.extension);
+  const paired = p.state === 'legacy' ? await legacyPaired(app) : !!p.paired;
+  return { running: true, paired, token: !!app.token, version: p.hello.version };
 }
 
 // Connects to the app on its own, without asking anyone: the app recognizes this extension by its ID
@@ -181,30 +259,41 @@ async function dmStatus() {
 async function dmAutoConnect() {
   const app = await appConfig();
   if (!app.useManager) return { ok: false };
+  const p = await proveApp(app);
+  if (p.state === 'absent' || p.state === 'fail') return { ok: false }; // not running, or not our app
+  extOnDisk(p.hello.extension);
+  if (p.state === 'ok' ? p.paired : p.state === 'legacy' && await legacyPaired(app)) return { ok: true };
   try {
-    const hello = await (await appRequest(app.port, '/v1/hello', { token: app.token })).json();
-    if (hello.app !== 'ytdm') return { ok: false };
-    extOnDisk(hello.extension);
-    if (hello.paired) return { ok: true };
     const r = await appRequest(app.port, '/v1/pair', { method: 'POST', json: { client: `${browserName()} (extension)`, auto: true }, timeout: 10000 });
     const j = await r.json();
     if (!r.ok || !j.token) return { ok: false };
-    await chrome.storage.local.set({ dmToken: j.token, dmPort: j.port || app.port });
+    await chrome.storage.local.set({ dmToken: j.token, dmPort: j.port || app.port, dmVerified: false });
     return { ok: true };
   } catch {
-    return { ok: false }; // the app isn't running (or isn't installed)
+    return { ok: false }; // the app closed meanwhile
   }
 }
 
+// The cookies a signed-in download needs: the ones yt-dlp reads itself (LOGIN_INFO and the SAPISID ones,
+// for its sign-in check and the Authorization header; PREF, which it adds its language to) and the ones
+// YouTube checks the Google sign-in by. Nothing else of the browser's YouTube cookies leaves it.
+const SESSION_COOKIES = new Set([
+  'LOGIN_INFO', 'SID', 'HSID', 'SSID', 'APISID', 'SAPISID', '__Secure-1PSID', '__Secure-3PSID',
+  '__Secure-1PAPISID', '__Secure-3PAPISID', '__Secure-1PSIDTS', '__Secure-3PSIDTS', 'PREF',
+]);
+
 // This browser's YouTube sign-in for the app, for videos YouTube only shows to eligible signed-in
-// accounts (age restricted, members only). Sent only when such a video comes up; the app keeps it in
-// memory. When the browser isn't signed in to YouTube, nothing is sent except "not signed in".
+// accounts (age restricted, members only). Sent only when such a video comes up, and only to an app that
+// has just proved itself (never to one from before the proofs); the app keeps it in memory. When the
+// browser isn't signed in to YouTube, nothing is sent except "not signed in".
 async function dmSession() {
   const app = await appConfig();
   if (!app.token || !app.useManager) return { ok: false, signedIn: null };
+  const p = await proveApp(app);
+  if (p.state !== 'ok' || !p.paired) return { ok: false, signedIn: null };
   let list = [];
-  // Exactly what www.youtube.com receives (its own cookies and the .youtube.com ones).
-  try { list = await chrome.cookies.getAll({ url: 'https://www.youtube.com/' }); } catch { return { ok: false, signedIn: null }; }
+  // What www.youtube.com receives (its own cookies and the .youtube.com ones), of the ones above.
+  try { list = (await chrome.cookies.getAll({ url: 'https://www.youtube.com/' })).filter((c) => SESSION_COOKIES.has(c.name)); } catch { return { ok: false, signedIn: null }; }
   // Signed in the way YouTube (and yt-dlp) count it: LOGIN_INFO plus one of the SAPISID cookies.
   const has = (n) => list.some((c) => c.name === n);
   const signedIn = has('LOGIN_INFO') && ['SAPISID', '__Secure-1PAPISID', '__Secure-3PAPISID'].some(has);
@@ -287,7 +376,7 @@ chrome.storage.local.get('extPending').then(({ extPending }) => watchTabs(!!extP
 // Clears the finished downloads the app lists (options page "Clear"). Does nothing if it isn't running.
 async function dmClear() {
   const app = await appConfig();
-  if (!app.token) return { ok: false };
+  if (!app.token || !(await appTrusted(app))) return { ok: false };
   try {
     const r = await appRequest(app.port, '/v1/jobs/clear', { method: 'POST', token: app.token });
     return { ok: r.ok };

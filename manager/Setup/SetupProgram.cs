@@ -213,6 +213,8 @@ namespace YTDM
                     e.ExtractToFile(dest, true);
                 }
             }
+            // The key the app proves itself with (see AppProof); only this extension can read it.
+            AppProof.WriteTo(tmp);
             if (Directory.Exists(dir))
             {
                 var old = dir + ".old";

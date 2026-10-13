@@ -33,8 +33,8 @@ export default [
     },
   },
   {
-    // Test scripts the build server runs with Node.
-    files: ['.github/**/*.js'],
+    // Test scripts run with Node (on the build server, and npm test).
+    files: ['.github/**/*.js', 'extension-build/**/*.js'],
     languageOptions: { sourceType: 'commonjs', globals: { ...globals.node } },
     rules: { 'no-console': 'off' },
   },

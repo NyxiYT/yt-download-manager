@@ -324,12 +324,17 @@ namespace YTDM
 
             if (r.Method == "GET" && r.Path == "/v1/hello")
             {
-                return Ok(new Dictionary<string, object>
+                // "paired" for browsers from before the proofs, which send their token here.
+                var hello = new Dictionary<string, object>
                 {
                     ["app"] = "ytdm", ["version"] = App.Version, ["api"] = 1, ["port"] = Port,
                     ["paired"] = Authed(r), ["pairing"] = false,
                     ["extension"] = ExtensionHelp.Version,
-                });
+                };
+                var nonce = r.Q("nonce");
+                if (AppProof.ValidNonce(nonce))
+                    foreach (var kv in AppProof.Hello(nonce, Port, AppProof.Key, Settings.Current.TokenHashes())) hello[kv.Key] = kv.Value;
+                return Ok(hello);
             }
             if (r.Method == "POST" && r.Path == "/v1/pair")
             {
