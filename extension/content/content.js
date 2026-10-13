@@ -273,7 +273,8 @@
   const safeName = (s) => {
     let r = (s || '').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '_').replace(/\s+/g, ' ').trim();
     r = Array.from(r).slice(0, 150).join('').replace(/[. ]+$/, '');
-    if (/^(con|prn|aux|nul|com\d|lpt\d)(\..*)?$/i.test(r)) r = `_${r}`;
+    // Windows also takes CONIN$, CONOUT$, COM¹ to COM³ and LPT¹ to LPT³ as devices, and "CON .txt" as CON.
+    if (/^(con|prn|aux|nul|conin\$|conout\$|com[0-9\u00b9\u00b2\u00b3]|lpt[0-9\u00b9\u00b2\u00b3])( *\..*)?$/i.test(r)) r = `_${r}`;
     return r || 'video';
   };
   // Shorts play in a player of their own (#shorts-player, with YouTube's column of buttons beside it); the

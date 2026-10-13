@@ -218,7 +218,8 @@ namespace YTDM
                 if (char.IsHighSurrogate(r[r.Length - 1])) r = r.Substring(0, r.Length - 1);
             }
             r = r.TrimEnd('.', ' ');
-            if (Regex.IsMatch(r, "^(CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])(\\..*)?$", RegexOptions.IgnoreCase)) r = "_" + r;
+            // Windows also takes CONIN$, CONOUT$, COM¹ to COM³ and LPT¹ to LPT³ as devices, and "CON .txt" as CON.
+            if (Regex.IsMatch(r, "^(CON|PRN|AUX|NUL|CONIN\\$|CONOUT\\$|COM[0-9\u00b9\u00b2\u00b3]|LPT[0-9\u00b9\u00b2\u00b3])( *\\..*)?$", RegexOptions.IgnoreCase)) r = "_" + r;
             return r.Length == 0 ? "video" : r;
         }
 
