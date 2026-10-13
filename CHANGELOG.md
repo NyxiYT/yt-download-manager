@@ -21,6 +21,8 @@ All notable changes to YT Download Manager are listed here. Versions follow
 - Two downloads with the same title that finished at the same moment could pick the same file name, and one
   of them failed (or removed the other's half-saved file). Each now gets its own name (`Title.mp4`,
   `Title (2).mp4`) and saves under a temporary name of its own first.
+- A file that was being saved when the app or the PC stopped no longer stays in the download folder as
+  `….partial`: the app removes it when it starts again, or when you press **Retry**.
 - The app downloads streams itself again. Since 1.11.0 it handed every one to yt-dlp, which still finished the
   download but without the app's own parallel pieces and its slowing down while a video plays. With the app's
   downloader, three downloads at once peak at about 240 MB (1.10.0: 340 to 440 MB), not at 150 MB as the notes

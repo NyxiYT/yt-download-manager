@@ -41,6 +41,7 @@ namespace YTDM
         public string ErrKey, ErrText;
         public Dictionary<string, object> ErrVars;
         public string File;
+        public string Partial; // the file being saved into the download folder, under its temporary name
         public long Size, At, FinishedAt;
         public List<StreamPart> Streams;
         public int Refreshes;
@@ -88,6 +89,7 @@ namespace YTDM
             {
                 d["streams"] = Streams?.Select(s => (object)s.ToJson()).ToArray();
                 d["refreshes"] = Refreshes;
+                if (Partial != null) d["partial"] = Partial;
                 d["pct"] = Pct;
                 d["got"] = Got;
                 d["total"] = Total;
@@ -102,7 +104,7 @@ namespace YTDM
                 Id = d.Str("id"), Vid = d.Str("vid"), Title = d.Str("title"), Author = d.Str("author"), Kind = d.Str("kind"),
                 Key = d.Str("key"), Format = d.Str("format"), Quality = d.Str("quality"), Dedupe = d.Str("dedupe"),
                 Opts = d.Obj("opts") ?? new Dictionary<string, object>(), Status = d.Str("status") ?? "failed",
-                At = d.Long("at"), FinishedAt = d.Long("finishedAt"), File = d.Str("file"), Size = d.Long("size"),
+                At = d.Long("at"), FinishedAt = d.Long("finishedAt"), File = d.Str("file"), Partial = d.Str("partial"), Size = d.Long("size"),
                 Refreshes = d.Int("refreshes"), Pct = d.Num("pct"), Got = d.Long("got"), Total = d.Long("total"),
             };
             var err = d.Obj("err");
@@ -191,6 +193,9 @@ namespace YTDM
         // Removes work files nothing refers to any more, and partial data of downloads that failed long ago.
         void Cleanup()
         {
+            List<Job> left;
+            lock (L) left = jobs.Where(j => j.Partial != null && !j.Running).ToList();
+            foreach (var j in left) DropPartial(j);
             try
             {
                 var keep = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "_info" };
@@ -397,6 +402,10 @@ namespace YTDM
             lock (L)
             {
                 if (j.Status != "failed" && j.Status != "canceled") return false;
+            }
+            DropPartial(j);
+            lock (L)
+            {
                 j.Status = "queued";
                 j.ErrKey = j.ErrText = null;
                 j.ErrVars = null;
@@ -1080,8 +1089,11 @@ namespace YTDM
             var dest = ReserveName(folder, name, ext);
             try
             {
-                // The temporary name is the job's own: another download of the same title can't touch it.
+                // The temporary name is the job's own, and it is saved before the file appears: a crash leaves
+                // nothing behind that the next start doesn't remove (see Cleanup).
                 var tmp = PartialFor(j, dest);
+                lock (L) j.Partial = tmp;
+                Save();
                 try
                 {
                     if (Files.SameVolume(src, folder)) System.IO.File.Move(src, Files.Long(tmp));
@@ -1094,10 +1106,11 @@ namespace YTDM
                         dest = again;
                     }
                     System.IO.File.Move(Files.Long(tmp), Files.Long(dest));
+                    lock (L) j.Partial = null;
                 }
                 catch
                 {
-                    Files.TryDelete(Files.Long(tmp));
+                    DropPartial(j);
                     throw;
                 }
             }
@@ -1127,6 +1140,17 @@ namespace YTDM
         // The job's own temporary name next to the final one: "Title.mp4.<job id>.partial".
         internal static string PartialFor(Job j, string dest) => dest + "." + j.Id + ".partial";
 
+        // Removes the temporary file this job left in the download folder, if any. Only a name this job made.
+        void DropPartial(Job j)
+        {
+            string p;
+            lock (L)
+            {
+                p = j.Partial;
+                j.Partial = null;
+            }
+            if (p != null && p.EndsWith("." + j.Id + ".partial", StringComparison.OrdinalIgnoreCase)) Files.TryDelete(Files.Long(p));
+        }
 
         // The file's name, with the title cut short where the whole path would pass Windows' limit (leaving
         // room for " (2)" and ".partial"). In a folder so deep that even a short title can't fit, the name stays
