@@ -258,6 +258,23 @@ namespace YTDM
             home?.RefreshState();
         }
 
+        // Downloads at once: more start right away; fewer let the running ones finish.
+        public void SetMaxDownloads(int n)
+        {
+            Settings.Current.MaxDownloads = Math.Max(1, Math.Min(4, n));
+            Settings.Current.Save();
+            Log.Info("downloads at once: " + Settings.Current.MaxDownloads);
+            Jobs.Pump();
+        }
+
+        // MB/s for all downloads together; 0: no limit. Applies to running downloads at once.
+        public void SetSpeedLimit(double mbps)
+        {
+            Settings.Current.SpeedLimitMBps = mbps > 0 ? mbps : 0;
+            Settings.Current.Save();
+            Log.Info("speed limit: " + (mbps > 0 ? mbps.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " MB/s" : "none"));
+        }
+
         public void SetKeepRunning(bool on)
         {
             Settings.Current.KeepRunning = on;

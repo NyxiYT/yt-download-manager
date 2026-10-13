@@ -11,6 +11,8 @@ namespace YTDM
         public int Port = 17724;
         public bool KeepRunning; // start with Windows and stay in the tray
         public bool SignInForBotCheck; // YouTube's "confirm you're not a bot" goes the signed-in way (see Session.MayHelp)
+        public int MaxDownloads = 2;   // downloads at once, 1 to 4
+        public double SpeedLimitMBps;  // all downloads together, in MB/s (1 MB = 1024 KB); 0: no limit
         public long LastUpdateCheck;
         public int LinkVariant; // which way of fetching stream links worked last (see Media.Variants)
         public string Lang;
@@ -44,6 +46,8 @@ namespace YTDM
                     s.Port = d.Int("port", 17724);
                     s.KeepRunning = d.Bool("keepRunning");
                     s.SignInForBotCheck = d.Bool("signInForBotCheck");
+                    s.MaxDownloads = d.Int("maxDownloads", 2);
+                    s.SpeedLimitMBps = d.Num("speedLimitMBps");
                     s.LastUpdateCheck = d.Long("lastUpdateCheck");
                     s.LinkVariant = d.Int("linkVariant");
                     s.Lang = d.Str("lang");
@@ -64,6 +68,8 @@ namespace YTDM
             }
             catch (Exception e) { Log.Error("settings load", e); }
             if (s.Port < 1024 || s.Port > 65535) s.Port = 17724;
+            s.MaxDownloads = Math.Max(1, Math.Min(4, s.MaxDownloads));
+            if (s.SpeedLimitMBps < 0.1 || s.SpeedLimitMBps > 10000) s.SpeedLimitMBps = 0;
             if (string.IsNullOrWhiteSpace(s.Folder)) s.Folder = Paths.DefaultFolder;
             Current = s;
             return s;
@@ -81,6 +87,8 @@ namespace YTDM
                         ["port"] = Port,
                         ["keepRunning"] = KeepRunning,
                         ["signInForBotCheck"] = SignInForBotCheck,
+                        ["maxDownloads"] = MaxDownloads,
+                        ["speedLimitMBps"] = SpeedLimitMBps,
                         ["lastUpdateCheck"] = LastUpdateCheck,
                         ["linkVariant"] = LinkVariant,
                         ["lang"] = Lang,

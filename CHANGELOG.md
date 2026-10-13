@@ -57,6 +57,10 @@ All notable changes to YT Download Manager are listed here. Versions follow
   on): when YouTube answers a download with "Sign in to confirm you're not a bot", the app tries it again with
   your browser's YouTube sign-in, the way it does for age-restricted videos. YouTube then sees that download
   as made with your account.
+- The app's window sets how many downloads run at once (1 to 4, 2 as before) and an optional speed limit for
+  all of them together (1 to 50 MB/s, or no limit). The limit holds whether or not a video plays in the
+  browser; a playing video can still slow downloads further. Both are kept in `settings.json`
+  (`maxDownloads`, `speedLimitMBps`).
 
 ### Changed
 
