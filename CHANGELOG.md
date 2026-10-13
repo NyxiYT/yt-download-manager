@@ -26,6 +26,8 @@ All notable changes to YT Download Manager are listed here. Versions follow
 - A download from an HLS stream (the finished video+sound streams some signed-in videos get) that YouTube
   changed while it was paused or refused could continue with segments of the new version after those of
   the old one. It now starts that stream over, once.
+- An HLS stream with a very long segment list (a stream of many hours) was cut short after the first 4 MB of
+  the list, without a word. The app now reads lists up to 32 MB whole and hands longer ones to yt-dlp.
 - The app downloads streams itself again. Since 1.11.0 it handed every one to yt-dlp, which still finished the
   download but without the app's own parallel pieces and its slowing down while a video plays. With the app's
   downloader, three downloads at once peak at about 240 MB (1.10.0: 340 to 440 MB), not at 150 MB as the notes

@@ -646,21 +646,37 @@ namespace YTDM
             using (var fs = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.Read)) fs.SetLength(length);
         }
 
+        // A media list is read in pieces of this size, up to the cap. A longer one (a stream of many hours) goes to
+        // yt-dlp, like lists of a kind this doesn't handle.
+        const int PlaylistPiece = 4 << 20;
+        internal const long PlaylistCap = 32L << 20;
+
         // The segment links of an HLS media list, in order.
-        static async Task<List<string>> Playlist(Fmt f, CancellationToken ct)
+        internal static async Task<List<string>> Playlist(Fmt f, CancellationToken ct)
         {
             var tmp = Path.Combine(Paths.Work, "_hls-" + Rand.Id() + ".m3u8");
             string text;
             try
             {
-                await GetRange(f, 0, (4 << 20) - 1, tmp, _ => { }, ct);
+                var total = await GetRange(f, 0, PlaylistPiece - 1, tmp, _ => { }, ct);
+                long have = new FileInfo(tmp).Length;
+                if (total > PlaylistCap || (total <= 0 && have >= PlaylistPiece))
+                    throw new NotSupportedException("HLS list longer than the own downloader reads (" + (total > 0 ? total + " bytes" : "length not stated") + ")");
+                // The first piece was only the beginning: the rest of it, so no segment is left out.
+                if (total > have) await GetRange(f, have, total - 1, tmp, _ => { }, ct);
+                if (total > 0 && new FileInfo(tmp).Length != total) throw new IOException("HLS list cut short");
                 text = File.ReadAllText(tmp);
             }
             finally { Files.TryDelete(tmp); }
+            return ParsePlaylist(text, f.Url);
+        }
+
+        internal static List<string> ParsePlaylist(string text, string url)
+        {
             if (!text.StartsWith("#EXTM3U", StringComparison.Ordinal)) throw new IOException("not an HLS list");
             if (text.Contains("#EXT-X-STREAM-INF") || text.Contains("#EXT-X-BYTERANGE") || Regex.IsMatch(text, "#EXT-X-KEY:(?!METHOD=NONE)"))
                 throw new NotSupportedException("HLS list the own downloader doesn't handle");
-            var baseUri = new Uri(f.Url);
+            var baseUri = new Uri(url);
             var list = new List<string>();
             var map = Regex.Match(text, "#EXT-X-MAP:[^\\n]*URI=\"([^\"]+)\"");
             if (map.Success) list.Add(new Uri(baseUri, map.Groups[1].Value).AbsoluteUri);
