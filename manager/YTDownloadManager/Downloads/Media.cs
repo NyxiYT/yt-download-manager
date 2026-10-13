@@ -218,7 +218,7 @@ namespace YTDM
                         Drop(signedIn, withAccount);
                         return info;
                     }
-                    catch (Fail f) when (Session.Helps.Contains(f.Key))
+                    catch (Fail f) when (Session.MayHelp(f))
                     {
                         Log.Info($"info {vid}: {f.Key} without a sign-in, using the signed-in answer");
                         return await withAccount;
@@ -234,7 +234,7 @@ namespace YTDM
             {
                 return await GetInfo(vid, false, ct);
             }
-            catch (Fail f) when (auth == null && Session.Helps.Contains(f.Key) && Session.Available)
+            catch (Fail f) when (auth == null && Session.MayHelp(f) && Session.Available)
             {
                 Log.Info($"info {vid}: {f.Key} without a sign-in, asking as the signed-in user");
                 return await GetInfo(vid, false, ct, -1, true);

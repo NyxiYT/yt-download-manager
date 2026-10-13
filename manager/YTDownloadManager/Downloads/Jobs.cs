@@ -647,7 +647,7 @@ namespace YTDM
                 {
                     info = await InfoFor(j, false, ct);
                 }
-                catch (Fail f) when (Session.Helps.Contains(f.Key))
+                catch (Fail f) when (Session.MayHelp(f))
                 {
                     Log.Info($"job {j.Id}: {f.Key} without a sign-in, continuing as the signed-in user");
                     lock (L) j.Opts["auth"] = true;
