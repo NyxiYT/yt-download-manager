@@ -405,9 +405,15 @@ It is free and open source. There are no ads, no accounts and no tracking. The e
 YouTube, to the app on your own PC, and to jsDelivr (a public file host) to fetch FFmpeg if the browser
 has to convert a file itself. The app asks GitHub for a new version when it starts or is used, at most every
 10 minutes, and every 12 hours otherwise. That request
-carries nothing about you or your PC. To turn it off, close the app and add `"checkUpdates": false` to
-`%LOCALAPPDATA%\YT Download Manager\settings.json`. Every connection is listed in the
+carries nothing about you or your PC. To turn it off, open the app, click **Advanced** at the bottom of its
+window and turn off **Look for new versions**. Every connection is listed in the
 [privacy policy](PRIVACY.md).
+
+### Can the app use my own yt-dlp?
+
+Yes. Open the app, click **Advanced** at the bottom of its window, then **Use my own…** and pick your
+`yt-dlp.exe`. The app checks that it answers with a yt-dlp version. It doesn't update your copy, so keep it up
+to date yourself; **Use the built-in one** goes back to the copy the app keeps up to date.
 
 ## Troubleshooting
 
