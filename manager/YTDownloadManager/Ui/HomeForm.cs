@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.Windows.Forms;
 
 namespace YTDM
@@ -108,6 +109,20 @@ namespace YTDM
             };
             set.Line(S.T("HomeBotSignIn"), botSignIn, true);
             set.Controls.Add(new Label { Text = S.T("HomeBotSignInHint"), AutoSize = true, MaximumSize = new Size(set.Inner, 0), ForeColor = Ui.Text2, Font = Ui.Small, Margin = new Padding(0, Ui.S(2), 0, 0), UseMnemonic = false });
+            var parallel = new DropDown(S.T("HomeParallel"), Ui.S(80));
+            for (int n = 1; n <= 4; n++) parallel.Add(n.ToString(CultureInfo.InvariantCulture), n.ToString(CultureInfo.CurrentCulture));
+            parallel.Value = Settings.Current.MaxDownloads.ToString(CultureInfo.InvariantCulture);
+            parallel.Picked += v => app.SetMaxDownloads(int.Parse(v, CultureInfo.InvariantCulture));
+            set.Line(S.T("HomeParallel"), parallel, true);
+            var speed = new DropDown(S.T("HomeSpeed"), Ui.S(130));
+            speed.Add("0", S.T("HomeSpeedNone"));
+            var limits = new System.Collections.Generic.List<double> { 1, 2, 5, 10, 20, 50 };
+            if (Settings.Current.SpeedLimitMBps > 0 && !limits.Contains(Settings.Current.SpeedLimitMBps)) limits.Add(Settings.Current.SpeedLimitMBps); // set in settings.json
+            limits.Sort();
+            foreach (var mb in limits) speed.Add(mb.ToString(CultureInfo.InvariantCulture), S.T("HomeSpeedMB", mb.ToString("0.#", CultureInfo.CurrentCulture)));
+            speed.Value = Settings.Current.SpeedLimitMBps.ToString(CultureInfo.InvariantCulture);
+            speed.Picked += v => app.SetSpeedLimit(double.Parse(v, CultureInfo.InvariantCulture));
+            set.Line(S.T("HomeSpeed"), speed, true);
             var language = new DropDown(S.T("HomeLanguage"), Ui.S(190));
             language.Add("", S.T("LangAuto") + " (" + S.Name(S.SystemLang) + ")");
             foreach (var l in S.Languages) language.Add(l.Key, l.Value);

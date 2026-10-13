@@ -93,16 +93,28 @@ namespace YTDM
             lastLogAt = now;
         }
 
-        static double Limit(int pressure)
+        // The user's own limit for all downloads together (the app's window), in bytes per second; 0: none.
+        public static double UserLimit => Settings.Current.SpeedLimitMBps > 0 ? Settings.Current.SpeedLimitMBps * 1024 * 1024 : 0;
+
+        // Bytes per second for all downloads together: the lower of what a playing video leaves and the user's
+        // limit, which holds whether or not a video plays.
+        internal static double Limit(int pressure)
         {
             var cap = capacity > 0 ? capacity : 0;
+            double limit;
             switch (pressure)
             {
-                case 2: return Math.Max(512 * 1024, cap > 0 ? cap * 0.5 : 4 * 1024 * 1024);
-                case 3: return Math.Max(256 * 1024, cap > 0 ? cap * 0.15 : 1024 * 1024);
-                default: return double.PositiveInfinity;
+                case 2: limit = Math.Max(512 * 1024, cap > 0 ? cap * 0.5 : 4 * 1024 * 1024); break;
+                case 3: limit = Math.Max(256 * 1024, cap > 0 ? cap * 0.15 : 1024 * 1024); break;
+                default: limit = double.PositiveInfinity; break;
             }
+            var user = UserLimit;
+            return user > 0 ? Math.Min(limit, user) : limit;
         }
+
+        // yt-dlp downloads (clips, subtitles, anything the own downloader hands over) don't pass through Take:
+        // each gets an equal share of the user's limit (--limit-rate, bytes per second), or 0 for none.
+        public static long YtDlpRate(int downloads) => UserLimit > 0 ? (long)Math.Max(64 * 1024, UserLimit / Math.Max(1, downloads)) : 0;
 
         // Called after every block a download has read; waits as long as the budget requires.
         public static Task Take(int bytes, CancellationToken ct)

@@ -155,14 +155,15 @@ namespace YTDM
         }
     }
 
-    // The download queue: persistent, resumable, at most two downloads at a time.
+    // The download queue: persistent, resumable, up to four downloads at a time (two unless set otherwise).
     sealed partial class JobManager
     {
         readonly object L = new object();
         readonly object saveLock = new object(); // one writer at a time for jobs.json
         readonly List<Job> jobs = new List<Job>();
         readonly List<TaskCompletionSource<bool>> waiters = new List<TaskCompletionSource<bool>>();
-        const int MaxActive = 2;
+        // Downloads at once, as set in the app's window (1 to 4).
+        internal static int MaxActive => Math.Max(1, Math.Min(4, Settings.Current.MaxDownloads));
         Timer saveTimer;
         public long Rev { get; private set; } = 1;
         public event Action Changed;
@@ -951,6 +952,8 @@ namespace YTDM
                 var info = await InfoFor(j, false, ct);
                 var args = Components.YtArgs();
                 args.AddRange(makeArgs(info));
+                var rate = Bandwidth.YtDlpRate(MaxActive);
+                if (rate > 0) args.AddRange(new[] { "--limit-rate", rate.ToString(CultureInfo.InvariantCulture) });
                 (int code, string stdout, string stderr, bool killed) r;
                 using (var cookies = CookieFile.For(signIn && Auth(j)))
                 {
