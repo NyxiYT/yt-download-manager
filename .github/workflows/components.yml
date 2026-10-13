@@ -10,6 +10,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write # to start checks.yml for the pull request
 
 jobs:
   bump:
@@ -51,3 +52,6 @@ jobs:
           else
             gh pr create --head "$branch" --base main --title "ci: newer tool builds" --body-file "$RUNNER_TEMP/body.md"
           fi
+          # Pushes and pull requests made with the workflow's token start no workflows; a dispatch does. Its
+          # results show on the pull request, since they belong to the same commit.
+          gh workflow run checks.yml --ref "$branch"
