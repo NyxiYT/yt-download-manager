@@ -18,6 +18,9 @@ All notable changes to YT Download Manager are listed here. Versions follow
 - The app no longer looks for FFmpeg in `C:fmpeg` or Chocolatey's shared folder, where any account on the PC
   can put a program. It still finds FFmpeg on `PATH`, in Program Files, from winget or Scoop, and in a folder
   you set yourself (`ffmpegDir` in `settings.json`).
+- Two downloads with the same title that finished at the same moment could pick the same file name, and one
+  of them failed (or removed the other's half-saved file). Each now gets its own name (`Title.mp4`,
+  `Title (2).mp4`) and saves under a temporary name of its own first.
 - The app downloads streams itself again. Since 1.11.0 it handed every one to yt-dlp, which still finished the
   download but without the app's own parallel pieces and its slowing down while a video plays. With the app's
   downloader, three downloads at once peak at about 240 MB (1.10.0: 340 to 440 MB), not at 150 MB as the notes
