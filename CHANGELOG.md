@@ -67,6 +67,11 @@ All notable changes to YT Download Manager are listed here. Versions follow
 
 ### Changed
 
+- The installers carry exact, checked builds of yt-dlp, FFmpeg, Deno and Node.js (listed in
+  `manager/components.lock.json`) instead of whatever was newest on the day of the build, and the app fetches
+  the same builds when a tool is missing. FFmpeg for 64-bit Windows now comes from a release branch (9.0) of
+  BtbN's builds; 32-bit Windows keeps yt-dlp's build, since nobody makes a release build for it. yt-dlp still
+  updates itself.
 - Updates of the app are signed: each release's `SHA256SUMS.txt` comes with `SHA256SUMS.txt.sig`, and the app
   installs a new version only when that signature matches the key built into it. A changed release page or
   download server can't hand it another installer.
