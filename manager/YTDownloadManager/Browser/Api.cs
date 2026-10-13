@@ -461,7 +461,7 @@ namespace YTDM
                         // auth=0: the extension's quality list for any video; only YouTube's anonymous answer.
                         info = await Media.GetInfoFor(vid, null, CancellationToken.None, likely: r.Q("auth") != "0");
                     }
-                    catch (Fail f) when (Session.Helps.Contains(f.Key) && !Session.Available)
+                    catch (Fail f) when (Session.MayHelp(f) && !Session.Available)
                     {
                         Log.Info($"info {vid}: {f.Key}, no sign-in available");
                         throw new Fail(Session.NoAccount ? "errSignIn" : f.Key, f.Vars);

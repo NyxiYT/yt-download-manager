@@ -10,6 +10,7 @@ namespace YTDM
         public string Folder;
         public int Port = 17724;
         public bool KeepRunning; // start with Windows and stay in the tray
+        public bool SignInForBotCheck; // YouTube's "confirm you're not a bot" goes the signed-in way (see Session.MayHelp)
         public long LastUpdateCheck;
         public int LinkVariant; // which way of fetching stream links worked last (see Media.Variants)
         public string Lang;
@@ -42,6 +43,7 @@ namespace YTDM
                     s.Folder = d.Str("folder");
                     s.Port = d.Int("port", 17724);
                     s.KeepRunning = d.Bool("keepRunning");
+                    s.SignInForBotCheck = d.Bool("signInForBotCheck");
                     s.LastUpdateCheck = d.Long("lastUpdateCheck");
                     s.LinkVariant = d.Int("linkVariant");
                     s.Lang = d.Str("lang");
@@ -78,6 +80,7 @@ namespace YTDM
                         ["folder"] = Folder,
                         ["port"] = Port,
                         ["keepRunning"] = KeepRunning,
+                        ["signInForBotCheck"] = SignInForBotCheck,
                         ["lastUpdateCheck"] = LastUpdateCheck,
                         ["linkVariant"] = LinkVariant,
                         ["lang"] = Lang,

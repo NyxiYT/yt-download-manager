@@ -97,7 +97,8 @@ namespace YTDM
         {
             var e = LastError(stderr);
             var all = stderr ?? "";
-            if (Has(e, "not a bot")) return (Cls.Permanent, "errBlocked", null);
+            // YouTube's "Sign in to confirm you're not a bot": marked, since a sign-in can get past it (Session.MayHelp).
+            if (Has(e, "not a bot")) return (Cls.Permanent, "errBlocked", new Dictionary<string, object> { ["bot"] = true });
             if (Has(e, "HTTP Error 403|403: Forbidden")) return (Cls.Expired, null, null);
             if (Has(e, "HTTP Error 429|Too Many Requests")) return (Cls.RateLimited, null, null);
             if (Has(e, "HTTP Error 5[0-9][0-9]")) return (Cls.Transient, null, null);

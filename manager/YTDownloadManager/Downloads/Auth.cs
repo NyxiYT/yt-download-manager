@@ -83,6 +83,11 @@ namespace YTDM
         // Errors after which the user's own sign-in may help.
         public static readonly HashSet<string> Helps = new HashSet<string> { "errAge", "errMembers", "errPrivate" };
 
+        // These, and YouTube's bot check when the user turned that on in the app's window: YouTube often lets a
+        // signed-in request through, but then sees the download as the account's.
+        public static bool MayHelp(Fail f) =>
+            Helps.Contains(f.Key) || (f.Key == "errBlocked" && f.Vars?.Get("bot") is bool bot && bot && Settings.Current.SignInForBotCheck);
+
         // The same refusal once signed in: this account can't watch the video.
         public static string AsAccountError(string key) =>
             key == "errAge" ? "errAgeAccount" : key == "errMembers" ? "errMembersAccount" : key == "errPrivate" ? "errPrivateAccount" : key;
