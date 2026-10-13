@@ -53,6 +53,8 @@ namespace YTDM
         public bool Running;
         public bool Shaping; // slowed down so a video playing in the browser keeps its buffer
         public long LastTouch;
+        public bool Exists;   // the finished file is still where it was saved (see JobManager.RefreshExists)
+        public long ExistsAt; // when that was last looked at
 
         public string Work => Path.Combine(Paths.Work, Id);
         public bool Finished => Status == "completed" || Status == "failed" || Status == "canceled";
@@ -82,7 +84,7 @@ namespace YTDM
                 {
                     d["fileName"] = Path.GetFileName(File);
                     d["folder"] = Path.GetDirectoryName(File);
-                    d["exists"] = System.IO.File.Exists(Files.Long(File));
+                    d["exists"] = Exists;
                 }
             }
             else
@@ -288,9 +290,34 @@ namespace YTDM
             return Task.WhenAny(tcs.Task, Task.Delay(ms)).ContinueWith(_ => { lock (L) waiters.Remove(tcs); });
         }
 
+        // The list for the browsers. Whether files are still there is looked up first, outside L; the lists are
+        // then copied under it from what is known (quick), and turned into JSON by the caller.
         public List<object> Snapshot()
         {
-            lock (L) return jobs.OrderByDescending(j => j.At).Select(j => (object)j.ToJson(true)).ToList();
+            List<Job> list;
+            lock (L) list = jobs.OrderByDescending(j => j.At).ToList();
+            RefreshExists(list);
+            lock (L) return list.Select(j => (object)j.ToJson(true)).ToList();
+        }
+
+        // Whether finished files are still there (the user may have moved or deleted them): looked up at most
+        // every 10 seconds per job, and never while holding L, where a slow or sleeping drive would hold up
+        // every download and every request.
+        void RefreshExists(IEnumerable<Job> list)
+        {
+            foreach (var j in list)
+            {
+                string file;
+                var now = Time.Now;
+                lock (L) file = j.File != null && now - j.ExistsAt >= 10000 ? j.File : null;
+                if (file == null) continue;
+                var there = System.IO.File.Exists(Files.Long(file));
+                lock (L)
+                {
+                    j.Exists = there;
+                    j.ExistsAt = now;
+                }
+            }
         }
 
         public Job Find(string id)
@@ -318,12 +345,29 @@ namespace YTDM
         // Returns the new job, or the existing one plus "active" / "done" when it's a repeat.
         public (Job job, string dup) Add(Job j, bool force)
         {
+            List<Job> earlier;
             lock (L)
             {
                 var active = jobs.FirstOrDefault(x => x.Dedupe == j.Dedupe && !x.Finished);
                 if (active != null) return (active, "active");
-                var done = jobs.Where(x => x.Dedupe == j.Dedupe && x.Status == "completed" && x.File != null && System.IO.File.Exists(Files.Long(x.File))).OrderByDescending(x => x.At).FirstOrDefault();
-                if (done != null && !force) return (done, "done");
+                earlier = force ? new List<Job>() : jobs.Where(x => x.Dedupe == j.Dedupe && x.Status == "completed" && x.File != null).OrderByDescending(x => x.At).ToList();
+            }
+            // The disk is asked outside L (see RefreshExists).
+            var done = earlier.FirstOrDefault(x => System.IO.File.Exists(Files.Long(x.File)));
+            if (done != null)
+            {
+                lock (L)
+                {
+                    done.Exists = true;
+                    done.ExistsAt = Time.Now;
+                }
+                return (done, "done");
+            }
+            lock (L)
+            {
+                // Another tab may have asked for the same meanwhile.
+                var active = jobs.FirstOrDefault(x => x.Dedupe == j.Dedupe && !x.Finished);
+                if (active != null) return (active, "active");
                 jobs.Add(j);
             }
             Touch(true);
@@ -541,6 +585,8 @@ namespace YTDM
                 {
                     j.Status = "completed";
                     j.File = dest;
+                    j.Exists = true;
+                    j.ExistsAt = Time.Now;
                     j.Size = new FileInfo(Files.Long(dest)).Length;
                     j.FinishedAt = Time.Now;
                     j.Pct = 100;
