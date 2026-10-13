@@ -1,0 +1,27 @@
+---
+// The main button: the 64-bit installer (Windows on ARM runs it too). A plain link, so it works without scripts;
+// scripts/interact.ts adds the magnetic pull and the short "Download started" confirmation.
+import { DOWNLOAD_X64 } from '../lib/content';
+import Icon from './Icon.astro';
+
+interface Props { size?: 'md' | 'lg'; }
+const { size = 'md' } = Astro.props;
+---
+<a href={DOWNLOAD_X64} class:list={['btn btn-primary dl-btn', size === 'lg' && 'btn-lg']} data-download data-magnetic>
+  <span class="dl-label inline-flex items-center gap-2.5">
+    <Icon name="download" />
+    Download for Windows (64-bit)
+  </span>
+  <span class="dl-done" aria-hidden="true">
+    <Icon name="check" />
+    Download started
+  </span>
+</a>
+
+<style>
+  .dl-btn { position: relative; overflow: hidden; }
+  .dl-label, .dl-done { transition: transform 450ms var(--ease-spring), opacity 250ms ease; }
+  .dl-done { position: absolute; inset: 0; display: inline-flex; align-items: center; justify-content: center; gap: 10px; opacity: 0; transform: translateY(70%); }
+  .dl-btn[data-started] .dl-label { opacity: 0; transform: translateY(-70%); }
+  .dl-btn[data-started] .dl-done { opacity: 1; transform: none; }
+</style>

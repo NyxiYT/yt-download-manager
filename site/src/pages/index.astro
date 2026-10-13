@@ -1,0 +1,26 @@
+---
+import Bento from '../components/Bento.astro';
+import Closing from '../components/Closing.astro';
+import FaqSection from '../components/FaqSection.astro';
+import Hero from '../components/Hero.astro';
+import Install from '../components/Install.astro';
+import Nav from '../components/Nav.astro';
+import ShowcaseSection from '../components/ShowcaseSection.astro';
+import Base from '../layouts/Base.astro';
+---
+<Base>
+  <Nav />
+  <main id="main">
+    <Hero />
+    <ShowcaseSection />
+    <Bento />
+    <Install />
+    <FaqSection />
+  </main>
+  <Closing />
+</Base>
+
+<script>
+  import '../scripts/interact';
+  import '../scripts/live';
+</script>

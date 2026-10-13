@@ -10,7 +10,7 @@ const userscriptManager = {
 const i18n = { YSD_I18N: 'readonly', YSD_LANG_NAMES: 'readonly', YSD_PICK_LANG: 'readonly', YSD_TR: 'readonly' };
 
 export default [
-  { ignores: ['dist/**', 'manager/**', 'extension/content/content.js', 'extension/content/i18n.js', 'extension/content/vendor/**', 'node_modules/**'] },
+  { ignores: ['dist/**', 'manager/**', 'extension/content/content.js', 'extension/content/i18n.js', 'extension/content/vendor/**', 'node_modules/**', 'site/**'] },
   {
     files: ['**/*.js'],
     languageOptions: {
