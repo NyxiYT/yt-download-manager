@@ -68,10 +68,11 @@
       settle(fn);
     };
     if (o.timeout) timer = setTimeout(() => stop(o.ontimeout), o.timeout);
-    send({
+    const body = o.data instanceof Blob ? stage(id, o.data).then(() => ({ staged: id, bodyType: o.data.type })) : Promise.resolve({ body: o.data ?? null });
+    body.then((b) => send({
       type: 'fetch', id, url: o.url, method: o.method || 'GET', headers: o.headers || {},
-      body: o.data ?? null, binary, anonymous: o.anonymous !== false,
-    }).then((r) => {
+      ...b, binary, anonymous: o.anonymous !== false,
+    })).then((r) => {
       if (!r || r.error) {
         settle(r?.aborted ? o.onabort : o.onerror, r);
         return;
@@ -84,6 +85,19 @@
       settle(o.onload, { status: r.status, response, responseText: r.text || '', responseHeaders: r.headers || '', finalUrl: r.url });
     }, (e) => settle(o.onerror, e));
     return { abort: () => stop(o.onabort) };
+  }
+
+  // A file as a request body goes to the service worker in pieces: messages carry JSON only (so base64),
+  // and at most 64 MiB each.
+  async function stage(id, blob) {
+    const PIECE = 8 << 20;
+    for (let at = 0; at < blob.size; at += PIECE) {
+      const bytes = new Uint8Array(await blob.slice(at, at + PIECE).arrayBuffer());
+      let s = '';
+      for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+      const r = await send({ type: 'stage', id, at, data: btoa(s) });
+      if (!r?.ok) throw new Error('the file could not be handed over');
+    }
   }
 
   function base64ToBytes(b64) {
@@ -2301,11 +2315,13 @@ onmessage = async ({ data: m }) => {
     }
   }
 
+  // body: an object (sent as JSON) or a Blob (sent as it is).
   function dmRaw(method, path, body, timeout = 15000, token = '') {
+    const raw = body instanceof Blob;
     return new Promise((resolve, reject) => bgRequest({
       method, url: `http://127.0.0.1:${DM.port}${path}`, timeout, anonymous: true,
-      headers: { 'Content-Type': 'application/json', ...(token ? { 'X-YDM-Token': token } : {}) },
-      data: body ? JSON.stringify(body) : undefined,
+      headers: { 'Content-Type': raw ? 'application/octet-stream' : 'application/json', ...(token ? { 'X-YDM-Token': token } : {}) },
+      data: raw ? body : body ? JSON.stringify(body) : undefined,
       onload: (r) => {
         if (!r.status) { reject(Object.assign(new Error('Network error'), { offline: true })); return; }
         let j = null;
@@ -2673,7 +2689,16 @@ onmessage = async ({ data: m }) => {
       return;
     }
     try {
-      await dmReq('POST', '/v1/files', { name, data: await blobToBase64(blob), ...meta }, 60000);
+      // The file as it is, its details in the link: an 8K screenshot is too big for the JSON request.
+      const q = new URLSearchParams({ name });
+      for (const [k, v] of Object.entries(meta)) if (v != null) q.set(k, String(v));
+      try {
+        await dmReq('POST', `/v1/files?${q}`, blob, 180000);
+      } catch (e) {
+        // An app from before 1.12 takes files only in JSON, as base64 (up to about 22 MB).
+        if (e.status !== 400 || blob.size > 22 << 20) throw e;
+        await dmReq('POST', '/v1/files', { name, data: await blobToBase64(blob), ...meta }, 60000);
+      }
       if (settings.autoOpenPanel) openPanel();
     } catch (e) {
       failNote(dmErrText(e.dm));

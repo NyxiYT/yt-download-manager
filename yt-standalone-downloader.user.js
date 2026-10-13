@@ -3860,11 +3860,13 @@ onmessage = async ({ data: m }) => {
     }
   }
 
+  // body: an object (sent as JSON) or a Blob (sent as it is).
   function dmRaw(method, path, body, timeout = 15000, token = '') {
+    const raw = body instanceof Blob;
     return new Promise((resolve, reject) => GM_xmlhttpRequest({
       method, url: `http://127.0.0.1:${DM.port}${path}`, timeout, anonymous: true,
-      headers: { 'Content-Type': 'application/json', ...(token ? { 'X-YDM-Token': token } : {}) },
-      data: body ? JSON.stringify(body) : undefined,
+      headers: { 'Content-Type': raw ? 'application/octet-stream' : 'application/json', ...(token ? { 'X-YDM-Token': token } : {}) },
+      data: raw ? body : body ? JSON.stringify(body) : undefined,
       onload: (r) => {
         if (!r.status) { reject(Object.assign(new Error('Network error'), { offline: true })); return; }
         let j = null;
@@ -4250,7 +4252,16 @@ onmessage = async ({ data: m }) => {
       return;
     }
     try {
-      await dmReq('POST', '/v1/files', { name, data: await blobToBase64(blob), ...meta }, 60000);
+      // The file as it is, its details in the link: an 8K screenshot is too big for the JSON request.
+      const q = new URLSearchParams({ name });
+      for (const [k, v] of Object.entries(meta)) if (v != null) q.set(k, String(v));
+      try {
+        await dmReq('POST', `/v1/files?${q}`, blob, 180000);
+      } catch (e) {
+        // An app from before 1.12 takes files only in JSON, as base64 (up to about 22 MB).
+        if (e.status !== 400 || blob.size > 22 << 20) throw e;
+        await dmReq('POST', '/v1/files', { name, data: await blobToBase64(blob), ...meta }, 60000);
+      }
       if (settings.autoOpenPanel) openPanel();
     } catch (e) {
       failNote(dmErrText(e.dm));
