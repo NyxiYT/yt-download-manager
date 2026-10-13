@@ -138,6 +138,8 @@ namespace YTDM
                 Font = Body,
                 UseVisualStyleBackColor = !primary && !Dark,
                 UseMnemonic = false,
+                // Flat buttons are drawn by WinForms itself, and screen readers would see a plain pane.
+                AccessibleRole = AccessibleRole.PushButton,
             };
             if (primary)
             {
@@ -349,9 +351,39 @@ namespace YTDM
             {
                 if (on == value) return;
                 on = value;
-                AccessibleDescription = on ? "on" : "off";
                 Invalidate();
+                if (IsHandleCreated) AccessibilityNotifyClients(AccessibleEvents.StateChange, -1);
                 CheckedChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        // Screen readers hear it as a check box that is checked or not, in the user's language (the state comes
+        // from Windows, not from text of ours), and can switch it.
+        protected override AccessibleObject CreateAccessibilityInstance() => new Accessible(this);
+
+        sealed class Accessible : ControlAccessibleObject
+        {
+            readonly Toggle t;
+
+            public Accessible(Toggle t) : base(t) { this.t = t; }
+
+            public override AccessibleRole Role => AccessibleRole.CheckButton;
+
+            public override AccessibleStates State
+            {
+                get
+                {
+                    var s = AccessibleStates.Focusable;
+                    if (t.on) s |= AccessibleStates.Checked;
+                    if (t.Focused) s |= AccessibleStates.Focused;
+                    if (!t.Enabled) s |= AccessibleStates.Unavailable;
+                    return s;
+                }
+            }
+
+            public override void DoDefaultAction()
+            {
+                if (t.Enabled) t.Checked = !t.Checked;
             }
         }
 
@@ -541,6 +573,7 @@ namespace YTDM
         {
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
             Height = Ui.S(4);
+            AccessibleRole = AccessibleRole.ProgressBar;
         }
 
         public double Value
@@ -550,9 +583,33 @@ namespace YTDM
             {
                 var v = Math.Max(0, Math.Min(1, value));
                 if (Math.Abs(v - this.value) < 0.002) return;
+                var before = Percent;
                 this.value = v;
                 Invalidate();
+                if (IsHandleCreated && Percent != before) AccessibilityNotifyClients(AccessibleEvents.ValueChange, -1);
             }
+        }
+
+        int Percent => (int)Math.Round(value * 100);
+
+        // A progress bar to screen readers, its value in percent like Windows' own ("42%").
+        protected override AccessibleObject CreateAccessibilityInstance() => new Accessible(this);
+
+        sealed class Accessible : ControlAccessibleObject
+        {
+            readonly SlimBar b;
+
+            public Accessible(SlimBar b) : base(b) { this.b = b; }
+
+            public override AccessibleRole Role => AccessibleRole.ProgressBar;
+
+            public override string Value
+            {
+                get => b.Percent.ToString(System.Globalization.CultureInfo.InvariantCulture) + "%";
+                set { }
+            }
+
+            public override AccessibleStates State => AccessibleStates.ReadOnly | (b.Visible ? AccessibleStates.None : AccessibleStates.Invisible);
         }
 
         protected override void OnPaint(PaintEventArgs e)
