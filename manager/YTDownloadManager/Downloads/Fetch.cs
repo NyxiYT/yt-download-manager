@@ -326,10 +326,8 @@ namespace YTDM
                         Log.Info($"job {j.Id}: {s.Role} got HTTP {h.Code} at {have}, fetching {(fresh ? "links another way" : "fresh links")}");
                         info = await Media.Relink(j.Vid, info, fresh, i => Media.Match(i, s) != null, ct);
                         var nf = Media.Match(info, s);
-                        if (nf.Fp != s.Fp)
+                        if (StartOver(s, nf, ref restarted))
                         {
-                            if (restarted) throw new Fail("errFormatGone");
-                            restarted = true;
                             Log.Info($"job {j.Id}: {s.Role} stream changed on YouTube, starting it over");
                             Files.TryDelete(part);
                             have = 0;
@@ -420,6 +418,16 @@ namespace YTDM
             }
         }
 
+        // After fresh links: is the stream still the same file? One YouTube re-encoded meanwhile (another
+        // fingerprint) starts over once; if it changes again, the format counts as gone.
+        internal static bool StartOver(StreamPart s, Fmt fresh, ref bool restarted)
+        {
+            if (fresh.Fp == s.Fp) return false;
+            if (restarted) throw new Fail("errFormatGone");
+            restarted = true;
+            return true;
+        }
+
         // Some links only become valid a few seconds after YouTube hands them out.
         static async Task WaitAvailable(Fmt f, CancellationToken ct)
         {
@@ -470,6 +478,7 @@ namespace YTDM
             var pl = new object();
             long pending = 0; // bytes of segments still in flight
             int transient = 0, refused = 0;
+            bool restarted = false;
             Action<int> onBytes = n =>
             {
                 double speed;
@@ -565,7 +574,24 @@ namespace YTDM
                         var fresh = Time.Now - info.FetchedAt < 90000;
                         Log.Info($"job {j.Id}: {s.Role} segment {s.Seg} got HTTP {h.Code}, fetching {(fresh ? "links another way" : "fresh links")}");
                         info = await Media.Relink(j.Vid, info, fresh, i => Media.Match(i, s) != null, ct);
-                        f = Media.Match(info, s);
+                        var nf = Media.Match(info, s);
+                        if (StartOver(s, nf, ref restarted))
+                        {
+                            // Its segments wouldn't continue the partial file: from the first one again.
+                            Log.Info($"job {j.Id}: {s.Role} stream changed on YouTube, starting it over from segment 0");
+                            Files.TryDelete(part);
+                            lock (pl) have = 0;
+                            next = 0;
+                            estimate = nf.SizeOr(info.Duration);
+                            lock (L)
+                            {
+                                s.Seg = 0;
+                                s.SegAt = 0;
+                                s.Fp = nf.Fp;
+                                s.Size = estimate;
+                            }
+                        }
+                        f = nf;
                         lock (L) s.FormatId = f.Id;
                         segs = null;
                         SaveSoon();
