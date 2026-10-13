@@ -32,6 +32,10 @@ All notable changes to YT Download Manager are listed here. Versions follow
 
 ### Changed
 
+- The prompt that asks whether a browser may connect names the program that really asked (for example
+  `Google Chrome (C:\...\chrome.exe)`), not only the name the request gives itself. It no longer takes the
+  keyboard from the window you're typing in, Enter and Esc both answer "Don't allow", and **Allow** can be
+  clicked only after a second. Requests from sandboxed frames and local files (`Origin: null`) are refused.
 - Before a release is published, it is installed and run on Windows 11 (also on ARM) and Windows Server 2022
   and 2025, and the extension in Chrome, Edge, Chromium, Brave, Opera and Vivaldi on Ubuntu, Debian, Fedora,
   Arch and Linux Mint. A release that fails any of it isn't published.
