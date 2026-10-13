@@ -30,6 +30,9 @@ All notable changes to YT Download Manager are listed here. Versions follow
   the list, without a word. The app now reads lists up to 32 MB whole and hands longer ones to yt-dlp.
 - Screenshots of 4K and 8K videos that the app saves for you could be too big (more than about 22 MB) and
   failed. They now go to the app as they are, up to 64 MB.
+- With finished downloads on a slow, sleeping or disconnected drive (a network folder, a USB disk), every
+  look at the download list waited for that drive, and running downloads waited with it. The app now
+  checks whether finished files are still there at most every 10 seconds, without holding anything up.
 - The app downloads streams itself again. Since 1.11.0 it handed every one to yt-dlp, which still finished the
   download but without the app's own parallel pieces and its slowing down while a video plays. With the app's
   downloader, three downloads at once peak at about 240 MB (1.10.0: 340 to 440 MB), not at 150 MB as the notes
