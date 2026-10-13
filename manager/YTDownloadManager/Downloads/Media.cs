@@ -106,7 +106,8 @@ namespace YTDM
         static readonly Dictionary<string, Info> cache = new Dictionary<string, Info>();
         static readonly Dictionary<string, Task<Info>> inflight = new Dictionary<string, Task<Info>>();
 
-        public static bool ValidId(string vid) => vid != null && Regex.IsMatch(vid, "^[A-Za-z0-9_-]{11}$");
+        // \z, not $: $ also matches before a line break at the end ("aqz-KE-bpKQ\n").
+        public static bool ValidId(string vid) => vid != null && Regex.IsMatch(vid, "^[A-Za-z0-9_-]{11}\\z");
 
         // Ways of asking YouTube for stream links, tried in turn when fresh links are still refused:
         // yt-dlp's own choice first, then the iPhone app's links (on some connections YouTube serves only

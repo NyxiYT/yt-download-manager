@@ -478,7 +478,7 @@ namespace YTDM
             if (!Media.ValidId(vid)) throw new ApiError(400, "errGeneric");
             var kind = b.Str("kind");
             var key = b.Str("key") ?? "";
-            if (!Regex.IsMatch(key, "^[A-Za-z0-9._-]{1,64}$")) throw new ApiError(400, "errGeneric");
+            if (!Regex.IsMatch(key, "^[A-Za-z0-9._-]{1,64}\\z")) throw new ApiError(400, "errGeneric");
             var src = b.Obj("opts") ?? new Dictionary<string, object>();
             var opts = new Dictionary<string, object>();
             // The browser script calls M4A and Opus both "audio"; tell them apart by extension.
@@ -502,7 +502,7 @@ namespace YTDM
                 case "subs":
                     var lang = src.Str("lang") ?? "";
                     var sf = src.Str("subFormat") ?? "srt";
-                    if (!Regex.IsMatch(lang, "^[A-Za-z0-9._-]{1,32}$") || !SubFormats.Contains(sf)) throw new ApiError(400, "errGeneric");
+                    if (!Regex.IsMatch(lang, "^[A-Za-z0-9._-]{1,32}\\z") || !SubFormats.Contains(sf)) throw new ApiError(400, "errGeneric");
                     opts["lang"] = lang;
                     opts["auto"] = src.Bool("auto");
                     opts["subFormat"] = sf;
