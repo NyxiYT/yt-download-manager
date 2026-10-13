@@ -1,0 +1,215 @@
+/* One design system for everything on the page: HeroUI's theme variables are the tokens, set to the app's own
+   colours (#0f0f0f base, the blue of its Download button as the one accent). Only the HeroUI parts the page
+   uses are imported; the whole library's CSS would be over 400 KB. */
+@layer theme, base, components, utilities;
+
+@import "tailwindcss";
+@import "@heroui/styles/base/base.css" layer(base);
+@import "@heroui/styles/themes/shared/theme.css";
+@import "@heroui/styles/themes/default/variables.css" layer(theme);
+@import "@heroui/styles/components/accordion.css" layer(components);
+@import "@heroui/styles/components/slider.css" layer(components);
+@import "@heroui/styles/utilities";
+@import "@heroui/styles/variants";
+@import "@fontsource-variable/inter/wght.css";
+
+/* ---------- Tokens ---------- */
+@layer theme {
+  :root,
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --background: #0f0f0f;
+    --foreground: #f1f1f1;
+    --surface: #1a1a1a;
+    --surface-foreground: var(--foreground);
+    --surface-secondary: #222;
+    --surface-tertiary: #2a2a2a;
+    --overlay: #212121;
+    --muted: #a8a8a8; /* 8.2:1 on the base, 7.4:1 on cards */
+    --border: #2e2e2e;
+    --separator: #262626;
+    --default: #2a2a2a;
+    --field-background: #121212;
+    --accent: #3ea6ff; /* the app's Download button */
+    --accent-foreground: #071521; /* dark text on the accent: 8.1:1 */
+    --accent-text: #3ea6ff; /* links and highlights on the base: 7.4:1 */
+    --badge: #ff4e45; /* the toolbar's 8K, 4K, HD labels */
+    --success: #2ba640;
+    --success-text: #5bd26f;
+    --focus: #8cc8ff;
+    --glow: 62 166 255;
+    --frame: #0b0b0b; /* the mock player and toolbar, dark in both themes like YouTube's dark mode */
+    --shadow-1: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 12px 32px -12px rgb(0 0 0 / 0.65);
+    --shadow-2: 0 1px 0 0 rgb(255 255 255 / 0.06) inset, 0 30px 80px -24px rgb(0 0 0 / 0.75);
+  }
+
+  [data-theme="light"] {
+    color-scheme: light;
+    --background: #f6f7f9;
+    --foreground: #0f0f0f;
+    --surface: #ffffff;
+    --surface-secondary: #f0f2f5;
+    --surface-tertiary: #e8ebef;
+    --overlay: #ffffff;
+    --muted: #55585f; /* 7.1:1 on white */
+    --border: #dfe3e8;
+    --separator: #e7eaee;
+    --default: #eceff3;
+    --field-background: #ffffff;
+    --accent: #0a6fc2; /* the same blue, darker: white text 5.3:1 */
+    --accent-foreground: #ffffff;
+    --accent-text: #0a63ad; /* 6.2:1 on the base */
+    --badge: #c4221a; /* 5:1 on light cards */
+    --success: #1f8a33;
+    --success-text: #1b7a2d;
+    --focus: #0a6fc2;
+    --glow: 10 111 194;
+    --frame: #0b0b0b;
+    --shadow-1: 0 1px 2px rgb(15 23 42 / 0.06), 0 12px 32px -14px rgb(15 23 42 / 0.18);
+    --shadow-2: 0 2px 6px rgb(15 23 42 / 0.06), 0 30px 80px -28px rgb(15 23 42 / 0.28);
+  }
+}
+
+@theme {
+  --font-sans: "Inter Variable", "Inter Fallback", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", Consolas, monospace;
+
+  /* Type scale (1.25), fluid between 360 px and 1280 px wide screens. */
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1.0625rem;
+  --text-lg: clamp(1.125rem, 1.05rem + 0.35vw, 1.3125rem);
+  --text-xl: clamp(1.3125rem, 1.15rem + 0.6vw, 1.625rem);
+  --text-2xl: clamp(1.625rem, 1.3rem + 1.3vw, 2.375rem);
+  --text-3xl: clamp(2.125rem, 1.6rem + 2.4vw, 3.75rem);
+
+  /* Radius scale */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  --color-accent-text: var(--accent-text);
+  --color-success-text: var(--success-text);
+  --color-frame: var(--frame);
+  --shadow-soft: var(--shadow-1);
+  --shadow-lift: var(--shadow-2);
+  --ease-spring: cubic-bezier(0.22, 1.2, 0.36, 1);
+}
+
+/* Wide screens with motion allowed, and JavaScript running (the html element gets .js before the first paint;
+   the chapters change with the scroll): the scroll story is pinned. Everything else stacks its chapters. */
+@custom-variant pin {
+  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    :where(.js) & {
+      @slot;
+    }
+  }
+}
+
+/* Inter with Arial's metrics adjusted to match, so nothing moves when the web font arrives. */
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial");
+  ascent-override: 90.49%;
+  descent-override: 22.56%;
+  line-gap-override: 0%;
+  size-adjust: 107.06%;
+}
+
+/* ---------- Base ---------- */
+@layer base {
+  html {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 88px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+  body {
+    font-size: var(--text-base);
+    line-height: 1.6;
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent-text); text-underline-offset: 3px; }
+  /* Links inside running text are underlined, so they don't rely on color alone. */
+  :where(p, li) a:not(.btn, .nav-link) { text-decoration: underline; text-decoration-thickness: 1px; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 6px; }
+  ::selection { background: rgb(var(--glow) / 0.35); }
+  code, kbd { font-family: var(--font-mono); font-size: 0.9em; }
+}
+
+/* ---------- Shared pieces ---------- */
+@layer components {
+  .container-page { width: 100%; max-width: 1180px; margin-inline: auto; padding-inline: 16px; }
+  @media (min-width: 768px) { .container-page { padding-inline: 32px; } }
+
+  .section { padding-block: clamp(72px, 9vw, 128px); }
+  .eyebrow { font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-text); }
+  .h-section { font-size: var(--text-3xl); line-height: 1.08; font-weight: 700; letter-spacing: -0.025em; text-wrap: balance; }
+  .lede { color: var(--muted); font-size: var(--text-lg); line-height: 1.55; text-wrap: pretty; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-1);
+  }
+
+  /* Buttons. Links styled as buttons stay plain links (no script needed). */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    min-height: 48px; padding: 0 22px; border-radius: 999px;
+    font-weight: 600; font-size: var(--text-sm); text-decoration: none; white-space: nowrap;
+    transition: background-color 160ms ease, border-color 160ms ease, box-shadow 200ms ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn svg { width: 20px; height: 20px; flex: none; }
+  .btn-primary { background: var(--accent); color: var(--accent-foreground); box-shadow: 0 8px 28px -10px rgb(var(--glow) / 0.75); }
+  .btn-primary:hover { box-shadow: 0 10px 36px -8px rgb(var(--glow) / 0.95); }
+  .btn-secondary { background: var(--surface); color: var(--foreground); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: color-mix(in oklab, var(--border) 60%, var(--foreground) 40%); }
+  .btn-lg { min-height: 56px; padding: 0 28px; font-size: var(--text-base); }
+  @media (max-width: 400px) { .btn-lg { gap: 8px; padding: 0 16px; font-size: 15px; } }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 999px;
+    font-size: var(--text-xs); color: var(--muted); background: var(--surface); border: 1px solid var(--border);
+  }
+
+  .shot { display: block; width: 100%; height: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--frame); }
+
+  /* The hero animation's controls */
+  .demo-ctl {
+    display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 999px;
+    color: var(--foreground); background: var(--surface); border: 1px solid var(--border); cursor: pointer;
+  }
+  .demo-step {
+    display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px 0 6px; border-radius: 999px;
+    font-size: var(--text-xs); font-weight: 600; color: var(--muted); background: transparent; border: 1px solid var(--border); cursor: pointer;
+    transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+  }
+  .demo-step-n { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 999px; background: var(--surface-secondary); font-size: 12px; }
+  .demo-step[aria-pressed="true"] { color: var(--foreground); border-color: rgb(var(--glow) / 0.6); background: rgb(var(--glow) / 0.1); }
+  .demo-step[aria-pressed="true"] .demo-step-n { background: var(--accent); color: var(--accent-foreground); }
+  @media (max-width: 639px) { .demo-step { padding-right: 6px; } .demo-step-label { display: none; } }
+
+  /* The trim timeline: HeroUI's slider, with the fill between the two handles drawn by ClipsVisual. */
+  .clip-track { position: relative; }
+  .clip-fill { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: #3ea6ff; pointer-events: none; }
+
+  .sr-only-focusable:not(:focus) {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+}
+
+/* Elements that animate in: visible without scripts and with reduced motion; scripts/reveal.ts hides them only
+   when it is about to animate them. */
+.reveal-pending { opacity: 0; transform: translateY(18px); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}

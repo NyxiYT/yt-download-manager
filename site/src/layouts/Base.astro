@@ -1,0 +1,82 @@
+---
+// The document: every tag of the previous site's head (search engines, link previews, structured data), the
+// theme chosen before the first paint, and the page's font preloaded.
+import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import { DOWNLOAD_X64, RELEASES, REPO, SITE_URL, faq, seo } from '../lib/content';
+import { latestRelease } from '../lib/release';
+import '../styles/global.css';
+
+const release = await latestRelease();
+const base = import.meta.env.BASE_URL;
+
+const app = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'YT Download Manager',
+  alternateName: 'YT Standalone Downloader',
+  description: seo.ldDescription,
+  applicationCategory: 'MultimediaApplication',
+  operatingSystem: 'Windows 10, Windows 11',
+  softwareVersion: release.version,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  downloadUrl: RELEASES,
+  installUrl: DOWNLOAD_X64,
+  url: SITE_URL,
+  image: `${SITE_URL}images/icon.png`,
+  screenshot: `${SITE_URL}images/download-video.jpg`,
+  license: 'https://opensource.org/licenses/MIT',
+  isAccessibleForFree: true,
+  author: { '@type': 'Person', name: 'NyxiYT', url: 'https://github.com/NyxiYT' },
+  codeRepository: REPO,
+};
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.ldQ ?? f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+};
+---
+<!doctype html>
+<html lang="en" data-theme="dark" data-built={new Date().toISOString()}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{seo.title}</title>
+    <meta name="description" content={seo.description} />
+    <meta name="keywords" content={seo.keywords} />
+    <meta name="author" content="NyxiYT" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#0f0f0f" />
+    <link rel="canonical" href={SITE_URL} />
+    <link rel="icon" type="image/png" href={`${base}images/icon.png`} />
+    <link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="YT Download Manager" />
+    <meta property="og:title" content={seo.ogTitle} />
+    <meta property="og:description" content={seo.ogDescription} />
+    <meta property="og:url" content={SITE_URL} />
+    <meta property="og:image" content={`${SITE_URL}images/social-preview.png`} />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="640" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={seo.ogTitle} />
+    <meta name="twitter:description" content={seo.twitterDescription} />
+    <meta name="twitter:image" content={`${SITE_URL}images/social-preview.png`} />
+    <script type="application/ld+json" set:html={JSON.stringify(app)} />
+    <script type="application/ld+json" set:html={JSON.stringify(faqLd)} />
+    <!-- Before the first paint, so nothing flashes or moves: dark unless the visitor picked light before; the js class
+         turns on what needs scripts (the pinned scroll story); data-platform="other" on a computer that isn't
+         Windows swaps the note under the download button (Hero.astro). -->
+    <script is:inline>
+      document.documentElement.classList.add('js');
+      (function () {
+        var ua = navigator.userAgent, p = (navigator.userAgentData && navigator.userAgentData.platform) || '';
+        if (!/Windows/i.test(p) && !/Windows NT/i.test(ua) && !/Android|iPhone|iPad|Mobile/i.test(ua)) document.documentElement.dataset.platform = 'other';
+      })();
+      try { if (localStorage.getItem('theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch {}
+    </script>
+  </head>
+  <body class="min-h-dvh bg-background text-foreground">
+    <a href="#main" class="sr-only-focusable btn btn-primary fixed left-4 top-4 z-[100]">Skip to content</a>
+    <slot />
+  </body>
+</html>

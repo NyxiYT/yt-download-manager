@@ -1,0 +1,96 @@
+---
+// "Features": all ten, word for word, in a bento grid. The glow that follows the pointer and the slight tilt come
+// from scripts/interact.ts and move only with transform; without a pointer (touch, keyboard) the cards stay still.
+import { features } from '../lib/content';
+import Icon from './Icon.astro';
+
+// Grid spans on wide screens (6 columns): the 8K card is the large one.
+const spans = [
+  'lg:col-span-4 lg:row-span-2', 'lg:col-span-2', 'lg:col-span-2',
+  'lg:col-span-3', 'lg:col-span-3',
+  'lg:col-span-2', 'lg:col-span-2', 'lg:col-span-2',
+  'lg:col-span-3', 'lg:col-span-3',
+];
+const qualities = [['4320p60', '8K'], ['2160p60', '4K'], ['1440p60', '2K'], ['1080p60', 'HD'], ['720p60', 'HD']];
+const languages = ['EN', 'DE', 'ES', 'FR', 'IT', 'PT', 'PL', 'RU', 'JA', 'ZH'];
+---
+<section id="features" class="section" aria-labelledby="features-title">
+  <div class="container-page">
+    <h2 id="features-title" class="h-section text-center" data-reveal>Features</h2>
+    <ul class="mt-12 grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2 lg:grid-cols-6 lg:gap-5">
+      {features.map((f, i) => (
+        <li class:list={['bento-card', spans[i], i === 0 && 'sm:col-span-2']} data-glow data-tilt data-reveal style={`--i:${i}`}>
+          <div class="bento-glow" aria-hidden="true"></div>
+          <div class="bento-edge" aria-hidden="true"><div class="bento-glow bento-glow-edge"></div></div>
+          <div class="relative flex h-full flex-col">
+            <span class="bento-icon"><Icon name={f.icon} class="h-6 w-6" /></span>
+            <h3 class="mt-5 text-[length:var(--text-lg)] font-semibold leading-snug tracking-tight">{f.title}</h3>
+            <p class="mt-2 text-[length:var(--text-sm)] leading-relaxed text-[var(--muted)]">{f.text}</p>
+            {i === 0 && (
+              <ul class="mt-auto grid list-none gap-2 p-0 pt-8" aria-label="Qualities, as the toolbar lists them">
+                {qualities.map(([q, b], k) => (
+                  <li class="quality-row" style={`--k:${k}`}>
+                    <b class="font-semibold">{q}</b>
+                    <sup class="ml-1 -translate-y-1 text-[10px] font-bold text-[var(--badge)]">{b}</sup>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {i === 9 && (
+              <ul class="mt-auto flex list-none flex-wrap gap-1.5 p-0 pt-6" aria-hidden="true">
+                {languages.map((l) => <li class="lang-chip">{l}</li>)}
+              </ul>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .bento-card {
+    position: relative; overflow: hidden; isolation: isolate;
+    padding: 24px; border-radius: var(--radius-lg);
+    background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-1);
+    --gx: 50%; --gy: 50%;
+    transform-style: preserve-3d;
+  }
+  @media (min-width: 1024px) { .bento-card { padding: 28px; } }
+
+  /* The glow: a soft circle that follows the pointer (translate only), inside the card and on its edge. */
+  .bento-glow {
+    position: absolute; left: 0; top: 0; width: 420px; height: 420px; border-radius: 999px; pointer-events: none; z-index: -1;
+    background: radial-gradient(closest-side, rgb(var(--glow) / 0.16), transparent);
+    transform: translate(calc(var(--gx) - 50%), calc(var(--gy) - 50%));
+    opacity: 0; transition: opacity 300ms ease;
+  }
+  .bento-edge {
+    position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 1;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+  }
+  .bento-glow-edge { z-index: 0; width: 320px; height: 320px; background: radial-gradient(closest-side, rgb(var(--glow) / 0.9), transparent); }
+  .bento-card[data-hover] .bento-glow { opacity: 1; }
+
+  .bento-icon {
+    display: inline-grid; place-items: center; width: 48px; height: 48px; border-radius: var(--radius-md);
+    color: var(--accent-text); background: rgb(var(--glow) / 0.1); border: 1px solid rgb(var(--glow) / 0.22);
+    transition: transform 500ms var(--ease-spring);
+  }
+  .bento-card[data-hover] .bento-icon { transform: translateY(-3px) rotate(-6deg) scale(1.06); }
+
+  .quality-row {
+    display: flex; align-items: center; height: 42px; padding: 0 14px; border-radius: var(--radius-sm);
+    font-size: var(--text-sm); background: var(--surface-secondary); border: 1px solid var(--border);
+    transition: transform 450ms var(--ease-spring);
+    transition-delay: calc(var(--k) * 40ms);
+  }
+  .bento-card[data-hover] .quality-row { transform: translateX(6px); }
+  .quality-row:first-child { border-color: rgb(var(--glow) / 0.5); background: rgb(var(--glow) / 0.1); }
+
+  .lang-chip {
+    display: inline-grid; place-items: center; min-width: 40px; height: 30px; padding: 0 8px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; color: var(--muted); background: var(--surface-secondary); border: 1px solid var(--border);
+  }
+</style>

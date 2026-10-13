@@ -19,6 +19,9 @@ desktop.ini
 # Development tools (npm run lint)
 node_modules/
 
+# The website's generated types (site/: npm run dev, npm run build)
+site/.astro/
+
 # Made by the installer in the installed copy only (see AppProof)
 extension/app-key.json
 

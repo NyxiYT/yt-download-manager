@@ -1,0 +1,72 @@
+name: Website
+
+# Builds the website in site/ (Astro) and publishes it on GitHub Pages at https://nyxiyt.github.io/yt-download-manager/.
+# Runs when the site or its pictures change, after every release (the page shows the latest version and its date,
+# read from the GitHub API while building), once a day (the star count) and by hand. The release workflow publishes
+# with the workflow's token, which doesn't start other workflows on its own, so this one follows it with
+# workflow_run. Needs Settings > Pages > Source set to "GitHub Actions".
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "docs/images/**"
+      - ".github/workflows/site.yml"
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  schedule:
+    - cron: "41 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deployment at a time; a newer run waits instead of cancelling one that is publishing.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Build
+        working-directory: site
+        env:
+          # Read-only use of the public API for the latest release and the star count (a token raises the limit).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm ci --no-fund --no-audit
+          npm run check
+          npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
