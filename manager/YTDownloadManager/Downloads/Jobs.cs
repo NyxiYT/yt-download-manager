@@ -1049,7 +1049,7 @@ namespace YTDM
         // Moves the finished file into the download folder under a free name. It gets its final name
         // only once it is complete, so an interrupted copy never looks like a finished download. If the
         // folder's drive is disconnected, the download waits (and resumes by itself when it's back).
-        async Task<string> Deliver(Job j, string src, string ext, CancellationToken ct)
+        internal async Task<string> Deliver(Job j, string src, string ext, CancellationToken ct)
         {
             lock (L)
             {
@@ -1077,22 +1077,56 @@ namespace YTDM
             var size = new FileInfo(src).Length;
             if (Files.FreeSpace(folder) < size + 16L * 1024 * 1024) throw new Fail("errDiskFull");
             var name = FittingName(j, folder, ext);
-            var dest = Files.UniquePath(folder, name, ext);
-            var tmp = dest + ".partial";
+            var dest = ReserveName(folder, name, ext);
             try
             {
-                if (Files.SameVolume(src, folder)) System.IO.File.Move(src, Files.Long(tmp));
-                else await CopyFile(src, Files.Long(tmp), ct);
-                if (System.IO.File.Exists(Files.Long(dest))) dest = Files.UniquePath(folder, name, ext);
-                System.IO.File.Move(Files.Long(tmp), Files.Long(dest));
+                // The temporary name is the job's own: another download of the same title can't touch it.
+                var tmp = PartialFor(j, dest);
+                try
+                {
+                    if (Files.SameVolume(src, folder)) System.IO.File.Move(src, Files.Long(tmp));
+                    else await CopyFile(src, Files.Long(tmp), ct);
+                    if (System.IO.File.Exists(Files.Long(dest)))
+                    {
+                        // Another program took the name meanwhile.
+                        var again = ReserveName(folder, name, ext);
+                        ReleaseName(dest);
+                        dest = again;
+                    }
+                    System.IO.File.Move(Files.Long(tmp), Files.Long(dest));
+                }
+                catch
+                {
+                    Files.TryDelete(Files.Long(tmp));
+                    throw;
+                }
             }
-            catch
-            {
-                Files.TryDelete(Files.Long(tmp));
-                throw;
-            }
+            finally { ReleaseName(dest); }
             return dest;
         }
+
+        // Final names being saved right now: two downloads of the same title that finish at once get different
+        // ones ("Title.mp4" and "Title (2).mp4") although neither file is there yet.
+        static readonly HashSet<string> saving = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        internal static string ReserveName(string folder, string name, string ext)
+        {
+            lock (saving)
+            {
+                var p = Files.UniquePath(folder, name, ext, saving.Contains);
+                saving.Add(p);
+                return p;
+            }
+        }
+
+        static void ReleaseName(string path)
+        {
+            lock (saving) saving.Remove(path);
+        }
+
+        // The job's own temporary name next to the final one: "Title.mp4.<job id>.partial".
+        internal static string PartialFor(Job j, string dest) => dest + "." + j.Id + ".partial";
+
 
         // The file's name, with the title cut short where the whole path would pass Windows' limit (leaving
         // room for " (2)" and ".partial"). In a folder so deep that even a short title can't fit, the name stays
