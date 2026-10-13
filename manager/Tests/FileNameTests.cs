@@ -47,6 +47,14 @@ namespace YTDM.Tests
         [DataRow("CONSOLE", "CONSOLE")]
         [DataRow("COM10", "COM10")]
         [DataRow("my CON", "my CON")]
+        [DataRow("CONIN$", "_CONIN$")]
+        [DataRow("conout$.txt", "_conout$.txt")]
+        [DataRow("COM¹", "_COM¹")]
+        [DataRow("lpt³.mp4", "_lpt³.mp4")]
+        [DataRow("CON .txt", "_CON .txt")]
+        [DataRow("nul   .tar.gz", "_nul .tar.gz")]
+        [DataRow("AUX cable review", "AUX cable review")]
+        [DataRow("COM⁴", "COM⁴")]
         public void ReservedNamesGetAPrefix(string title, string expected) => Assert.AreEqual(expected, Files.SafeName(title));
 
         [TestMethod]
