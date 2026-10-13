@@ -44,6 +44,7 @@ namespace YTDM.Tests
                     var dests = all.Select(x => x.Result).ToList();
                     Assert.AreEqual(js.Count, dests.Distinct().Count(), string.Join(", ", dests));
                     for (int i = 0; i < js.Count; i++) StringAssert.StartsWith(File.ReadAllText(dests[i]), "content of " + js[i].Id + ".");
+                    Assert.IsTrue(js.All(j => j.Partial == null));
                 }
                 Assert.AreEqual(0, Directory.GetFiles(t.Dir, "*.partial").Length);
             }
@@ -66,6 +67,58 @@ namespace YTDM.Tests
         {
             var j = new Job { Id = "abc123def0" };
             Assert.AreEqual(@"C:\d\Bunny.mp4.abc123def0.partial", JobManager.PartialFor(j, @"C:\d\Bunny.mp4"));
+        }
+
+        // jobs.json from a crash while a file was being saved: the next start removes the half-saved file.
+        static JobManager LoadWith(params Job[] js)
+        {
+            File.WriteAllText(Paths.JobsFile, Json.Write(js.Select(x => (object)x.ToJson(false)).ToArray()));
+            var m = new JobManager();
+            m.Load();
+            return m;
+        }
+
+        [TestMethod]
+        public void StartRemovesWhatACrashLeftBehind()
+        {
+            using (var t = new TempDir())
+            {
+                var j = new Job { Id = "crash00001", Vid = "aqz-KE-bpKQ", Kind = "video", Title = "t", Status = "processing" };
+                j.Partial = JobManager.PartialFor(j, Path.Combine(t.Dir, "t.mp4"));
+                File.WriteAllText(j.Partial, "half");
+                var m = LoadWith(j);
+                Assert.IsFalse(File.Exists(j.Partial));
+                Assert.IsNull(m.Find("crash00001").Partial);
+            }
+        }
+
+        [TestMethod]
+        public void OnlyTheJobsOwnTemporaryFileIsRemoved()
+        {
+            using (var t = new TempDir())
+            {
+                var other = Path.Combine(t.Dir, "My own file.mp4");
+                File.WriteAllText(other, "mine");
+                var j = new Job { Id = "crash00002", Vid = "aqz-KE-bpKQ", Kind = "video", Title = "t", Status = "failed", Partial = other };
+                LoadWith(j);
+                Assert.IsTrue(File.Exists(other));
+            }
+        }
+
+        [TestMethod]
+        public void RetryRemovesTheTemporaryFile()
+        {
+            using (var t = new TempDir())
+            {
+                var j = new Job { Id = "crash00003", Vid = "aqz-KE-bpKQ", Kind = "file", Title = "t", Status = "failed" }; // fails at once when it runs again
+                var m = LoadWith(j);
+                var loaded = m.Find("crash00003");
+                loaded.Partial = JobManager.PartialFor(loaded, Path.Combine(t.Dir, "t.mp4"));
+                File.WriteAllText(loaded.Partial, "half");
+                var partial = loaded.Partial;
+                Assert.IsTrue(m.Retry("crash00003"));
+                Assert.IsFalse(File.Exists(partial));
+            }
         }
     }
 }
