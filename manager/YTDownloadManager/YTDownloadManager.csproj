@@ -21,6 +21,11 @@
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 
+  <!-- A build for the update tests (-p:UpdateTests=true) reads YTDM_UPDATE_URL; see AppUpdate.ReleaseListOverride -->
+  <PropertyGroup Condition="'$(UpdateTests)' == 'true'">
+    <DefineConstants>$(DefineConstants);UPDATE_TESTS</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- .NET Framework 4.8 reference assemblies, so it builds without the targeting pack installed -->
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
