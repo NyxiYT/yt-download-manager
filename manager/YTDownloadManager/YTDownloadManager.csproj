@@ -39,4 +39,9 @@
     <EmbeddedResource Include="app.ico" LogicalName="app.ico" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- manager/Tests reaches the app's own (internal) classes -->
+    <InternalsVisibleTo Include="YTDownloadManager.Tests" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,5 @@
+[youtube] Extracting URL: https://www.youtube.com/watch?v=aqz-KE-bpKQ
+[youtube] aqz-KE-bpKQ: Downloading webpage
+[youtube] aqz-KE-bpKQ: Downloading tv client config
+[youtube] aqz-KE-bpKQ: Downloading tv player API JSON
+ERROR: [youtube] aqz-KE-bpKQ: Unable to download API page: HTTP Error 503: Service Unavailable (caused by <HTTPError 503: Service Unavailable>)

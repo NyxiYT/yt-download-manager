@@ -1,7 +1,7 @@
 name: Checks
 
-# Every push and pull request: the JavaScript lint, the generated extension files, and the app's build
-# (with the code style rules). Releases run their own, fuller workflow.
+# Every push and pull request: the JavaScript lint, the generated extension files, the app's build
+# (with the code style rules) and its tests. Releases run their own, fuller workflow.
 on:
   push:
     branches: [main]
@@ -42,3 +42,9 @@ jobs:
         run: |
           dotnet build manager/YTDownloadManager/YTDownloadManager.csproj -c Release -nologo -p:EnforceCodeStyleInBuild=true -warnaserror
           if ($LASTEXITCODE) { throw 'build failed' }
+
+      - name: Test the app
+        shell: pwsh
+        run: |
+          dotnet test manager/Tests/YTDownloadManager.Tests.csproj -c Release -nologo
+          if ($LASTEXITCODE) { throw 'tests failed' }

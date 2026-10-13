@@ -1,0 +1,5 @@
+[youtube] Extracting URL: https://www.youtube.com/watch?v=Pr1vAteV1d0
+[youtube] Pr1vAteV1d0: Downloading webpage
+[youtube] Pr1vAteV1d0: Downloading tv client config
+[youtube] Pr1vAteV1d0: Downloading tv player API JSON
+ERROR: [youtube] Pr1vAteV1d0: Private video. Sign in if you've been granted access to this video. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
