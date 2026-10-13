@@ -12,6 +12,9 @@ All notable changes to YT Download Manager are listed here. Versions follow
   the extension next to it, and the browser checks that before it connects, before it sends its access token,
   and every time before it hands over the sign-in. An app from before this version still gets downloads, but
   never the sign-in. The sign-in itself is now only the cookies YouTube needs for it, plus `PREF`.
+- When the app fetches yt-dlp, FFmpeg or Deno itself (installed without the setup program) and can't read the
+  published checksum, it no longer uses the download unchecked. The window says the tools couldn't be
+  installed and offers **Try again**.
 - The app downloads streams itself again. Since 1.11.0 it handed every one to yt-dlp, which still finished the
   download but without the app's own parallel pieces and its slowing down while a video plays. With the app's
   downloader, three downloads at once peak at about 240 MB (1.10.0: 340 to 440 MB), not at 150 MB as the notes
