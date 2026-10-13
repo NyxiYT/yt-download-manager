@@ -67,6 +67,9 @@ All notable changes to YT Download Manager are listed here. Versions follow
 - Updates of the app are signed: each release's `SHA256SUMS.txt` comes with `SHA256SUMS.txt.sig`, and the app
   installs a new version only when that signature matches the key built into it. A changed release page or
   download server can't hand it another installer.
+- Screen readers: the app's switches are check boxes that say whether they are on (in Windows' language, not
+  an English "on"/"off"), its progress bars are progress bars with a percentage, and its colored buttons are
+  buttons.
 - The prompt that asks whether a browser may connect names the program that really asked (for example
   `Google Chrome (C:\...\chrome.exe)`), not only the name the request gives itself. It no longer takes the
   keyboard from the window you're typing in, Enter and Esc both answer "Don't allow", and **Allow** can be
