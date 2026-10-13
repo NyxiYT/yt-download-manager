@@ -1,0 +1,5 @@
+[youtube] Extracting URL: https://www.youtube.com/watch?v=M3mb3rs0nly
+[youtube] M3mb3rs0nly: Downloading webpage
+[youtube] M3mb3rs0nly: Downloading tv client config
+[youtube] M3mb3rs0nly: Downloading tv player API JSON
+ERROR: [youtube] M3mb3rs0nly: Join this channel to get access to members-only content like this video, and other exclusive perks.

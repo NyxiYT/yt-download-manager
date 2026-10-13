@@ -15,6 +15,7 @@ first, so we can agree on the idea before you spend time on it.
 | `manager/Setup/` | The installer, which carries the app, the extension and the tools |
 | `manager/build.cmd` | Builds everything into `dist/` |
 | `manager/fetch-components.ps1` | Downloads and checks yt-dlp, FFmpeg and Deno or Node.js for the installers |
+| `manager/Tests/` | Automated tests for the Windows app, with saved yt-dlp answers in `Fixtures/` |
 | `docs/images/` | Pictures used in the README |
 
 ## 1. Set up
@@ -63,21 +64,32 @@ manager\build.cmd x64
 
 ## 4. Test
 
-There are no automated tests yet, so please check your change by hand.
+Every pull request runs these checks (see `.github/workflows/checks.yml`). Run them before you send yours:
 
-1. Check the JavaScript for mistakes:
+1. Check the JavaScript for mistakes (after `npm install` once):
 
    ```bash
-   node --check extension/content/content.js
-   node --check extension/background/service-worker.js
+   npm run lint
    ```
 
-2. Load your extension: open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and
+2. Run the app's tests:
+
+   ```bash
+   dotnet test manager/Tests/YTDownloadManager.Tests.csproj -c Release
+   ```
+
+   They cover how yt-dlp's errors are sorted, which requests the local API refuses, command-line quoting,
+   file names, and which streams a download takes. A fix in those places should come with a test. New
+   yt-dlp answers for `Fixtures/` are trimmed as `Fixtures/README.md` describes.
+
+Then check your change by hand:
+
+1. Load your extension: open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and
    select the `extension` folder. After every change, click the reload icon on its card and refresh the
    YouTube tab.
-3. Run your build of the app: install `dist\YTDownloadManager-Setup-x64.exe`. It replaces an installed copy
+2. Run your build of the app: install `dist\YTDownloadManager-Setup-x64.exe`. It replaces an installed copy
    and keeps its settings.
-4. Try what you changed, and at least these basics:
+3. Try what you changed, and at least these basics:
    - Download a video and an MP3 from a freely licensed video, for example
      [Big Buck Bunny](https://www.youtube.com/watch?v=aqz-KE-bpKQ).
    - Download something from a Short.

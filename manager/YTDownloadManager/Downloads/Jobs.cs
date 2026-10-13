@@ -1097,7 +1097,7 @@ namespace YTDM
         // The file's name, with the title cut short where the whole path would pass Windows' limit (leaving
         // room for " (2)" and ".partial"). In a folder so deep that even a short title can't fit, the name stays
         // whole and the file is written past the limit.
-        static string FittingName(Job j, string folder, string ext)
+        internal static string FittingName(Job j, string folder, string ext)
         {
             var name = Media.BaseName(j);
             int over = Path.Combine(folder, name + " (99)." + ext + ".partial").Length - Files.MaxPath;

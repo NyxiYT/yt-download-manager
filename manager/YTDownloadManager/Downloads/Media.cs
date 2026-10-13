@@ -418,7 +418,7 @@ namespace YTDM
             }
         }
 
-        static Info Parse(string json, string path)
+        internal static Info Parse(string json, string path)
         {
             var d = Json.ParseObj(json) ?? throw new InvalidDataException("bad info");
             var info = new Info
