@@ -42,7 +42,7 @@ namespace YTDM
             public object Body;
         }
 
-        sealed class ApiError : Exception
+        internal sealed class ApiError : Exception
         {
             public readonly int Code;
             public readonly string Key;
@@ -472,7 +472,7 @@ namespace YTDM
         static string Clip(string s, int max) => s == null ? null : s.Length <= max ? s : s.Substring(0, max);
 
         // Everything from the browser is checked; anything malformed is rejected before it reaches the queue.
-        static Job BuildJob(Dictionary<string, object> b)
+        internal static Job BuildJob(Dictionary<string, object> b)
         {
             var vid = b.Str("vid");
             if (!Media.ValidId(vid)) throw new ApiError(400, "errGeneric");

@@ -1,0 +1,6 @@
+[youtube] Extracting URL: https://www.youtube.com/watch?v=G3oBl0ck3d1
+[youtube] G3oBl0ck3d1: Downloading webpage
+[youtube] G3oBl0ck3d1: Downloading tv client config
+[youtube] G3oBl0ck3d1: Downloading tv player API JSON
+ERROR: [youtube] G3oBl0ck3d1: The uploader has not made this video available in your country
+You might want to use a VPN or a proxy server (with --proxy) to workaround.

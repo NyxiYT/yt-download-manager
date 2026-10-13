@@ -1,0 +1,4 @@
+[info] aqz-KE-bpKQ: Downloading 1 format(s): 299+140
+[download] Destination: C:\Users\me\AppData\Local\YT Download Manager\work\abc\video.f299.mp4
+[download]  81.0% of  245.68MiB at   12.02MiB/s ETA 00:03
+ERROR: unable to write data: [WinError 112] There is not enough space on the disk

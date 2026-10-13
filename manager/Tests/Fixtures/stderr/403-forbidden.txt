@@ -1,0 +1,10 @@
+[youtube] Extracting URL: https://www.youtube.com/watch?v=aqz-KE-bpKQ
+[youtube] aqz-KE-bpKQ: Downloading webpage
+[youtube] aqz-KE-bpKQ: Downloading tv client config
+[youtube] aqz-KE-bpKQ: Downloading tv player API JSON
+[youtube] aqz-KE-bpKQ: Downloading web safari player API JSON
+[youtube] aqz-KE-bpKQ: Downloading m3u8 information
+[info] aqz-KE-bpKQ: Downloading 1 format(s): 299+140
+[download] Destination: C:\Users\me\AppData\Local\YT Download Manager\work\abc\video.f299.mp4
+[download]   0.0% of  245.68MiB at  Unknown B/s ETA Unknown
+ERROR: unable to download video data: HTTP Error 403: Forbidden

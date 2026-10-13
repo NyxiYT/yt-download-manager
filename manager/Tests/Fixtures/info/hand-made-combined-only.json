@@ -1,0 +1,73 @@
+{
+ "id": "aqz-KE-bpKQ",
+ "title": "Combined streams only",
+ "uploader": "Hand-made sample",
+ "duration": 635,
+ "live_status": "not_live",
+ "age_limit": 0,
+ "availability": "public",
+ "formats": [
+  {
+   "format_id": "91",
+   "ext": "mp4",
+   "protocol": "m3u8_native",
+   "vcodec": "avc1.4D400C",
+   "acodec": "mp4a.40.5",
+   "width": 256,
+   "height": 144,
+   "fps": 30,
+   "tbr": 269.4,
+   "url": "https://manifest.googlevideo.com/api/manifest/hls_playlist/itag/91/playlist/index.m3u8"
+  },
+  {
+   "format_id": "93",
+   "ext": "mp4",
+   "protocol": "m3u8_native",
+   "vcodec": "avc1.4D401E",
+   "acodec": "mp4a.40.2",
+   "width": 640,
+   "height": 360,
+   "fps": 30,
+   "tbr": 943.1,
+   "url": "https://manifest.googlevideo.com/api/manifest/hls_playlist/itag/93/playlist/index.m3u8"
+  },
+  {
+   "format_id": "18",
+   "format_note": "360p",
+   "ext": "mp4",
+   "protocol": "https",
+   "vcodec": "avc1.42001E",
+   "acodec": "mp4a.40.2",
+   "width": 640,
+   "height": 360,
+   "fps": 30,
+   "tbr": 503.2,
+   "filesize": 39941372,
+   "url": "https://rr1---sn-example.googlevideo.com/videoplayback?expire=1791898245&itag=18&clen=39941372&lmt=1755571386394671&dur=634.957&mime=video%2Fmp4"
+  },
+  {
+   "format_id": "95",
+   "ext": "mp4",
+   "protocol": "m3u8_native",
+   "vcodec": "avc1.4D401F",
+   "acodec": "mp4a.40.2",
+   "width": 1280,
+   "height": 720,
+   "fps": 60,
+   "tbr": 4683.5,
+   "url": "https://manifest.googlevideo.com/api/manifest/hls_playlist/itag/95/playlist/index.m3u8"
+  },
+  {
+   "format_id": "96",
+   "ext": "mp4",
+   "protocol": "m3u8_native",
+   "vcodec": "avc1.64002A",
+   "acodec": "mp4a.40.2",
+   "width": 1920,
+   "height": 1080,
+   "fps": 60,
+   "tbr": 7547.6,
+   "url": "https://manifest.googlevideo.com/api/manifest/hls_playlist/itag/96/playlist/index.m3u8"
+  }
+ ]
+}
