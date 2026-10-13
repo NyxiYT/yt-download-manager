@@ -240,11 +240,12 @@ namespace YTDM
             catch { return long.MaxValue; }
         }
 
-        // First free "name.ext", "name (2).ext", ... in the folder.
-        public static string UniquePath(string folder, string name, string ext)
+        // First free "name.ext", "name (2).ext", ... in the folder. taken: names already promised to another
+        // file that isn't there yet. "<name>.partial" is what versions before 1.12 saved under.
+        public static string UniquePath(string folder, string name, string ext, Func<string, bool> taken = null)
         {
             var p = Path.Combine(folder, name + "." + ext);
-            for (int i = 2; File.Exists(Long(p)) || File.Exists(Long(p + ".partial")); i++) p = Path.Combine(folder, name + " (" + i + ")." + ext);
+            for (int i = 2; File.Exists(Long(p)) || File.Exists(Long(p + ".partial")) || (taken != null && taken(p)); i++) p = Path.Combine(folder, name + " (" + i + ")." + ext);
             return p;
         }
 
