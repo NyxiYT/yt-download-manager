@@ -27,7 +27,7 @@ namespace YTDM
         // The newest release GitHub reported (see AppUpdate).
         public sealed class UpdateInfo
         {
-            public string Etag, Version, Url, Sha256, SumsUrl, Notified;
+            public string Etag, Version, Url, Sha256, SumsUrl, SigUrl, Notified;
             public long Size, Checked;
         }
 
@@ -62,7 +62,7 @@ namespace YTDM
                         s.Update = new UpdateInfo
                         {
                             Etag = u.Str("etag"), Version = u.Str("version"), Url = u.Str("url"), Sha256 = u.Str("sha256"),
-                            SumsUrl = u.Str("sums"), Notified = u.Str("notified"), Size = u.Long("size"), Checked = u.Long("checked"),
+                            SumsUrl = u.Str("sums"), SigUrl = u.Str("sig"), Notified = u.Str("notified"), Size = u.Long("size"), Checked = u.Long("checked"),
                         };
                 }
             }
@@ -97,7 +97,7 @@ namespace YTDM
                         ["update"] = new Dictionary<string, object>
                         {
                             ["etag"] = Update.Etag, ["version"] = Update.Version, ["url"] = Update.Url, ["sha256"] = Update.Sha256,
-                            ["sums"] = Update.SumsUrl, ["notified"] = Update.Notified, ["size"] = Update.Size, ["checked"] = Update.Checked,
+                            ["sums"] = Update.SumsUrl, ["sig"] = Update.SigUrl, ["notified"] = Update.Notified, ["size"] = Update.Size, ["checked"] = Update.Checked,
                         },
                     };
                     if (!CheckUpdates) d["checkUpdates"] = false;
