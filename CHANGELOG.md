@@ -15,6 +15,9 @@ All notable changes to YT Download Manager are listed here. Versions follow
 - When the app fetches yt-dlp, FFmpeg or Deno itself (installed without the setup program) and can't read the
   published checksum, it no longer uses the download unchecked. The window says the tools couldn't be
   installed and offers **Try again**.
+- The app no longer looks for FFmpeg in `C:fmpeg` or Chocolatey's shared folder, where any account on the PC
+  can put a program. It still finds FFmpeg on `PATH`, in Program Files, from winget or Scoop, and in a folder
+  you set yourself (`ffmpegDir` in `settings.json`).
 - The app downloads streams itself again. Since 1.11.0 it handed every one to yt-dlp, which still finished the
   download but without the app's own parallel pieces and its slowing down while a video plays. With the app's
   downloader, three downloads at once peak at about 240 MB (1.10.0: 340 to 440 MB), not at 150 MB as the notes
