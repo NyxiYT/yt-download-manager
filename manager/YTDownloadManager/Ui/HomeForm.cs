@@ -15,7 +15,7 @@ namespace YTDM
         readonly SlimBar prep, updBar;
         readonly Button add, retry, updButton;
         readonly Card updCard;
-        readonly Toggle startup;
+        readonly Toggle startup, botSignIn;
         bool updating;
 
         public HomeForm(App app)
@@ -99,6 +99,15 @@ namespace YTDM
             startup = new Toggle(S.T("HomeStartup"));
             startup.CheckedChanged += (s, e) => { if (!updating) app.SetKeepRunning(startup.Checked); };
             set.Line(S.T("HomeStartup"), startup);
+            botSignIn = new Toggle(S.T("HomeBotSignIn"));
+            botSignIn.CheckedChanged += (s, e) =>
+            {
+                if (updating) return;
+                Settings.Current.SignInForBotCheck = botSignIn.Checked;
+                Settings.Current.Save();
+            };
+            set.Line(S.T("HomeBotSignIn"), botSignIn, true);
+            set.Controls.Add(new Label { Text = S.T("HomeBotSignInHint"), AutoSize = true, MaximumSize = new Size(set.Inner, 0), ForeColor = Ui.Text2, Font = Ui.Small, Margin = new Padding(0, Ui.S(2), 0, 0), UseMnemonic = false });
             var language = new DropDown(S.T("HomeLanguage"), Ui.S(190));
             language.Add("", S.T("LangAuto") + " (" + S.Name(S.SystemLang) + ")");
             foreach (var l in S.Languages) language.Add(l.Key, l.Value);
@@ -181,6 +190,7 @@ namespace YTDM
             add.Visible = !app.Paired && ExtensionHelp.Available;
             if (app.Paired) addHint.Visible = false;
             startup.Checked = Settings.Current.KeepRunning;
+            botSignIn.Checked = Settings.Current.SignInForBotCheck;
             updating = false;
         }
     }

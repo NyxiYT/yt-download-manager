@@ -48,6 +48,13 @@ All notable changes to YT Download Manager are listed here. Versions follow
 - On Linux and other systems without the Windows app, its entry in the extension's menu says that the app is
   for Windows, instead of asking to install it.
 
+### New
+
+- A switch in the app's window, **Use my YouTube sign-in when YouTube suspects a bot** (off unless you turn it
+  on): when YouTube answers a download with "Sign in to confirm you're not a bot", the app tries it again with
+  your browser's YouTube sign-in, the way it does for age-restricted videos. YouTube then sees that download
+  as made with your account.
+
 ### Changed
 
 - The prompt that asks whether a browser may connect names the program that really asked (for example
