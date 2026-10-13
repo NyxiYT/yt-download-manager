@@ -1,5 +1,5 @@
 {
-  "version": "1.11.0",
+  "version": "1.12.0",
   "description": "Free YouTube downloader for Windows. Download videos in up to 8K quality, MP3, Shorts, thumbnails and subtitles.",
   "homepage": "https://nyxiyt.github.io/yt-download-manager/",
   "license": "MIT",
@@ -9,12 +9,12 @@
   ],
   "architecture": {
     "64bit": {
-      "url": "https://github.com/NyxiYT/yt-download-manager/releases/download/v1.11.0/YTDownloadManager-Setup-x64.exe#/setup.exe",
-      "hash": "c04c5024050dd76a356da0b78138a0d5f720d92d52ad16be882f52e350a681e4"
+      "url": "https://github.com/NyxiYT/yt-download-manager/releases/download/v1.12.0/YTDownloadManager-Setup-x64.exe#/setup.exe",
+      "hash": "d5402297c1e6f0695fe602917cbf6d7028f678330c07caa7a41a14daa50d3e54"
     },
     "32bit": {
-      "url": "https://github.com/NyxiYT/yt-download-manager/releases/download/v1.11.0/YTDownloadManager-Setup-x86.exe#/setup.exe",
-      "hash": "833fcbff2ffed8908f4de557e6f80c27658756a74759e099bd328597bb0c7899"
+      "url": "https://github.com/NyxiYT/yt-download-manager/releases/download/v1.12.0/YTDownloadManager-Setup-x86.exe#/setup.exe",
+      "hash": "38bc2aea38236eaeea5a51362f2d3b098e5214e91c0b425d0490ffd08d104a13"
     }
   },
   "installer": {
