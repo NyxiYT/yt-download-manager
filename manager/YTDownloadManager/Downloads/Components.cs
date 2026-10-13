@@ -220,17 +220,7 @@ namespace YTDM
             var file = Path.Combine(dl, Path.GetFileName(new Uri(pkg.Url).AbsolutePath));
             Files.TryDelete(file);
             await Net.DownloadFile(pkg.Url, file, progress, ct);
-            var expected = await ExpectedSum(pkg, ct);
-            if (expected != null)
-            {
-                var actual = Files.Sha256(file);
-                if (!string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase))
-                {
-                    Files.TryDelete(file);
-                    throw new InvalidDataException("checksum mismatch for " + pkg.Name);
-                }
-            }
-            else Log.Warn("no checksum published for " + pkg.Name);
+            Verify(file, await ExpectedSum(pkg, ct), pkg.Name);
 
             if (pkg.Id == "yt-dlp")
             {
@@ -254,6 +244,23 @@ namespace YTDM
             }
             Files.DeleteDir(dl);
             Detect();
+        }
+
+        // A download is used only when it matches its published checksum. Without one (the list couldn't be
+        // read, or doesn't name the file) it isn't used either: the install fails, and "Try again" in the app's
+        // window starts over.
+        internal static void Verify(string file, string expected, string name)
+        {
+            if (expected == null)
+            {
+                Files.TryDelete(file);
+                throw new InvalidDataException("no checksum published for " + name);
+            }
+            if (!string.Equals(Files.Sha256(file), expected, StringComparison.OrdinalIgnoreCase))
+            {
+                Files.TryDelete(file);
+                throw new InvalidDataException("checksum mismatch for " + name);
+            }
         }
 
         public static void MoveInto(string src, string dest)
