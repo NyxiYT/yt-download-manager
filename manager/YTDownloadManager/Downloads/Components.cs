@@ -132,7 +132,10 @@ namespace YTDM
             return null;
         }
 
-        static Tuple<Tool, Tool> FindFfmpeg(string over)
+        // Where FFmpeg is looked for, in order: the user's own folder from settings.json, the app's, PATH, then
+        // Program Files and the user's winget and Scoop folders. Not folders any user of the PC can write to
+        // (C:\ffmpeg, Chocolatey's shared bin): another account could put a program there that this app runs.
+        internal static List<string> FfmpegDirs(string over)
         {
             var dirs = new List<string>();
             if (!string.IsNullOrEmpty(over)) dirs.Add(over);
@@ -144,10 +147,15 @@ namespace YTDM
             var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             dirs.AddRange(new[]
             {
-                Path.Combine(pf, "FFmpeg", "bin"), Path.Combine(pf, "FFmpeg"), @"C:\ffmpeg\bin", @"C:\ffmpeg",
-                Path.Combine(local, "Microsoft", "WinGet", "Links"), Path.Combine(home, "scoop", "shims"), @"C:\ProgramData\chocolatey\bin",
+                Path.Combine(pf, "FFmpeg", "bin"), Path.Combine(pf, "FFmpeg"),
+                Path.Combine(local, "Microsoft", "WinGet", "Links"), Path.Combine(home, "scoop", "shims"),
             });
-            foreach (var d in dirs)
+            return dirs;
+        }
+
+        static Tuple<Tool, Tool> FindFfmpeg(string over)
+        {
+            foreach (var d in FfmpegDirs(over))
             {
                 try
                 {
