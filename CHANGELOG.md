@@ -3,7 +3,7 @@
 All notable changes to YT Download Manager are listed here. Versions follow
 [semantic versioning](https://semver.org): `MAJOR.MINOR.PATCH`.
 
-## [Unreleased]
+## [1.12.0] - 2026-10-13
 
 ### Fixed
 
@@ -200,6 +200,7 @@ The first public release.
 
 - Resizing the Shorts picture-in-picture window from Chrome's own border no longer changes only one side.
 
+[1.12.0]: https://github.com/NyxiYT/yt-download-manager/releases/tag/v1.12.0
 [1.11.0]: https://github.com/NyxiYT/yt-download-manager/releases/tag/v1.11.0
 [1.10.0]: https://github.com/NyxiYT/yt-download-manager/releases/tag/v1.10.0
 [1.9.0]: https://github.com/NyxiYT/yt-download-manager/releases/tag/v1.9.0
