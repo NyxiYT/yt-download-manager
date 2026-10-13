@@ -21,6 +21,10 @@ fixed and a new release is out, the report can be published, and you'll be credi
 
 ## What counts
 
+How the app, the extension and the userscript protect each other (tokens, the proof that it is really the
+app, the YouTube sign-in), and what is out of scope, is described in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#threat-model).
+
 For example:
 
 - Another website or program on your PC can use the app's local connection (`127.0.0.1:17724`) to start
