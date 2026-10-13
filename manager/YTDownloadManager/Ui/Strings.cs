@@ -83,6 +83,8 @@ namespace YTDM
 
             ["PairTitle"] = "Connect browser",
             ["PairAsk"] = "Let {0} save downloads through YT Download Manager?",
+            ["PairProgram"] = "Asked by: {0}",
+            ["PairProgramUnknown"] = "a program Windows can't name",
             ["PickFolder"] = "Choose a download folder",
             ["FolderMissing"] = "This folder isn't available.",
             ["FolderReadonly"] = "Files can't be saved here.",
@@ -162,6 +164,8 @@ namespace YTDM
 
             ["PairTitle"] = "Browser verbinden",
             ["PairAsk"] = "Darf {0} Downloads über YT Download Manager speichern?",
+            ["PairProgram"] = "Angefragt von: {0}",
+            ["PairProgramUnknown"] = "ein Programm, das Windows nicht nennen kann",
             ["PickFolder"] = "Download-Ordner wählen",
             ["FolderMissing"] = "Dieser Ordner ist nicht verfügbar.",
             ["FolderReadonly"] = "Hier können keine Dateien gespeichert werden.",
@@ -241,6 +245,8 @@ namespace YTDM
 
             ["PairTitle"] = "Conectar navegador",
             ["PairAsk"] = "¿Permitir que {0} guarde descargas con YT Download Manager?",
+            ["PairProgram"] = "Lo solicita: {0}",
+            ["PairProgramUnknown"] = "un programa que Windows no puede identificar",
             ["PickFolder"] = "Elige una carpeta de descargas",
             ["FolderMissing"] = "Esta carpeta no está disponible.",
             ["FolderReadonly"] = "Aquí no se pueden guardar archivos.",
@@ -320,6 +326,8 @@ namespace YTDM
 
             ["PairTitle"] = "Connecter le navigateur",
             ["PairAsk"] = "Autoriser {0} à enregistrer des téléchargements avec YT Download Manager ?",
+            ["PairProgram"] = "Demandé par : {0}",
+            ["PairProgramUnknown"] = "un programme que Windows ne peut pas identifier",
             ["PickFolder"] = "Choisissez un dossier de téléchargement",
             ["FolderMissing"] = "Ce dossier n'est pas disponible.",
             ["FolderReadonly"] = "Impossible d'enregistrer des fichiers ici.",
@@ -399,6 +407,8 @@ namespace YTDM
 
             ["PairTitle"] = "Connetti browser",
             ["PairAsk"] = "Consentire a {0} di salvare i download tramite YT Download Manager?",
+            ["PairProgram"] = "Richiesto da: {0}",
+            ["PairProgramUnknown"] = "un programma che Windows non sa identificare",
             ["PickFolder"] = "Scegli una cartella per i download",
             ["FolderMissing"] = "Questa cartella non è disponibile.",
             ["FolderReadonly"] = "Qui non è possibile salvare file.",
@@ -478,6 +488,8 @@ namespace YTDM
 
             ["PairTitle"] = "Conectar navegador",
             ["PairAsk"] = "Permitir que {0} salve downloads pelo YT Download Manager?",
+            ["PairProgram"] = "Pedido por: {0}",
+            ["PairProgramUnknown"] = "um programa que o Windows não consegue identificar",
             ["PickFolder"] = "Escolha uma pasta de downloads",
             ["FolderMissing"] = "Esta pasta não está disponível.",
             ["FolderReadonly"] = "Não é possível salvar arquivos aqui.",
@@ -557,6 +569,8 @@ namespace YTDM
 
             ["PairTitle"] = "Połącz przeglądarkę",
             ["PairAsk"] = "Zezwolić {0} na zapisywanie pobranych plików przez YT Download Manager?",
+            ["PairProgram"] = "Prośba od: {0}",
+            ["PairProgramUnknown"] = "program, którego Windows nie potrafi rozpoznać",
             ["PickFolder"] = "Wybierz folder pobranych",
             ["FolderMissing"] = "Ten folder jest niedostępny.",
             ["FolderReadonly"] = "Nie można tu zapisywać plików.",
@@ -636,6 +650,8 @@ namespace YTDM
 
             ["PairTitle"] = "Подключить браузер",
             ["PairAsk"] = "Разрешить {0} сохранять загрузки через YT Download Manager?",
+            ["PairProgram"] = "Запрос от: {0}",
+            ["PairProgramUnknown"] = "программа, которую Windows не может определить",
             ["PickFolder"] = "Выберите папку для загрузок",
             ["FolderMissing"] = "Эта папка недоступна.",
             ["FolderReadonly"] = "Здесь нельзя сохранять файлы.",
@@ -715,6 +731,8 @@ namespace YTDM
 
             ["PairTitle"] = "ブラウザーを接続",
             ["PairAsk"] = "{0} が YT Download Manager でダウンロードを保存することを許可しますか?",
+            ["PairProgram"] = "要求元: {0}",
+            ["PairProgramUnknown"] = "Windows が特定できないプログラム",
             ["PickFolder"] = "ダウンロード フォルダーを選択",
             ["FolderMissing"] = "このフォルダーは利用できません。",
             ["FolderReadonly"] = "ここにはファイルを保存できません。",
@@ -794,6 +812,8 @@ namespace YTDM
 
             ["PairTitle"] = "连接浏览器",
             ["PairAsk"] = "允许 {0} 通过 YT Download Manager 保存下载内容吗？",
+            ["PairProgram"] = "请求来自：{0}",
+            ["PairProgramUnknown"] = "Windows 无法识别的程序",
             ["PickFolder"] = "选择下载文件夹",
             ["FolderMissing"] = "此文件夹不可用。",
             ["FolderReadonly"] = "无法在此处保存文件。",
