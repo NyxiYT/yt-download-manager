@@ -66,10 +66,11 @@ manager\build.cmd x64
 
 Every pull request runs these checks (see `.github/workflows/checks.yml`). Run them before you send yours:
 
-1. Check the JavaScript for mistakes (after `npm install` once):
+1. Check the JavaScript for mistakes and test the extension's service worker (after `npm install` once):
 
    ```bash
    npm run lint
+   npm test
    ```
 
 2. Run the app's tests:

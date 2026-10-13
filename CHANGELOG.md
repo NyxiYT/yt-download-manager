@@ -7,6 +7,11 @@ All notable changes to YT Download Manager are listed here. Versions follow
 
 ### Fixed
 
+- Another program on the PC could pose as the app while the app wasn't running (by taking its local port) and
+  receive the browser's YouTube sign-in. The app now proves itself with a key its installer shares only with
+  the extension next to it, and the browser checks that before it connects, before it sends its access token,
+  and every time before it hands over the sign-in. An app from before this version still gets downloads, but
+  never the sign-in. The sign-in itself is now only the cookies YouTube needs for it, plus `PREF`.
 - The app downloads streams itself again. Since 1.11.0 it handed every one to yt-dlp, which still finished the
   download but without the app's own parallel pieces and its slowing down while a video plays. With the app's
   downloader, three downloads at once peak at about 240 MB (1.10.0: 340 to 440 MB), not at 150 MB as the notes

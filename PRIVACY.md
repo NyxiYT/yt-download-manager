@@ -9,7 +9,9 @@ PC. This page lists every connection it makes and why.
 - **YouTube** (`youtube.com`, `googlevideo.com`, `ytimg.com`): looks up and downloads the videos, music,
   thumbnails and subtitles you ask for. yt-dlp does the lookups, and the app downloads the files.
 - **Your YouTube sign-in, only when needed:** when YouTube shows a video only to signed-in viewers
-  (age-restricted or members-only), the browser extension hands the app the browser's `youtube.com` cookies.
+  (age-restricted or members-only), the browser extension hands the app the browser's `youtube.com` sign-in
+  cookies (and `PREF`, which holds YouTube's language setting), after the app has proved that it is the one
+  installed on this PC.
   The app keeps them in memory for at most two hours. For each lookup it writes them into a temporary file that
   yt-dlp reads, and deletes that file right after. They are only ever sent to YouTube. The log records only
   which cookies came (by name), never their values.

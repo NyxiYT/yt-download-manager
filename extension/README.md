@@ -80,7 +80,8 @@ The extension talks to the app on `127.0.0.1` through its service worker.
 
 Videos YouTube only shows to signed-in viewers download through the app with your own access. When
 YouTube refuses the toolbar's anonymous request, the extension hands the app the youtube.com cookies of
-this browser's sign-in; the app asks YouTube as you and lists the formats your account may watch. The
+this browser's sign-in (the sign-in cookies and `PREF`, no others), and only after the app has proved that
+it is the one installed on this PC; the app asks YouTube as you and lists the formats your account may watch. The
 sign-in is used only for such videos, never for normal ones, stays in the app's memory (on disk only for
 the moment yt-dlp reads it) and is never logged. If your account isn't eligible (age check, no channel
 membership), the toolbar says so; if the browser isn't signed in to YouTube, it asks you to sign in.

@@ -30,6 +30,12 @@ jobs:
           npm run lint
           if ($LASTEXITCODE) { throw 'lint failed' }
 
+      - name: Test the extension's service worker
+        shell: pwsh
+        run: |
+          npm test
+          if ($LASTEXITCODE) { throw 'extension tests failed' }
+
       - name: Generated extension files are up to date
         shell: pwsh
         run: |

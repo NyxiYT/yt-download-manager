@@ -382,6 +382,10 @@ body = b + "  function switchRoute() {" + NL + "    return false; // see noPage"
 body = rep(body, "  const AUTO_CONNECT = false;", "  const AUTO_CONNECT = true;")
 
 body = rep(body, "  const hostGone = () => false;", "  const hostGone = () => !alive();")
+# The service worker checks the app's proof, also with the install key only the extension can read.
+b, block, a = cut(body, "  async function dmProve() {", NL + "  }" + NL)
+body = b + ("  async function dmProve() {" + NL +
+            "    return send({ type: 'dmProve' }).then((r) => r || { state: 'absent' }, () => ({ state: 'absent' }));" + NL + "  }" + NL) + a
 body = rep(body, "  const pushSession = () => Promise.resolve({ ok: false, signedIn: null });",
            "  const pushSession = () => send({ type: 'dmSession' }).then((r) => r || { ok: false, signedIn: null }, () => ({ ok: false, signedIn: null }));")
 
