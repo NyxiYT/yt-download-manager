@@ -128,11 +128,23 @@ namespace YTDM
             }
         }
 
+        // Tests: another release list (YTDM_UPDATE_URL), so an update can be tried without publishing one. Only
+        // a Debug build or one made for these tests (dotnet build -p:UpdateTests=true) reads it: in the
+        // published app, nothing in the environment can point it at other installers.
+        internal static string ReleaseListOverride()
+        {
+#if DEBUG || UPDATE_TESTS
+            return Environment.GetEnvironmentVariable("YTDM_UPDATE_URL");
+#else
+            return null;
+#endif
+        }
+
         static async Task Check()
         {
             var u = Settings.Current.Update;
             if (!Busy) Files.DeleteDir(Dir); // the installer of the last update
-            var url = Environment.GetEnvironmentVariable("YTDM_UPDATE_URL"); // tests: another release list
+            var url = ReleaseListOverride();
             if (string.IsNullOrEmpty(url))
             {
                 // Known already: the release is read again only for a newer version whose installer it lacked.
