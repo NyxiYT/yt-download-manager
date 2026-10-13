@@ -332,13 +332,14 @@ namespace YTDM
         }
 
         // Anything else that asks for access (the Tampermonkey script): the user decides in a small prompt.
-        public async Task<bool> RequestPairing(string client)
+        // program: the program that really sent the request (see LocalPeer), or null when Windows doesn't say.
+        public async Task<bool> RequestPairing(string client, string program)
         {
             if (!await pairLock.WaitAsync(0)) return false;
             try
             {
                 var tcs = new TaskCompletionSource<bool>();
-                Post(() => ShowPairPrompt(client, tcs));
+                Post(() => ShowPairPrompt(client, program, tcs));
                 var done = await Task.WhenAny(tcs.Task, Task.Delay(120000));
                 bool ok = done == tcs.Task && tcs.Task.Result;
                 Post(() =>
@@ -347,22 +348,38 @@ namespace YTDM
                     pairPrompt = null;
                     home?.RefreshState();
                 });
-                Log.Info("pairing " + client + ": " + (ok ? "allowed" : "not allowed"));
+                Log.Info("pairing " + client + " (" + (program ?? "unknown program") + "): " + (ok ? "allowed" : "not allowed"));
                 return ok;
             }
             finally { pairLock.Release(); }
         }
 
-        void ShowPairPrompt(string client, TaskCompletionSource<bool> tcs)
+        // Shown on top without taking the keyboard: a key pressed in the browser at that moment can't answer it.
+        sealed class QuietForm : Form
         {
-            var f = new Form
+            protected override bool ShowWithoutActivation => true;
+
+            // On top from the start (WS_EX_TOPMOST): setting TopMost afterwards would activate it after all.
+            protected override CreateParams CreateParams
+            {
+                get
+                {
+                    var p = base.CreateParams;
+                    p.ExStyle |= 0x8;
+                    return p;
+                }
+            }
+        }
+
+        void ShowPairPrompt(string client, string program, TaskCompletionSource<bool> tcs)
+        {
+            var f = new QuietForm
             {
                 Text = S.T("PairTitle"),
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 MaximizeBox = false,
                 MinimizeBox = false,
                 StartPosition = FormStartPosition.CenterScreen,
-                TopMost = true,
                 ShowInTaskbar = true,
                 Icon = Ui.AppIcon(),
                 Font = Ui.Body,
@@ -377,21 +394,36 @@ namespace YTDM
                 Location = new System.Drawing.Point(Ui.S(24), Ui.S(20)), Margin = new Padding(0, 0, Ui.S(24), Ui.S(20)),
             };
             flow.Controls.Add(Ui.Para(S.T("PairAsk", client), Ui.S(380)));
+            // The name above is what the request says about itself; this is the program that sent it.
+            flow.Controls.Add(Ui.Para(S.T("PairProgram", LocalPeer.Describe(program) ?? S.T("PairProgramUnknown")), Ui.S(380)));
             var buttons = new FlowLayoutPanel { FlowDirection = FlowDirection.RightToLeft, WrapContents = false, Size = new System.Drawing.Size(Ui.S(380), Ui.S(40)), Margin = new Padding(0, Ui.S(10), 0, 0) };
-            var allow = Ui.Button(S.T("Allow"), (s, e) => { tcs.TrySetResult(true); f.Close(); }, true);
-            var deny = Ui.Button(S.T("Deny"), (s, e) => { tcs.TrySetResult(false); f.Close(); });
+            var allow = Ui.Button(S.T("Allow"), (s, e) => { tcs.TrySetResult(true); f.Close(); });
+            var deny = Ui.Button(S.T("Deny"), (s, e) => { tcs.TrySetResult(false); f.Close(); }, true);
             allow.Margin = new Padding(Ui.S(8), 0, 0, 0);
             deny.Margin = new Padding(0);
             buttons.Controls.Add(allow);
             buttons.Controls.Add(deny);
             flow.Controls.Add(buttons);
             f.Controls.Add(flow);
-            f.AcceptButton = allow;
+            // Enter and Esc both say no. Allow takes a click, and only after a second, so a click meant for
+            // something else where the prompt pops up doesn't land on it.
+            f.AcceptButton = deny;
             f.CancelButton = deny;
-            f.FormClosed += (s, e) => tcs.TrySetResult(false);
+            allow.Enabled = false;
+            var wait = new System.Windows.Forms.Timer { Interval = 1000 };
+            wait.Tick += (s, e) =>
+            {
+                wait.Dispose();
+                if (!f.IsDisposed) allow.Enabled = true;
+            };
+            f.FormClosed += (s, e) =>
+            {
+                wait.Dispose();
+                tcs.TrySetResult(false);
+            };
             pairPrompt = f;
             f.Show();
-            Ui.Front(f);
+            wait.Start();
         }
 
         // ---------- folder ----------

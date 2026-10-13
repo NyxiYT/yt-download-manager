@@ -21,6 +21,7 @@ namespace YTDM
         sealed class Req
         {
             public string Method, Path, Query;
+            public int RemotePort; // the browser's end of the connection (see LocalPeer)
             public Dictionary<string, string> Headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             public byte[] Body = new byte[0];
             public Dictionary<string, object> Json;
@@ -124,6 +125,7 @@ namespace YTDM
                         return;
                     }
                     if (req == null) return;
+                    req.RemotePort = (c.Client.RemoteEndPoint as IPEndPoint)?.Port ?? 0;
                     Resp resp;
                     try { resp = await Route(req); }
                     catch (ApiError e) { resp = new Resp { Code = e.Code, Body = Err(e.Key) }; }
@@ -289,9 +291,11 @@ namespace YTDM
         }
 
         // Userscript managers send no Origin or their own extension origin; a web page always sends its own.
-        static bool OriginOk(Req r)
+        // "null" is what sandboxed frames and local files send: never one of ours.
+        internal static bool OriginOk(string o)
         {
-            if (!r.Headers.TryGetValue("Origin", out var o) || o.Length == 0 || o == "null") return true;
+            if (o == null || o.Length == 0) return true;
+            if (o == "null") return false;
             return Regex.IsMatch(o, "^([a-z]+-)?extension://", RegexOptions.IgnoreCase) // chrome-, moz-, safari-web-, edge's extension://
                    || o == "https://www.youtube.com" || o == "https://m.youtube.com";
         }
@@ -313,7 +317,7 @@ namespace YTDM
 
         async Task<Resp> Route(Req r)
         {
-            if (!HostOk(r) || !OriginOk(r)) throw new ApiError(403, "errForbidden");
+            if (!HostOk(r) || !OriginOk(r.Headers.TryGetValue("Origin", out var origin) ? origin : null)) throw new ApiError(403, "errForbidden");
             if (r.Path != "/v1/playback" && r.Path != "/v1/pip")
             {
                 LastActivity = DateTime.UtcNow; // watching a video alone doesn't keep the app open
@@ -345,7 +349,7 @@ namespace YTDM
                 bool own = FromOwnExtension(r);
                 // Automatic attempts never open a prompt: only our own extension is connected that way.
                 if (!own && r.Json.Bool("auto")) throw new ApiError(403, "errDenied");
-                var ok = own ? app.AutoPair(client) : await app.RequestPairing(client);
+                var ok = own ? app.AutoPair(client) : await app.RequestPairing(client, LocalPeer.ExePath(r.RemotePort, Port));
                 if (!ok) throw new ApiError(403, "errDenied");
                 return Ok(new Dictionary<string, object> { ["token"] = Settings.Current.AddToken(), ["port"] = Port });
             }
