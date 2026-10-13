@@ -20,6 +20,8 @@ All notable changes to YT Download Manager are listed here. Versions follow
   (Hijri, Thai, Persian) instead of the Gregorian calendar Windows expects.
 - The preview player says when the browser can't play a file (Opera on Linux has no H.264, for one) instead of
   showing a black picture.
+- A video titled like a Windows device name that wasn't recognized as one yet (`COM¹`, `CONIN$`, `CON .txt`)
+  is saved with a `_` in front, as `CON` already was. It used to fail to save.
 - On Linux and other systems without the Windows app, its entry in the extension's menu says that the app is
   for Windows, instead of asking to install it.
 
