@@ -459,7 +459,9 @@ bc1qwvn59c0yrhc9xwd9x9hrgwm4exe84xx0tdazdv
 ## Contributing
 
 Bug fixes, translations and ideas are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) explains how to set up,
-build and test the project, and how to send a fix. Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+build and test the project, and how to send a fix. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes how
+the parts fit together: the local API, pairing, where data is kept, and what is protected against. Please
+follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 To report a security problem, see [SECURITY.md](SECURITY.md).
 
 ## Legal note
