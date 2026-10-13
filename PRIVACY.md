@@ -26,8 +26,8 @@ PC. This page lists every connection it makes and why.
     tool's official GitHub releases: yt-dlp, FFmpeg (yt-dlp/FFmpeg-Builds) and Deno.
 - **Your browser:** the app answers only on `127.0.0.1` (your own PC). Only browsers you connected can use it.
 
-To turn off the update check, close the app and add `"checkUpdates": false` to
-`%LOCALAPPDATA%\YT Download Manager\settings.json`.
+To turn off the update check, open the app, click **Advanced** at the bottom of its window and turn off
+**Look for new versions**.
 
 **Saved on your PC** in `%LOCALAPPDATA%\YT Download Manager`: settings, the download queue, logs, temporary
 files and the tools. The logs record what the app did, including which videos it looked up, but never cookie
