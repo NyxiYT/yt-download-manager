@@ -139,8 +139,10 @@ settings, queue and a newer yt-dlp stay. yt-dlp updates itself (`yt-dlp -U`) abo
 - **Another program or user on the same PC taking the port** while the app isn't running: it can't prove
   itself, so it gets no token, no requests with one and no sign-in (see proofs). A program that asks for
   pairing is named in the prompt.
-- **A changed release or download server.** The installer is checked against signed checksums. Tools the
-  app fetches itself are checked against their published checksums, and not used without one.
+- **A changed release or download server.** The installer is checked against signed checksums. The tools
+  are exact builds pinned with their SHA-256 in `manager/components.lock.json` (built into the app and read
+  by the installers' build); a download that doesn't match isn't used. Newer builds come only through a
+  reviewed pull request.
 - **Files planted where any account can write** (`C:\ffmpeg` and the like): not searched for tools.
 - **Badly formed requests** (paths, names, IDs, languages, sizes): checked before they reach the queue,
   yt-dlp or the file system; file names are made safe for Windows.
@@ -151,6 +153,7 @@ settings, queue and a newer yt-dlp stay. yt-dlp updates itself (`yt-dlp -U`) abo
   folder (install key, token hashes) directly; nothing here can keep those from it.
 - **An administrator** of the PC.
 - **YouTube and GitHub themselves**, and the tool projects' own releases (yt-dlp, FFmpeg builds, Deno,
-  Node.js), beyond checking the published checksums.
+  Node.js): a build that was bad when it was pinned stays bad. yt-dlp's own update (`yt-dlp -U`) trusts
+  yt-dlp's releases.
 - **The userscript's first pairing.** It can't check a proof before it has a token; the user's click in the
   app's own prompt is what makes it safe. It never sends the sign-in.
