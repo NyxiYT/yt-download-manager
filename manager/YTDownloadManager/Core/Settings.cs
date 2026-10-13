@@ -124,6 +124,12 @@ namespace YTDM
             Save();
         }
 
+        // The stored token hashes, for the proofs in /v1/hello (see AppProof).
+        public List<string> TokenHashes()
+        {
+            lock (L) return Tokens.ToList();
+        }
+
         public bool Paired
         {
             get { lock (L) return Tokens.Count > 0; }

@@ -3842,15 +3842,28 @@ onmessage = async ({ data: m }) => {
     synced: false,
     kick: 0,
     launchedAt: 0,
+    proven: false, // the app proved itself since the connection last failed (see dmProve)
   };
   const DM_BUSY = new Set(['queued', 'downloading', 'processing']);
   const DM_ACTIVE = new Set(['queued', 'downloading', 'processing', 'paused']);
   const dmOn = () => !!DM.token && settings.useManager !== false && !hostGone();
 
-  function dmReq(method, path, body, timeout = 15000) {
+  // Requests with the token go only to an app that proved itself since the connection last failed: another
+  // program could have taken the port meanwhile.
+  async function dmReq(method, path, body, timeout = 15000) {
+    if (DM.token && !DM.proven && !((await dmHello()) && DM.proven)) throw Object.assign(new Error('Not the Download Manager'), { offline: true });
+    try {
+      return await dmRaw(method, path, body, timeout, DM.token);
+    } catch (e) {
+      if (e.offline) DM.proven = false;
+      throw e;
+    }
+  }
+
+  function dmRaw(method, path, body, timeout = 15000, token = '') {
     return new Promise((resolve, reject) => GM_xmlhttpRequest({
       method, url: `http://127.0.0.1:${DM.port}${path}`, timeout, anonymous: true,
-      headers: { 'Content-Type': 'application/json', ...(DM.token ? { 'X-YDM-Token': DM.token } : {}) },
+      headers: { 'Content-Type': 'application/json', ...(token ? { 'X-YDM-Token': token } : {}) },
       data: body ? JSON.stringify(body) : undefined,
       onload: (r) => {
         if (!r.status) { reject(Object.assign(new Error('Network error'), { offline: true })); return; }
@@ -3864,26 +3877,65 @@ onmessage = async ({ data: m }) => {
     }));
   }
 
+  // Another program can listen on the app's port while the app isn't running. Before this page pairs or
+  // sends its token, the app proves who it is: it answers a random nonce with
+  // HMAC-SHA256(SHA-256(token), "<nonce>|<port>") for each browser it knows (and, for the extension, with the
+  // install key next to it; the extension's service worker checks that one). A userscript without a token
+  // has nothing to check yet: the user then confirms the pairing in the app's own window. States:
+  // 'ok' (proved), 'unproven' (an app that can prove itself, but not to this page yet), 'legacy' (an app from
+  // before the proofs: downloads only), 'fail' (a wrong or missing proof where one is due) and 'absent'.
+  async function dmProve() {
+    const toHex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+    const utf8 = (text) => new TextEncoder().encode(text);
+    const nonce = toHex(crypto.getRandomValues(new Uint8Array(16)));
+    let hello;
+    try {
+      hello = await dmRaw('GET', `/v1/hello?nonce=${nonce}`, null, 3000);
+    } catch {
+      return { state: 'absent' };
+    }
+    if (hello.app !== 'ytdm') return { state: 'absent' };
+    // An app that proved itself once doesn't turn into one from before the proofs.
+    if (!Array.isArray(hello.tokenProofs)) return { state: GM_getValue('dmVerified', false) ? 'fail' : 'legacy', hello };
+    let paired = false;
+    if (DM.token) {
+      const key = await crypto.subtle.importKey('raw', await crypto.subtle.digest('SHA-256', utf8(DM.token)), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+      paired = hello.tokenProofs.includes(toHex(await crypto.subtle.sign('HMAC', key, utf8(`${nonce}|${DM.port}`))));
+    }
+    if (paired && !GM_getValue('dmVerified', false)) GM_setValue('dmVerified', true);
+    return { state: paired ? 'ok' : 'unproven', paired, hello };
+  }
+
   // Is the app there, and does it know this browser? Cheap: a refused local connection fails at once.
   async function dmHello() {
     try {
-      const r = await dmReq('GET', '/v1/hello', null, 3000);
-      if (r.app !== 'ytdm') throw new Error('not the Download Manager');
-      if (DM.token && !r.paired) dmForget(); // the app was reset or reinstalled: connect again
-      DM.state = r.paired ? 'ready' : 'unpaired';
-      extensionOnDisk(r.extension);
+      const p = await dmProve();
+      if (p.state === 'absent' || p.state === 'fail') throw new Error('not the Download Manager');
+      let paired = p.paired;
+      // An app from before the proofs says whether it knows the token only when it is sent along.
+      if (p.state === 'legacy' && DM.token) paired = !!(await dmRaw('GET', '/v1/hello', null, 3000, DM.token)).paired;
+      DM.proven = paired;
+      if (DM.token && !paired) dmForget(); // the app was reset or reinstalled: connect again
+      DM.state = paired ? 'ready' : 'unpaired';
+      extensionOnDisk(p.hello.extension);
       if (!DM.token && AUTO_CONNECT && settings.useManager !== false) await dmAutoPair();
-      else if (r.pairing && !DM.token) dmPair(); // its setup (or "Connect a browser") is waiting for this page
+      else if (p.hello.pairing && !DM.token) dmPair(); // its setup (or "Connect a browser") is waiting for this page
       return true;
     } catch {
+      DM.proven = false;
       DM.state = DM.token ? 'offline' : 'absent';
       return false;
     }
   }
 
+  // Pairing only with the app itself, or with one that can't prove itself to this page yet (see dmProve).
+  const dmMayPair = async () => !['absent', 'fail'].includes((await dmProve()).state);
+
   function dmForget() {
     DM.token = '';
+    DM.proven = false;
     GM_setValue('dmToken', '');
+    GM_setValue('dmVerified', false);
     DM.state = 'unpaired';
     renderPanel();
     updateFab();
@@ -3900,14 +3952,20 @@ onmessage = async ({ data: m }) => {
   let dmPairing = null;
   function dmPair() {
     return (dmPairing ||= (async () => {
-      toast(t('dmPairWaiting'));
       try {
+        if (!(await dmMayPair())) {
+          toast(t('dmNotInstalled'));
+          return false;
+        }
+        toast(t('dmPairWaiting'));
         const handler = (typeof GM_info !== 'undefined' && GM_info?.scriptHandler) || 'userscript';
-        const r = await dmReq('POST', '/v1/pair', { client: `${browserName()} (${handler})` }, 130000);
+        const r = await dmRaw('POST', '/v1/pair', { client: `${browserName()} (${handler})` }, 130000);
         DM.token = r.token;
         DM.port = r.port || DM.port;
+        DM.proven = false;
         GM_setValue('dmToken', DM.token);
         GM_setValue('dmPort', DM.port);
+        GM_setValue('dmVerified', false);
         DM.state = 'ready';
         toast(t('dmConnected'));
         dmSync();
@@ -3926,11 +3984,14 @@ onmessage = async ({ data: m }) => {
   function dmAutoPair() {
     return (dmAuto ||= (async () => {
       try {
-        const r = await dmReq('POST', '/v1/pair', { client: `${browserName()} (extension)`, auto: true }, 10000);
+        if (!(await dmMayPair())) return false;
+        const r = await dmRaw('POST', '/v1/pair', { client: `${browserName()} (extension)`, auto: true }, 10000);
         DM.token = r.token;
         DM.port = r.port || DM.port;
+        DM.proven = false;
         GM_setValue('dmToken', DM.token);
         GM_setValue('dmPort', DM.port);
+        GM_setValue('dmVerified', false);
         DM.state = 'ready';
         dmSync();
         return true;
