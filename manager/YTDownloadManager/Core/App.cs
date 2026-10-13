@@ -258,6 +258,37 @@ namespace YTDM
             home?.RefreshState();
         }
 
+        // Looking for new versions of the app (the window's Advanced card). Turned on, it looks at once.
+        public void SetCheckUpdates(bool on)
+        {
+            Settings.Current.CheckUpdates = on;
+            Settings.Current.Save();
+            Log.Info("update check " + (on ? "on" : "off"));
+            if (on) AppUpdate.Soon(TimeSpan.Zero);
+        }
+
+        // The user's own yt-dlp (path), or null for the one that comes with the app. A program that doesn't
+        // answer --version with a yt-dlp version (2026.08.19) isn't taken: returns false.
+        public async Task<bool> UseYtDlp(string path)
+        {
+            if (path != null)
+            {
+                var v = await Components.VersionOf(new Tool { Name = "yt-dlp", Exe = path }, CancellationToken.None);
+                if (!System.Text.RegularExpressions.Regex.IsMatch(v ?? "", "^20[0-9]{2}\\.[0-9]{2}\\.[0-9]{2}"))
+                {
+                    Log.Warn("own yt-dlp refused, it answered " + (string.IsNullOrEmpty(v) ? "nothing" : v));
+                    return false;
+                }
+                Log.Info("own yt-dlp " + v + ": " + path);
+            }
+            else Log.Info("built-in yt-dlp");
+            Settings.Current.YtDlpPath = path;
+            Settings.Current.Save();
+            Components.Detect();
+            Jobs.Pump();
+            return true;
+        }
+
         // Downloads at once: more start right away; fewer let the running ones finish.
         public void SetMaxDownloads(int n)
         {

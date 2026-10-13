@@ -62,6 +62,9 @@ All notable changes to YT Download Manager are listed here. Versions follow
   browser; a playing video can still slow downloads further. Both are kept in `settings.json`
   (`maxDownloads`, `speedLimitMBps`).
 
+- **Advanced** at the bottom of the app's window: turn the check for new versions off or on, and use your own
+  copy of yt-dlp instead of the built-in one. Both used to need an edit of `settings.json`.
+
 ### Changed
 
 - Updates of the app are signed: each release's `SHA256SUMS.txt` comes with `SHA256SUMS.txt.sig`, and the app

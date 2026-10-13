@@ -18,9 +18,9 @@ namespace YTDM
         public string Lang;
         // Hashes of the tokens handed to paired browsers (the tokens themselves are never stored).
         public List<string> Tokens = new List<string>();
-        // Advanced overrides, only settable in the file: full paths to specific tools.
+        // Full paths to tools of the user's own: yt-dlp in the app's window (Advanced), the others in the file only.
         public string YtDlpPath, FfmpegDir, JsRuntime;
-        public bool CheckUpdates = true; // only settable in the file
+        public bool CheckUpdates = true; // the app's window, Advanced
         public UpdateInfo Update = new UpdateInfo();
         public string RanVersion; // the version that ran last, to say "updated" once
 

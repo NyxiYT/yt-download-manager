@@ -11,12 +11,13 @@ namespace YTDM
     sealed class HomeForm : Form
     {
         readonly App app;
-        readonly Label state, folderPath, addHint, updText;
+        readonly Label state, folderPath, addHint, updText, ytDlp, ytDlpHint;
         readonly Pill browser;
         readonly SlimBar prep, updBar;
         readonly Button add, retry, updButton;
         readonly Card updCard;
-        readonly Toggle startup, botSignIn;
+        readonly Toggle startup, botSignIn, updates;
+        readonly Button ytDlpReset;
         bool updating;
 
         public HomeForm(App app)
@@ -131,6 +132,40 @@ namespace YTDM
             set.Line(S.T("HomeLanguage"), language, true);
             flow.Controls.Add(set);
 
+            // Advanced: what used to be set in settings.json only. Hidden behind a link at the bottom unless
+            // something in it differs from the default, so the window stays short enough for small screens.
+            var adv = new Card(w, S.T("AdvTitle"));
+            adv.Visible = !Settings.Current.CheckUpdates || !string.IsNullOrEmpty(Settings.Current.YtDlpPath);
+            updates = new Toggle(S.T("AdvUpdates"));
+            updates.CheckedChanged += (s, e) => { if (!updating) app.SetCheckUpdates(updates.Checked); };
+            adv.Line(S.T("AdvUpdates"), updates);
+            adv.Controls.Add(new Panel { Height = 1, Width = adv.Inner, BackColor = Ui.Border, Margin = new Padding(0, Ui.S(6), 0, Ui.S(6)) });
+            adv.Controls.Add(new Label { Text = "yt-dlp", AutoSize = true, ForeColor = Ui.Text, Margin = new Padding(0, 0, 0, Ui.S(2)), UseMnemonic = false });
+            ytDlp = new Label { AutoSize = true, MaximumSize = new Size(adv.Inner, 0), ForeColor = Ui.Text2, Margin = new Padding(0), UseMnemonic = false };
+            adv.Controls.Add(ytDlp);
+            ytDlpHint = new Label { AutoSize = true, MaximumSize = new Size(adv.Inner, 0), ForeColor = Ui.Text2, Font = Ui.Small, Margin = new Padding(0, Ui.S(2), 0, 0), UseMnemonic = false };
+            adv.Controls.Add(ytDlpHint);
+            var yb = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, AutoSize = true, WrapContents = false, Margin = new Padding(0, Ui.S(8), 0, 0) };
+            yb.ControlAdded += (s, e) => e.Control.Margin = new Padding(0, 0, Ui.S(8), 0);
+            yb.Controls.Add(Ui.Button(S.T("AdvYtDlpChoose"), async (s, e) =>
+            {
+                using (var dlg = new OpenFileDialog { Title = S.T("AdvYtDlpChoose").TrimEnd('…'), Filter = "yt-dlp (*.exe)|*.exe", CheckFileExists = true })
+                {
+                    if (dlg.ShowDialog(this) != DialogResult.OK) return;
+                    if (!await app.UseYtDlp(dlg.FileName))
+                        MessageBox.Show(this, S.T("AdvYtDlpNotYtDlp"), S.T("AppName"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                RefreshState();
+            }));
+            ytDlpReset = Ui.Button(S.T("AdvYtDlpReset"), async (s, e) =>
+            {
+                await app.UseYtDlp(null);
+                RefreshState();
+            });
+            yb.Controls.Add(ytDlpReset);
+            adv.Controls.Add(yb);
+            flow.Controls.Add(adv);
+
             var bottom = new TableLayoutPanel { ColumnCount = 2, Width = w, Height = Ui.S(36), Margin = new Padding(0, Ui.S(4), 0, 0) };
             bottom.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             bottom.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
@@ -141,6 +176,10 @@ namespace YTDM
                 try { Process.Start(new ProcessStartInfo("explorer.exe", Args.Quote(Paths.Logs)) { UseShellExecute = true }); } catch { }
             };
             left.Controls.Add(log);
+            var more = new LinkLabel { Text = S.T("AdvTitle"), AutoSize = true, Font = Ui.Small, LinkColor = Ui.Text2, ActiveLinkColor = Ui.Text, LinkBehavior = LinkBehavior.HoverUnderline, Margin = new Padding(Ui.S(6), 0, 0, 0), UseMnemonic = false };
+            more.LinkClicked += (s, e) => adv.Visible = !adv.Visible;
+            left.Controls.Add(new Label { Text = "·", AutoSize = true, Font = Ui.Small, ForeColor = Ui.Text2, Margin = new Padding(Ui.S(6), 0, 0, 0), UseMnemonic = false });
+            left.Controls.Add(more);
             left.Controls.Add(new Label { Text = "·  " + S.T("HomeVersion", App.Version), AutoSize = true, Font = Ui.Small, ForeColor = Ui.Text2, Margin = new Padding(Ui.S(6), 0, 0, 0), UseMnemonic = false });
             var close = Ui.Button(S.T("Close"), (s, e) => Close(), true);
             close.Margin = new Padding(0);
@@ -206,6 +245,14 @@ namespace YTDM
             if (app.Paired) addHint.Visible = false;
             startup.Checked = Settings.Current.KeepRunning;
             botSignIn.Checked = Settings.Current.SignInForBotCheck;
+            updates.Checked = Settings.Current.CheckUpdates;
+            var own = Settings.Current.YtDlpPath;
+            bool ownInUse = !string.IsNullOrEmpty(own) && Components.YtDlp != null && string.Equals(Components.YtDlp.Exe, own, StringComparison.OrdinalIgnoreCase);
+            ytDlp.Text = string.IsNullOrEmpty(own) ? S.T("AdvYtDlpBuiltIn") : ownInUse ? own : S.T("AdvYtDlpMissing", own);
+            ytDlp.ForeColor = string.IsNullOrEmpty(own) || ownInUse ? Ui.Text2 : Ui.Bad;
+            ytDlpHint.Text = S.T("AdvYtDlpOwnHint");
+            ytDlpHint.Visible = ownInUse;
+            ytDlpReset.Visible = !string.IsNullOrEmpty(own);
             updating = false;
         }
     }
