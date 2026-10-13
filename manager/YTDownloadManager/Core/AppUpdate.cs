@@ -175,7 +175,8 @@ namespace YTDM
                     var assets = (d.Arr("assets") ?? new object[0]).OfType<Dictionary<string, object>>().ToList();
                     Dictionary<string, object> Find(string name) => assets.FirstOrDefault(a => string.Equals(a.Str("name"), name, StringComparison.OrdinalIgnoreCase));
                     var exe = Find(Asset);
-                    var sums = Find("SHA256SUMS.txt");
+                    var sums = Find(UpdateSignature.SumsName);
+                    var sig = Find(UpdateSignature.SigName);
                     if (!System.Version.TryParse(version, out _) || d.Bool("draft") || d.Bool("prerelease")) throw new InvalidDataException("unexpected release " + version);
                     u.Version = version;
                     u.Url = exe?.Str("browser_download_url");
@@ -183,6 +184,7 @@ namespace YTDM
                     var digest = exe?.Str("digest") ?? "";
                     u.Sha256 = digest.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase) ? digest.Substring(7).ToLowerInvariant() : null;
                     u.SumsUrl = sums?.Str("browser_download_url");
+                    u.SigUrl = sig?.Str("browser_download_url");
                     u.Etag = resp.Headers[HttpResponseHeader.ETag];
                     Log.Info("app update check: latest " + version + (Available != null ? " (newer)" : ""));
                 }
@@ -216,13 +218,12 @@ namespace YTDM
                 Files.DeleteDir(Dir);
                 Directory.CreateDirectory(Dir);
                 var file = Path.Combine(Dir, Asset);
-                string listed = null;
-                if (!string.IsNullOrEmpty(u.SumsUrl))
-                {
-                    var m = Regex.Match(await Net.GetText(u.SumsUrl, CancellationToken.None), "(?im)^([0-9a-f]{64})\\s+\\*?" + Regex.Escape(Asset) + "\\s*$");
-                    if (m.Success) listed = m.Groups[1].Value.ToLowerInvariant();
-                }
-                if (listed == null) throw new InvalidDataException("the release lists no checksum for " + Asset);
+                if (string.IsNullOrEmpty(u.SumsUrl)) throw new InvalidDataException("the release lists no checksums");
+                var sums = await Net.GetBytes(u.SumsUrl, CancellationToken.None);
+                var sig = string.IsNullOrEmpty(u.SigUrl) ? null : await Net.GetText(u.SigUrl, CancellationToken.None);
+                var keys = UpdateSignature.Keys;
+                if (keys.Count == 0) Log.Warn("app update: this build has no signing key, the checksums are not signature-checked");
+                var listed = UpdateSignature.ListedSum(sums, sig, keys, Asset);
                 if (u.Sha256 != null && u.Sha256 != listed) throw new InvalidDataException("the release's checksums disagree");
                 double shown = 0;
                 await Net.DownloadFile(u.Url, file, (got, total) =>

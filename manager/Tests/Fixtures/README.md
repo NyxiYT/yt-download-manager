@@ -18,3 +18,8 @@ are reduced to their itag. Storyboards and subtitle lists are left out.
 One file per kind of failure that `Errors.Classify` sorts. `format-gone.txt` is real output (the same
 day, iPhone app, no sign-in); the others follow yt-dlp's wording for each case, with made-up video IDs
 where the real case needs a specific video.
+
+## `update-signing/`: a signed checksum list
+
+`SHA256SUMS.txt` signed the way the release workflow signs it (`openssl pkeyutl -sign -rawin`, then base64)
+with a key made for these tests only; `test-key.pem` is its public half. The private half wasn't kept.

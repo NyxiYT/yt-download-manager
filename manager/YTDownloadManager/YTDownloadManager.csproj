@@ -38,10 +38,13 @@
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Numerics" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="app.ico" LogicalName="app.ico" />
+    <!-- The public keys update checksums are signed with (see UpdateSignature) -->
+    <EmbeddedResource Include="update-keys.pem" LogicalName="update-keys.pem" Condition="Exists('update-keys.pem')" />
   </ItemGroup>
 
   <ItemGroup>

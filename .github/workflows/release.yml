@@ -66,6 +66,31 @@ jobs:
           [IO.File]::WriteAllText("$PWD/dist/SHA256SUMS.txt", ($lines -join "`n") + "`n")
           Get-Content dist/SHA256SUMS.txt
 
+      # Apps from 1.12 on install an update only when SHA256SUMS.txt is signed with a key built into them
+      # (manager/YTDownloadManager/update-keys.pem). No release goes out that they would refuse.
+      - name: Sign the checksums
+        shell: bash
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: |
+          set -euo pipefail
+          keys=manager/YTDownloadManager/update-keys.pem
+          [ -n "$UPDATE_SIGNING_KEY" ] || { echo "::error::the UPDATE_SIGNING_KEY secret is missing"; exit 1; }
+          [ -s "$keys" ] || { echo "::error::$keys is missing"; exit 1; }
+          umask 077
+          trap 'rm -f "$RUNNER_TEMP/update.key" "$RUNNER_TEMP/sig.bin" "$RUNNER_TEMP"/key-*' EXIT
+          printf '%s\n' "$UPDATE_SIGNING_KEY" > "$RUNNER_TEMP/update.key"
+          openssl pkeyutl -sign -inkey "$RUNNER_TEMP/update.key" -rawin -in dist/SHA256SUMS.txt -out "$RUNNER_TEMP/sig.bin"
+          printf '%s\n' "$(base64 -w0 "$RUNNER_TEMP/sig.bin")" > dist/SHA256SUMS.txt.sig
+          # The same check the apps make: one of the built-in keys has to accept it.
+          csplit -s -z -f "$RUNNER_TEMP/key-" "$keys" '/-----BEGIN PUBLIC KEY-----/' '{*}'
+          ok=0
+          for k in "$RUNNER_TEMP"/key-*; do
+            openssl pkeyutl -verify -pubin -inkey "$k" -rawin -in dist/SHA256SUMS.txt -sigfile "$RUNNER_TEMP/sig.bin" >/dev/null 2>&1 && ok=1
+          done
+          [ "$ok" = 1 ] || { echo "::error::no key in $keys accepts the signature"; exit 1; }
+          cat dist/SHA256SUMS.txt.sig
+
       - name: Release notes
         shell: pwsh
         run: |
@@ -79,7 +104,8 @@ jobs:
         run: |
           gh release create '${{ github.ref_name }}' --verify-tag --title "YT Download Manager $VERSION" --notes-file notes.md \
             dist/YTDownloadManager-Setup-x64.exe dist/YTDownloadManager-Setup-x86.exe \
-            dist/YTStandaloneDownloader-Extension.zip dist/yt-standalone-downloader.user.js dist/SHA256SUMS.txt
+            dist/YTStandaloneDownloader-Extension.zip dist/yt-standalone-downloader.user.js dist/SHA256SUMS.txt \
+            dist/SHA256SUMS.txt.sig
 
       # Scoop and winget: see packages.yml.
       - name: Update the package managers
