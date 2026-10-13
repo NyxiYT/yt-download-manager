@@ -15,6 +15,7 @@ first, so we can agree on the idea before you spend time on it.
 | `manager/Setup/` | The installer, which carries the app, the extension and the tools |
 | `manager/build.cmd` | Builds everything into `dist/` |
 | `manager/fetch-components.ps1` | Downloads and checks yt-dlp, FFmpeg and Deno or Node.js for the installers |
+| `manager/components.lock.json` | The exact builds of those tools, with their SHA-256. `.github/components-lock.py` updates it; a weekly workflow opens a pull request when there are newer ones |
 | `manager/Tests/` | Automated tests for the Windows app, with saved yt-dlp answers in `Fixtures/` |
 | `docs/images/` | Pictures used in the README |
 

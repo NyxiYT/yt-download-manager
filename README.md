@@ -480,7 +480,7 @@ The installers include these programs, each under its own license:
 | Program | License |
 |---|---|
 | [yt-dlp](https://github.com/yt-dlp/yt-dlp) | The Unlicense |
-| [FFmpeg](https://ffmpeg.org) ([build](https://github.com/yt-dlp/FFmpeg-Builds), [source](https://github.com/FFmpeg/FFmpeg)) | GNU GPL 3.0 or later |
+| [FFmpeg](https://ffmpeg.org) (builds: [64-bit](https://github.com/BtbN/FFmpeg-Builds), [32-bit](https://github.com/yt-dlp/FFmpeg-Builds); [source](https://github.com/FFmpeg/FFmpeg)) | GNU GPL 3.0 or later |
 | [Deno](https://github.com/denoland/deno) (64-bit installer) | MIT |
 | [Node.js](https://nodejs.org) (32-bit installer) | MIT |
 
