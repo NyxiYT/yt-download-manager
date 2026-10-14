@@ -1,0 +1,36 @@
+/* The icons' motions (lib/anim-icons.ts). Each plays when the control or card that holds it is hovered, lasts under
+   400 ms and says what the icon is. Pressing springs the icon to 0.9 and back. A download or copy that succeeded
+   draws a check (data-done on the control). */
+.ai { width: 20px; height: 20px; flex: none; overflow: visible; transition: transform .35s cubic-bezier(.34, 1.56, .64, 1); }
+.ai * { transform-box: fill-box; transform-origin: center; transition: transform .35s cubic-bezier(.22, 1, .36, 1), opacity .25s, stroke-dashoffset .35s cubic-bezier(.22, 1, .36, 1); }
+:is(a, button, [data-ai-host]):active > .ai, :is(a, button, [data-ai-host]):active .ai { transform: scale(.9); }
+
+/* hover */
+:is(a, button, [data-ai-host]):hover .ai-download .m-drop { transform: translateY(2px); }
+:is(a, button, [data-ai-host]):hover .ai-camera .m-shutter { transform: scale(.7); }
+:is(a, button, [data-ai-host]):hover .ai-music .m-bob { transform: translateY(-1.5px) rotate(-6deg); }
+:is(a, button, [data-ai-host]):hover .ai-scissors .m-blade-a { transform: rotate(-9deg); transform-origin: 0% 0%; }
+:is(a, button, [data-ai-host]):hover .ai-scissors .m-blade-b { transform: rotate(9deg); transform-origin: 0% 100%; }
+:is(a, button, [data-ai-host]):hover .ai-shorts .m-play { transform: scale(1.25); }
+:is(a, button, [data-ai-host]):hover .ai-clock .m-hand { transform: rotate(90deg); transform-origin: 0% 0%; }
+:is(a, button, [data-ai-host]):hover .ai-folder .m-lid { transform: translateY(-2.5px) skewX(-12deg); }
+.ai-noads .m-strike { stroke-dasharray: 1; stroke-dashoffset: 1; }
+:is(a, button, [data-ai-host]):hover .ai-noads .m-strike, .ai-noads.drawn .m-strike { stroke-dashoffset: 0; }
+:is(a, button, [data-ai-host]):hover .ai-globe .m-spin { transform: scaleX(-1); }
+:is(a, button, [data-ai-host]):hover .ai-refresh .m-turn, :is(a, button, [data-ai-host]):hover .ai-loop .m-turn { transform: rotate(180deg); }
+:is(a, button, [data-ai-host]):hover .ai-bolt .m-flash { transform: scale(1.12) rotate(-6deg); }
+:is(a, button, [data-ai-host]):hover .ai-pause .m-bar-a { transform: translateX(-1px); }
+:is(a, button, [data-ai-host]):hover .ai-pause .m-bar-b { transform: translateX(1px); }
+:is(a, button, [data-ai-host]):hover .ai-github .m-tail { transform: rotate(-4deg); }
+:is(a, button, [data-ai-host]):hover .ai-heart .m-beat { animation: beat .38s cubic-bezier(.22, 1, .36, 1); }
+:is(a, button, [data-ai-host]):hover .ai-image .m-sun { transform: translateY(-1.5px); }
+:is(a, button, [data-ai-host]):hover .ai-captions .m-line-a { transform: translateX(1.5px); }
+:is(a, button, [data-ai-host]):hover .ai-pip .m-mini { transform: translate(-1.5px, -1.5px); }
+:is(a, button, [data-ai-host]):hover .ai-corner .m-corner { transform: translate(-2px, -2px) scale(1.15); }
+:is(a, button, [data-ai-host]):hover .ai-theme .m-half { transform: rotate(180deg); transform-origin: 0% 50%; }
+@keyframes beat { 40% { transform: scale(1.18); } }
+
+/* success: the check draws in */
+.ai .m-done { stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; }
+[data-done] .ai .m-done { stroke-dashoffset: 0; opacity: 1; transition-delay: .05s; }
+[data-done] .ai-download .m-drop, [data-done] .ai-download > path:nth-child(2), [data-done] .ai-copy .m-idle { opacity: 0; }

@@ -1,77 +1,45 @@
 ---
-// The footer: the page, the project, the legal side, the README's full legal note, the colophon, the theme and
-// motion switches, and the spine: the name set across the full width, like the edge of a cassette's card.
-import { CHANGELOG, DISCUSSIONS, ISSUES, LICENSE, PRIVACY, RELEASES, REPO, legal, nav, thirdParty } from '../lib/content';
-import { latestRelease } from '../lib/release';
-
-const { version } = await latestRelease();
-const year = new Date().getFullYear();
+// Links, the two settings (Reduce motion, Theme), one line of legal text and the film's credit.
+import { appIcon } from '../lib/app-icon';
+import { footer } from '../lib/content';
 ---
-<footer class="foot" aria-labelledby="foot-h">
-  <h2 id="foot-h" class="sr-only">About this site</h2>
-  <div class="wrap">
-    <div class="cols">
-      <nav aria-label="This page">
-        <p class="label">This page</p>
-        <ul>{nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}<li><a href="#whats-new">What's new</a></li></ul>
-      </nav>
-      <nav aria-label="The project">
-        <p class="label">The project</p>
-        <ul>
-          <li><a href={REPO}>Source code on GitHub</a></li>
-          <li><a href={RELEASES}>Releases</a></li>
-          <li><a href={CHANGELOG}>Changelog</a></li>
-          <li><a href={ISSUES}>Report a bug</a></li>
-          <li><a href={DISCUSSIONS}>Discussions</a></li>
-        </ul>
-      </nav>
-      <nav aria-label="Legal">
-        <p class="label">Legal</p>
-        <ul>
-          <li><a href={PRIVACY}>Privacy policy</a></li>
-          <li><a href={LICENSE}>MIT License</a></li>
-          <li><a href={`${REPO}#license`}>Third-party licenses</a></li>
-        </ul>
-      </nav>
-      <div class="settings">
-        <p class="label">This site</p>
-        <label class="switch"><input type="checkbox" role="switch" data-motion-toggle /><span class="sw" aria-hidden="true"></span>Reduce motion</label>
-        <label class="switch"><input type="checkbox" role="switch" data-theme-switch /><span class="sw" aria-hidden="true"></span>Light theme</label>
-      </div>
+<footer class="foot">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <span class="foot-mark" set:html={appIcon('foot', 32)} />
+      <span>YT Download Manager</span>
     </div>
-
-    <div class="legal">
-      <p>{legal}</p>
-      <p>YT Download Manager is open source under the <a href={LICENSE}>MIT License</a>. Made by <a href="https://github.com/NyxiYT">NyxiYT</a>. The installers include {thirdParty.slice(0, 4).map((t, i) => <><a href={t.href}>{t.name.replace(/ \(.*\)$/, '')}</a> ({t.license}){i < 3 ? ', ' : ''}</>)}; the extension includes <a href={thirdParty[4].href}>lamejs</a> (LGPL 3.0) and can fetch <a href={thirdParty[5].href}>ffmpeg.wasm</a> (GPL 2.0 or later) when needed.</p>
-      <p class="colophon">Set in Funnel Display, Onest and JetBrains Mono. The glass of the navigation bends light the way <a href="https://github.com/rizzytoday/liquid-glass">rizzytoday/liquid-glass</a> and <a href="https://github.com/deepika-builds/liquid-glass">deepika-builds/liquid-glass</a> (both MIT) do it. The marquee, the line between Side A and Side B and the counting numbers follow Magic UI's components, and the magnetic buttons and title reveals React Bits' (both MIT). Pictures in the demos: <i>Big Buck Bunny</i>, © Blender Foundation, CC BY 3.0. No cookies, no tracking; fonts and pictures are served with the page.</p>
+    <nav aria-label="Project">
+      <ul class="foot-links">{footer.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}</ul>
+    </nav>
+    <div class="foot-set" role="group" aria-label="Settings">
+      <label class="sw"><input type="checkbox" data-motion-toggle /><span class="sw-ui" aria-hidden="true"></span>Reduce motion</label>
+      <label class="sw"><input type="checkbox" data-theme-switch /><span class="sw-ui" aria-hidden="true"></span>Light theme</label>
     </div>
-  </div>
-  <div class="spine" aria-hidden="true">
-    <svg viewBox="0 0 1200 96" preserveAspectRatio="none" role="presentation">
-      <text x="0" y="84" textLength="1200" lengthAdjust="spacingAndGlyphs">YT DOWNLOAD MANAGER · v{version} · {year}</text>
-    </svg>
+    <p class="foot-legal">{footer.legal}</p>
+    <p class="foot-credit"><a href={footer.creditHref}>Big Buck Bunny</a>, © Blender Foundation, <a href={footer.licenseHref}>CC BY 3.0</a>.</p>
   </div>
 </footer>
 
 <style>
-  .foot { margin-top: 0; border-top: 1px solid var(--ink); padding-top: clamp(48px, 7vw, 88px); overflow: hidden; }
-  .cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; }
-  @media (max-width: 767px) { .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  nav ul { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; }
-  nav a { text-decoration: none; color: var(--ink-2); font-size: 0.9688rem; }
-  nav a:hover { color: var(--ink); }
-  .settings { display: grid; gap: 14px; align-content: start; }
-  .switch { display: inline-flex; align-items: center; gap: 12px; font-size: 0.9688rem; color: var(--ink-2); cursor: pointer; }
-  .switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-  .sw { position: relative; width: 38px; height: 22px; border-radius: 11px; background: var(--rule-strong); transition: background-color 0.2s var(--ease-tape); flex: none; }
-  .sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); transition: transform 0.25s var(--ease-tape); }
-  .switch input:checked + .sw { background: var(--tape); }
-  .switch input:checked + .sw::after { transform: translateX(16px); background: var(--on-tape); }
-  .switch input:focus-visible + .sw { outline: 2px solid var(--tape-text); outline-offset: 3px; }
-  .legal { margin-top: clamp(48px, 6vw, 72px); padding-top: 24px; border-top: 1px solid var(--rule); display: grid; gap: 12px; max-width: 92ch; }
-  .legal p { font-size: 0.875rem; color: var(--ink-2); line-height: 1.6; }
-  .legal a { color: var(--ink); }
-  .spine { margin-top: clamp(40px, 6vw, 72px); padding-inline: clamp(8px, 2vw, 24px); }
-  .spine svg { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 96; overflow: visible; }
-  .spine text { font-family: var(--font-display); font-weight: 800; font-size: 104px; letter-spacing: -2px; fill: var(--ink); }
+  .foot { margin-top: clamp(40px, 6vw, 72px); padding-block: 48px 40px; border-top: 1px solid var(--line); font-size: 0.9375rem; }
+  .foot-grid { display: grid; grid-template-columns: auto 1fr auto; gap: 28px 40px; align-items: center; }
+  .foot-brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 650; letter-spacing: -0.02em; }
+  .foot-mark { width: 32px; height: 32px; display: block; }
+  .foot-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 22px; }
+  .foot-links a { color: var(--muted); text-decoration: none; }
+  .foot-links a:hover { color: var(--text); text-decoration: underline; }
+  .foot-set { display: flex; gap: 20px; flex-wrap: wrap; }
+  .sw { position: relative; display: inline-flex; align-items: center; gap: 10px; color: var(--muted); cursor: pointer; }
+  .sw input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .sw-ui { position: relative; width: 36px; height: 20px; border-radius: 10px; background: var(--line-2); transition: background-color .2s; }
+  .sw-ui::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--text); transition: transform .35s cubic-bezier(.34, 1.56, .64, 1); }
+  .sw input:checked + .sw-ui { background: var(--accent-fill); }
+  .sw input:checked + .sw-ui::after { transform: translateX(16px); background: #fff; }
+  .sw input:focus-visible + .sw-ui { outline: 2px solid var(--accent-hi); outline-offset: 3px; }
+  .foot-legal, .foot-credit { grid-column: 1 / -1; color: var(--muted); font-size: 0.875rem; }
+  .foot-legal { padding-top: 24px; border-top: 1px solid var(--line); }
+  .foot-credit { margin-top: -18px; }
+  .foot-credit a { color: var(--muted); }
+  @media (max-width: 899px) { .foot-grid { grid-template-columns: 1fr; } }
 </style>

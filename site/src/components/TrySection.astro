@@ -1,0 +1,32 @@
+---
+// Try it: the one interactive section (islands/TryIt.tsx). The visitor's cursor shows "Try" over the demo.
+import TryIt from '../islands/TryIt';
+import type { VideoData } from '../islands/demo/model';
+import video from '../data/videos/aqz-KE-bpKQ.json';
+import short from '../data/videos/gXWsa1IP71A.json';
+import { tryIt } from '../lib/content';
+import { cover, film } from '../lib/media';
+---
+<section class="section try-sec" id="try" aria-labelledby="try-title">
+  <div class="wrap">
+    <div class="try-head">
+      <h2 id="try-title" class="h2" data-reveal>{tryIt.title}</h2>
+      <p class="lede" data-reveal style="--i:1">{tryIt.sub}</p>
+    </div>
+    <TryIt client:visible tabs={[...tryIt.tabs]} video={video as VideoData} short={short as VideoData} film={film} cover={cover} />
+  </div>
+</section>
+
+<style>
+  .try-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px 48px; flex-wrap: wrap; margin-bottom: clamp(32px, 4vw, 48px); }
+  .try-head .lede { padding-bottom: 0.5rem; }
+  :global(.try) { display: grid; gap: 18px; }
+  :global(.try-tabs) { display: inline-flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 4px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); justify-self: start; max-width: 100%; }
+  :global(.try-tab) { flex: none; height: 40px; padding: 0 18px; border: 0; border-radius: 10px; background: none; color: var(--muted); font-weight: 550; font-size: 0.9375rem; cursor: pointer; transition: color 0.15s, background-color 0.2s; }
+  :global(.try-tab:hover) { color: var(--text); }
+  :global(.try-tab[data-state="active"]) { background: var(--accent-fill); color: var(--on-accent); }
+  :global(.try-panel) { display: grid; gap: 16px; max-width: 1040px; }
+  :global(.try-panel:focus-visible) { outline-offset: 6px; }
+  :global(.try-caption) { color: var(--muted); font-size: 1rem; }
+  @media (max-width: 520px) { :global(.try-tab) { padding: 0 12px; } }
+</style>

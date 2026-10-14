@@ -30,3 +30,7 @@ manager/**/TestResults/
 
 # Lighthouse CI reports (site/lighthouserc.json)
 .lighthouseci/
+
+# Playwright (site/tests)
+test-results/
+playwright-report/

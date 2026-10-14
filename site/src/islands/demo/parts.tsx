@@ -1,7 +1,8 @@
 // The extension's interface, rebuilt from content.js for the demos: the same elements, classes, labels and
 // icons (the styles are in styles/ysd.css). Every part the guided tour points at carries data-t, and shows its
 // hover and pressed look when the tour's cursor is on it (the Ui context), as it would under a real pointer.
-import { createContext, useContext, useId, type CSSProperties, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { getMotion, onMotion } from '../motion-pref';
 import { ICONS, type IconName } from '../../lib/icons';
 import {
   audioLabel, estimate, fmtClock, fmtSize, fmtTime, qualityText, ringPct,
@@ -43,13 +44,46 @@ export function TopBar({ children }: { children: ReactNode }) {
   );
 }
 
-export function Player({ frame, time }: { frame: { src: string; srcset?: string; alt: string; width: number; height: number }; time: string }) {
+export interface FilmSrc { poster: string; sources: { src: string; type: string; media?: string }[] }
+
+// The picture: the film itself (the hero's loop), never a screenshot. It starts after the page has loaded and
+// stands still while it's off screen. The time is the film's own position (the loop is 0:03.6 to 0:16.2 of it).
+export function Film({ film, className, startAt = 3.6, onTime }: { film: FilmSrc; className?: string; startAt?: number; onTime?: (t: number) => void }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    let shown = false;
+    const go = () => setOn(true);
+    if (document.readyState === 'complete') setTimeout(go, 300); else addEventListener('load', () => setTimeout(go, 300), { once: true });
+    const io = new IntersectionObserver(([e]) => { shown = e.isIntersecting; if (!v.src && !v.currentSrc) return; if (shown && getMotion() === 'full') v.play().catch(() => {}); else v.pause(); }, { threshold: 0.1 });
+    io.observe(v);
+    const off = onMotion((p) => { if (p === 'reduced') v.pause(); else if (shown) v.play().catch(() => {}); });
+    const tick = () => onTime?.(startAt + v.currentTime * 0.85);
+    v.addEventListener('timeupdate', tick);
+    return () => { io.disconnect(); off(); v.removeEventListener('timeupdate', tick); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const v = ref.current;
+    if (!on || !v) return;
+    v.load();
+    if (getMotion() === 'full') v.play().catch(() => {});
+  }, [on]);
+  return (
+    <video ref={ref} className={className} muted playsInline loop preload="none" poster={film.poster} aria-hidden="true" disablePictureInPicture>
+      {on && film.sources.map((s) => <source key={s.src} src={s.src} type={s.type} media={s.media} />)}
+    </video>
+  );
+}
+
+export function Player({ film, time }: { film: FilmSrc; time?: string }) {
   return (
     <div className="d-player">
-      <img src={frame.src} srcSet={frame.srcset} sizes="(min-width: 1300px) 1240px, 100vw" width={frame.width} height={frame.height} alt={frame.alt} decoding="async" loading="lazy" />
+      <Film film={film} />
       <div className="d-controls" aria-hidden="true">
-        <div className="d-progress"><i style={{ width: '12.6%' }} /></div>
-        <span className="d-time">{time}</span>
+        <div className="d-progress"><i style={{ width: '1%' }} /></div>
+        {time && <span className="d-time">{time}</span>}
       </div>
     </div>
   );
@@ -394,7 +428,7 @@ export function FolderWindow({ files, selected, cover, onClose, style }: {
         {files.map((f) => (
           <li key={f.name} aria-selected={f.name === selected} className={f.name === selected ? 'sel' : ''}>
             {f.name.endsWith('.mp3') && cover
-              ? <img className="d-cover" src={cover} alt="" width={36} height={36} />
+              ? <img className="d-cover" src={cover} alt="" width={36} height={36} loading="lazy" decoding="async" />
               : <span className="d-file-ico"><Icon name={f.name.endsWith('.mp3') ? 'music' : 'video'} size={18} /></span>}
             <span className="d-file-name">{f.name}</span>
             <span className="d-file-size">{f.size}</span>

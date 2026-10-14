@@ -1,0 +1,181 @@
+---
+// "Two parts. Zero setup." as a small network map (true to docs/ARCHITECTURE.md): the extension finds the app on
+// the PC (a ping, a handshake), the app's status turns from its own "Not connected" to "Connected", then the app
+// fetches the streams and saves the file into your folder. It plays when it comes into view (pinned for a moment
+// on wide screens), once; the replay button plays it again. Nothing in it can be clicked.
+import { ICONS } from '../lib/icons';
+import { appIcon } from '../lib/app-icon';
+import { how } from '../lib/content';
+const tb = ['video', 'music', 'image', 'captions', 'camera'] as const;
+---
+<section class="section how" id="how-it-works" aria-labelledby="how-title" data-how>
+  <div class="wrap how-pin" data-how-pin>
+    <h2 id="how-title" class="h2" data-reveal>{how.title}</h2>
+    <div class="net" data-net aria-hidden="true">
+      <div class="node" data-node="ext">
+        <div class="ill ill-ext">
+          <span class="ext-bar"><i></i><i></i><i></i></span>
+          <span class="ext-pic"></span>
+          <span class="ext-tools">{tb.map((n, i) => <svg viewBox="0 0 24 24" width="14" height="14" class={i === 0 ? 'on' : ''}><path d={ICONS[n]} fill="currentColor" /></svg>)}</span>
+          <span class="ping" data-ping></span>
+        </div>
+        <p class="node-cap"><b>{how.nodes[0].name}</b><span>{how.nodes[0].text}</span></p>
+      </div>
+      <div class="link" data-link="1"><span class="dash" data-dash></span><span class="pkt" data-hs></span></div>
+      <div class="node" data-node="app">
+        <div class="ill ill-app">
+          <span class="app-head"><span class="app-logo" set:html={appIcon('how', 30)} /><span class="app-name">YT Download Manager</span></span>
+          <span class="chip" data-chip><span class="chip-a"><i></i>{how.before}</span><span class="chip-b"><i></i>{how.after}</span></span>
+        </div>
+        <p class="node-cap"><b>{how.nodes[1].name}</b><span>{how.nodes[1].text}</span></p>
+      </div>
+      <div class="link" data-link="2"><span class="dash" data-dash></span><span class="pkt" data-pk></span><span class="pkt" data-pk></span><span class="pkt" data-pk></span></div>
+      <div class="node" data-node="folder">
+        <div class="ill ill-folder">
+          <svg class="fold-back" viewBox="0 0 160 120"><path d="M8 22a8 8 0 0 1 8-8h38l12 12h78a8 8 0 0 1 8 8v70a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8Z" /></svg>
+          <span class="file" data-file><b>MP4</b><i></i><i></i></span>
+          <svg class="fold-front" viewBox="0 0 160 120"><path d="M8 44a8 8 0 0 1 8-8h128a8 8 0 0 1 8 8v60a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8Z" /></svg>
+        </div>
+        <p class="node-cap"><b>{how.nodes[2].name}</b><span>{how.nodes[2].text}</span></p>
+      </div>
+    </div>
+    <ol class="caps">
+      {how.nodes.map((n, i) => <li data-reveal style={`--i:${i}`}><b>{n.name}</b><span>{n.text}</span></li>)}
+    </ol>
+    <p class="sr-only">{how.nodes.map((n) => `${n.name}: ${n.text}`).join(' ')} {how.foot}</p>
+    <div class="how-foot">
+      <p class="how-note" data-reveal>{how.foot}</p>
+      <button class="replay" type="button" data-how-replay disabled>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7" /><path d="M4 4v4h4" /></svg>
+        <span>Replay</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .how-pin { display: grid; gap: clamp(40px, 6vw, 72px); }
+  .net { display: grid; grid-template-columns: minmax(0, 1fr) minmax(48px, 0.7fr) minmax(0, 1fr) minmax(48px, 0.7fr) minmax(0, 1fr); align-items: center; }
+  .node { display: grid; place-items: center; }
+  .ill { position: relative; width: min(100%, 230px); aspect-ratio: 23 / 16; border-radius: 16px; background: var(--surface); border: 1px solid var(--line-2); box-shadow: var(--shadow); }
+
+  /* Browser extension: a page with a picture and the toolbar under it */
+  .ill-ext { display: grid; grid-template-rows: auto 1fr auto; padding: 10px; gap: 8px; }
+  .ext-bar { display: flex; gap: 5px; } .ext-bar i { width: 7px; height: 7px; border-radius: 50%; background: var(--line-2); }
+  .ext-pic { border-radius: 8px; background: linear-gradient(160deg, #3c5a9e, #12203f 80%); }
+  .ext-tools { display: flex; gap: 10px; padding: 4px 4px 2px; color: var(--muted); }
+  .ext-tools svg.on { color: var(--accent-hi); }
+  .ping { position: absolute; left: 18px; bottom: 6px; width: 22px; height: 22px; margin: -2px 0 0 -6px; border-radius: 50%; border: 2px solid var(--accent-hi); opacity: 0; }
+
+  /* Windows app: its own window, with the Browser status in its own words */
+  .ill-app { display: grid; align-content: center; justify-items: start; gap: 16px; padding: 16px 18px; }
+  .app-head { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 650; font-size: 0.9375rem; line-height: 1.1; }
+  .app-logo { width: 30px; height: 30px; flex: none; }
+  .chip { position: relative; display: inline-grid; font-size: 0.8125rem; }
+  .chip > span { grid-area: 1 / 1; display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 12px 0 10px; border-radius: 14px; white-space: nowrap; }
+  .chip-a { background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--muted); }
+  .chip-a i, .chip-b i { width: 8px; height: 8px; border-radius: 50%; }
+  .chip-a i { background: var(--muted); }
+  .chip-b { background: color-mix(in srgb, #4CC38A 18%, transparent); color: var(--text); opacity: 0; }
+  .chip-b i { background: #4CC38A; box-shadow: 0 0 0 3px color-mix(in srgb, #4CC38A 30%, transparent); }
+
+  /* Your folder */
+  .ill-folder { background: none; border: 0; box-shadow: none; display: grid; place-items: end center; }
+  .ill-folder svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .fold-back path { fill: color-mix(in srgb, var(--accent) 45%, var(--surface-2)); }
+  .fold-front path { fill: color-mix(in srgb, var(--accent) 70%, var(--surface)); }
+  .file { position: absolute; left: 50%; top: 18%; width: 34%; aspect-ratio: 3 / 4; margin-left: -17%; border-radius: 6px; background: var(--surface); border: 1px solid var(--line-2);
+    display: grid; align-content: start; gap: 5px; padding: 8px; opacity: 0; transform: translateY(-60px); box-shadow: 0 10px 30px -10px rgb(0 0 0 / 0.6); }
+  .file b { font: 600 10px/1 var(--font-mono); color: var(--accent-hi); }
+  .file i { height: 4px; border-radius: 2px; background: var(--line-2); } .file i + i { width: 70%; }
+
+  /* The links: a dashed line that draws, and packets that travel along it (transforms only) */
+  .link { position: relative; height: 2px; container-type: inline-size; }
+  .dash { position: absolute; inset: 0; background: repeating-linear-gradient(90deg, var(--accent-hi) 0 6px, transparent 6px 12px); transform-origin: 0 50%; transform: scaleX(0); }
+  .pkt { position: absolute; left: 0; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--accent-hi); box-shadow: 0 0 14px var(--accent-glow); opacity: 0;
+    transform: translateX(calc(var(--t, 0) * 100cqw)); }
+
+  .node { gap: 14px; }
+  .node-cap { display: none; gap: 4px; text-align: center; justify-items: center; }
+  .node-cap b { font-family: var(--font-display); font-size: 1.25rem; font-weight: 650; letter-spacing: -0.02em; }
+  .node-cap span { color: var(--muted); max-width: 28ch; }
+  .caps { list-style: none; margin: calc(-1 * clamp(12px, 3vw, 36px)) 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px clamp(48px, 7vw, 120px); }
+  .caps li { display: grid; gap: 6px; text-align: center; justify-items: center; }
+  .caps b { font-family: var(--font-display); font-size: 1.375rem; font-weight: 650; letter-spacing: -0.02em; }
+  .caps span { color: var(--muted); max-width: 26ch; }
+  .how-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); padding-top: 18px; }
+  .how-note { color: var(--muted); font-family: var(--font-mono); font-size: 0.875rem; }
+
+  /* Phones: the map stands up; lines run downwards. */
+  @media (max-width: 767px) {
+    .net { grid-template-columns: 1fr; grid-template-rows: auto 64px auto 64px auto; justify-items: center; }
+    .link { width: 2px; height: 100%; container-type: size; }
+    .dash { background: repeating-linear-gradient(180deg, var(--accent-hi) 0 6px, transparent 6px 12px); transform-origin: 50% 0; transform: scaleY(0); }
+    .pkt { left: 50%; top: 0; margin: -5px 0 0 -5px; transform: translateY(calc(var(--t, 0) * 100cqh)); }
+    .caps { display: none; }
+    .ill { width: min(100%, 260px); }
+    .node-cap { display: grid; }
+  }
+</style>
+
+<script>
+  // The sequence: GSAP from the shared scroll engine, loaded when the section comes near.
+  import { getMotion } from '../islands/motion-pref';
+
+  const sec = document.querySelector<HTMLElement>('[data-how]')!;
+  const replay = sec.querySelector<HTMLButtonElement>('[data-how-replay]')!;
+
+  const io = new IntersectionObserver(async ([e]) => {
+    if (!e.isIntersecting) return;
+    io.disconnect();
+    const { gsap, ScrollTrigger } = await import('../scripts/scroll-engine');
+    const q = <T extends Element = HTMLElement>(s: string) => sec.querySelector<T>(s)!;
+    const qa = (s: string) => [...sec.querySelectorAll<HTMLElement>(s)];
+    const wide = matchMedia('(min-width: 768px)').matches;
+    const scale = wide ? 'scaleX' : 'scaleY';
+    const [d1, d2] = qa('[data-dash]');
+    const hs = q('[data-hs]');
+    const pk = qa('[data-pk]');
+
+    const tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.out' }, onComplete: () => { replay.disabled = false; } });
+    tl.set([d1, d2], { [scale]: 0 })
+      .set(hs, { '--t': 0, opacity: 0 })
+      .set(pk, { '--t': 0, opacity: 0 })
+      .set('.chip-b', { opacity: 0 }).set('.chip-a', { opacity: 1 })
+      .set(q('[data-file]'), { opacity: 0, y: -60 })
+      // the extension sends a ping
+      .fromTo(q('[data-ping]'), { scale: 0.4, opacity: 0.9 }, { scale: 3.2, opacity: 0, duration: 0.9, ease: 'power1.out' })
+      .fromTo(q('[data-ping]'), { scale: 0.4, opacity: 0.9 }, { scale: 3.2, opacity: 0, duration: 0.9, ease: 'power1.out' }, '-=0.55')
+      // a dashed line draws toward the app
+      .to(d1, { [scale]: 1, duration: 0.7, ease: 'power2.inOut' }, '-=0.6')
+      // the handshake goes there and back
+      .to(hs, { opacity: 1, duration: 0.1 })
+      .to(hs, { '--t': 1, duration: 0.55, ease: 'power1.inOut' })
+      .to(hs, { '--t': 0, duration: 0.5, ease: 'power1.inOut' })
+      .to(hs, { opacity: 0, duration: 0.15 })
+      // the app's status flips
+      .to('.chip-a', { opacity: 0, duration: 0.25 }, '-=0.35')
+      .to('.chip-b', { opacity: 1, duration: 0.35 }, '<')
+      .fromTo('.chip-b', { scale: 0.92 }, { scale: 1, duration: 0.5, ease: 'back.out(3)' }, '<')
+      // data streams to the folder, a file lands in it
+      .to(d2, { [scale]: 1, duration: 0.6, ease: 'power2.inOut' }, '+=0.2')
+      .to(pk, { opacity: 1, duration: 0.1, stagger: 0.18 })
+      .to(pk, { '--t': 1, duration: 0.7, ease: 'none', stagger: 0.18 }, '<')
+      .to(pk, { opacity: 0, duration: 0.12, stagger: 0.18 }, '-=0.45')
+      .to(q('[data-file]'), { opacity: 1, y: 0, duration: 0.6, ease: 'back.out(1.6)' }, '-=0.25');
+
+    let played = false;
+    const play = () => { played = true; replay.disabled = true; tl.restart(); };
+    replay.addEventListener('click', play);
+    if (getMotion() === 'reduced') { tl.progress(1); replay.disabled = false; return; }
+    if (wide) {
+      // Hold the map in place while it plays, then let the page go on.
+      const st = ScrollTrigger.create({ trigger: sec, start: 'top 12%', end: '+=45%', pin: q('[data-how-pin]'), onEnter: () => { if (!played) play(); } });
+      // Scrolled past the start before the engine loaded: play now.
+      if (st.progress > 0 && !played) play();
+    } else {
+      play();
+    }
+  }, { rootMargin: '0px 0px -20% 0px' });
+  io.observe(sec);
+</script>

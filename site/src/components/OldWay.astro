@@ -1,0 +1,39 @@
+---
+// "No more converter sites.": four rows, the old way struck through on the left, ours in blue on the right.
+// Static; the rows come in as they scroll into view and the strike draws through each old line.
+import { AI } from '../lib/anim-icons';
+import { oldWay } from '../lib/content';
+---
+<section class="section old" aria-labelledby="old-title">
+  <div class="wrap old-grid">
+    <h2 id="old-title" class="h2" data-reveal>{oldWay.title}</h2>
+    <table class="old-table">
+      <thead><tr><th scope="col">{oldWay.left}</th><th scope="col">{oldWay.right}</th></tr></thead>
+      <tbody>
+        {oldWay.rows.map(([a, b], i) => (
+          <tr data-reveal style={`--i:${i}`}>
+            <td class="was"><span>{a}</span></td>
+            <td class="now"><span class="now-i" set:html={i === 0 ? AI.noads : AI.download} />{b}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<style>
+  .old-grid { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 32px clamp(32px, 6vw, 96px); align-items: start; }
+  .old-table { width: 100%; border-collapse: collapse; font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem); }
+  .old-table th { text-align: left; padding: 0 0 14px; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line-2); }
+  .old-table th + th { color: var(--accent-hi); }
+  .old-table td { padding: 22px 0; border-bottom: 1px solid var(--line); vertical-align: top; width: 50%; }
+  .old-table td + td { padding-left: 24px; }
+  .was { color: var(--muted); }
+  .was span { background: linear-gradient(currentColor, currentColor) 0 55% / 0 1.5px no-repeat; transition: background-size .7s .25s var(--ease-out); }
+  .js .old-table tr.in .was span, html:not(.js) .was span { background-size: 100% 1.5px; }
+  .now { color: var(--accent-hi); font-weight: 550; display: flex; align-items: flex-start; gap: 10px; }
+  .now-i { padding-top: 3px; }
+  .now-i :global(.ai) { width: 20px; height: 20px; }
+  @media (max-width: 899px) { .old-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) { .old-table td + td { padding-left: 14px; } }
+</style>

@@ -1,74 +1,189 @@
 ---
-// Every feature from the README, as a listing: icon, name, one line. Grouped as the README groups them, filterable
-// with the chips. Where the README has a screenshot of a feature, hovering its name shows it (scripts/ui.ts).
-import { getImage } from 'astro:assets';
-import Icon from './Icon.astro';
-import { featureGroups } from '../lib/content';
-
-const shots = import.meta.glob<{ default: ImageMetadata }>('../../../docs/images/{download-video.jpg,download-audio.jpg,shorts-menu.png,app-window.png,download-history.png,settings.png}', { eager: true });
-const preview = async (name: string) => {
-  const hit = Object.entries(shots).find(([k]) => k.includes(`/${name}.`));
-  if (!hit) return null;
-  const img = await getImage({ src: hit[1].default, width: Math.min(420, hit[1].default.width), format: 'webp', quality: 80 });
-  return img.src;
-};
-const groups = await Promise.all(featureGroups.map(async (g) => ({
-  ...g, items: await Promise.all(g.items.map(async (f) => ({ ...f, preview: f.shot ? await preview(f.shot) : null }))),
-})));
-const total = groups.reduce((n, g) => n + g.items.length, 0);
+// "Built for how you watch.": a rail of six tall cards that snaps sideways and leaves the next one in sight. Each
+// card holds a small piece of the product's interface that plays once when the card comes into view (CSS only,
+// started by scripts/ui.ts); hovering only lifts the card. Under the rail, the smaller features as chips.
+import { AI } from '../lib/anim-icons';
+import { features } from '../lib/content';
+const chipIcon = { Thumbnails: 'image', Subtitles: 'captions', Screenshots: 'camera', 'Shorts in picture-in-picture': 'pip', 'Big Picture': 'corner', Loop: 'loop', 'Light or dark': 'theme' } as const;
+const cardIcon = { quality: 'download', resume: 'refresh', fast: 'bolt', yield: 'pause', members: 'clock', update: 'refresh' } as const;
+const rows = [['4320p', '8K'], ['2160p60', '4K'], ['1440p60', '2K'], ['1080p60', 'HD'], ['720p60', 'HD']];
 ---
-<section class="section" id="features" aria-labelledby="ft-h">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="counter">008</span>
-      <h2 id="ft-h">Everything it does, on one list.</h2>
-      <p class="lede">{total} features, as the README lists them. Some need the Windows app; the tag says so.</p>
-    </div>
-    <div class="chips" role="group" aria-label="Show features" data-chips>
-      <button type="button" aria-pressed="true" data-chip="all">All <span class="mono">{total}</span></button>
-      {groups.map((g) => <button type="button" aria-pressed="false" data-chip={g.id}>{g.title} <span class="mono">{g.items.length}</span></button>)}
-    </div>
-    <div class="index defer" data-index>
-      {groups.map((g) => (
-        <div class="group" data-group={g.id}>
-          <h3 class="group-title"><span>{g.title}</span>{g.note && <span class="tag">{g.note}</span>}</h3>
-          <ul>
-            {g.items.map((f) => (
-              <li data-preview={f.preview ?? undefined}>
-                <span class="ico"><Icon name={f.icon} size={24} /></span>
-                <div class="body">
-                  <p class="name">{f.name}{f.tag && <span class="tag tag-tape">{f.tag}</span>}</p>
-                  <p class="text">{f.text}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+<section class="section feats" id="features" aria-labelledby="feat-title">
+  <div class="wrap feats-head">
+    <h2 id="feat-title" class="h2" data-reveal>{features.title}</h2>
+    <p class="feats-hint mono" aria-hidden="true">← scroll →</p>
+  </div>
+  <div class="rail" tabindex="0" role="region" aria-label="Features">
+    <ul class="rail-track">
+      {features.cards.map((c, i) => (
+        <li class="card" data-play data-ai-host data-reveal style={`--i:${i}`}>
+          <div class={`frag frag-${c.id}`} aria-hidden="true">
+            {c.id === 'quality' && (
+              <div class="fq">
+                <div class="fq-list">{rows.map(([q, b], k) => <span class="fq-row" style={`--k:${k}`}><span>{q}</span><b>{b}</b></span>)}</div>
+                <span class="fq-hl"></span>
+                <span class="fq-tag mono">60 fps · HDR</span>
+              </div>
+            )}
+            {c.id === 'resume' && (
+              <div class="fr">
+                <span class="fr-bar"><i></i></span>
+                <span class="fr-state mono"><span class="a">Downloading</span><span class="b">Restarted</span><span class="c">Downloading</span></span>
+                <span class="fr-icon" set:html={AI.refresh} />
+              </div>
+            )}
+            {c.id === 'fast' && (
+              <div class="ff">
+                {[0, 1, 2, 3].map((k) => <span class="ff-seg" style={`--k:${k}`}><i></i></span>)}
+              </div>
+            )}
+            {c.id === 'yield' && (
+              <div class="fy">
+                <span class="fy-player"><i class="fy-buf"></i><i class="fy-head"></i></span>
+                <span class="fy-row mono"><span>Your video</span><span class="fy-ok">smooth</span></span>
+                <span class="fy-dl"><i></i></span>
+                <span class="fy-row mono"><span>Download</span><span class="fy-slow"><span class="a">full speed</span><span class="b">making room</span></span></span>
+              </div>
+            )}
+            {c.id === 'members' && (
+              <div class="fm">
+                <span class="fm-title">Members-only video</span>
+                <span class="fm-chips"><span class="chip-age">Age-restricted</span><span class="chip-st"><span class="a">Downloading</span><span class="b">Completed</span></span></span>
+                <span class="fm-bar"><i></i></span>
+              </div>
+            )}
+            {c.id === 'update' && (
+              <div class="fu">
+                <span class="fu-row"><span>A new version is out</span><span class="fu-btn"><span class="a">Update</span><span class="b" set:html={AI.download} /></span></span>
+                <span class="fu-row fu-ext"><span>Browser extension</span><span class="fu-dot"></span></span>
+              </div>
+            )}
+          </div>
+          <div class="card-text">
+            <h3><span set:html={AI[cardIcon[c.id]]} />{c.title}</h3>
+            <p>{c.text}</p>
+          </div>
+        </li>
       ))}
-    </div>
-    <figure class="peek" data-peek aria-hidden="true"><img alt="" width="420" height="260" /></figure>
+    </ul>
+  </div>
+  <div class="wrap">
+    <ul class="chips" data-play>
+      {features.chips.map((c, i) => <li class="chip" data-ai-host style={`--i:${i}`}><span set:html={AI[chipIcon[c]]} />{c}</li>)}
+    </ul>
   </div>
 </section>
 
 <style>
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 40px; }
-  .chips button { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border: 1px solid var(--rule-strong); border-radius: var(--radius-sm); background: none; font-size: 0.9375rem; color: var(--ink-2); cursor: pointer; transition: color 0.15s var(--ease-tape), background-color 0.15s var(--ease-tape), border-color 0.15s var(--ease-tape); }
-  .chips button:hover { color: var(--ink); border-color: var(--ink-2); }
-  .chips button[aria-pressed="true"] { background: var(--ink); color: var(--ground); border-color: var(--ink); }
-  .chips .mono { font-size: 0.75rem; }
-  .group { margin-top: 8px; }
-  .group[hidden] { display: none; }
-  .group + .group { margin-top: 56px; }
-  .group-title { display: flex; align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); padding-bottom: 12px; border-bottom: 1px solid var(--ink); }
-  ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(24px, 4vw, 64px); }
-  li { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 16px; padding: 22px 0; border-bottom: 1px solid var(--rule); }
-  .ico { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--panel); border: 1px solid var(--rule); color: var(--ink); }
-  li[data-preview] .name { text-decoration: underline; text-decoration-color: var(--rule-strong); text-underline-offset: 0.25em; text-decoration-thickness: 1px; cursor: default; }
-  .name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-weight: 500; font-size: 1.0625rem; line-height: 1.35; }
-  .text { margin-top: 6px; color: var(--ink-2); font-size: 0.9688rem; line-height: 1.55; }
-  @media (max-width: 767px) { ul { grid-template-columns: minmax(0, 1fr); } }
-  .peek { position: fixed; left: 0; top: 0; z-index: 40; width: 300px; margin: 0; pointer-events: none; opacity: 0; transform: translate3d(var(--px, 0), var(--py, 0), 0) scale(0.96); transition: opacity 0.18s var(--ease-tape), transform 0.18s var(--ease-tape);
-    border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--rule-strong); box-shadow: var(--shadow-float); background: var(--panel); }
-  .peek[data-on] { opacity: 1; transform: translate3d(var(--px, 0), var(--py, 0), 0) scale(1); }
-  .peek img { width: 100%; height: auto; }
+  .feats-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: clamp(32px, 4vw, 48px); }
+  .feats-hint { color: var(--muted); font-size: 0.8125rem; white-space: nowrap; }
+  @media (max-width: 640px) { .feats-hint { display: none; } }
+  /* The rail lines up with the page's text on the left and runs off the right edge. */
+  .rail { --gut: max(clamp(16px, 4vw, 40px), calc((100vw - 1240px) / 2 + clamp(16px, 4vw, 40px))); overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gut); scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; overscroll-behavior-x: contain; }
+  .rail:focus-visible { outline-offset: -2px; }
+  .rail-track { list-style: none; margin: 0; padding: 8px var(--gut) 24px; display: flex; gap: 16px; width: max-content; }
+  .card { scroll-snap-align: start; width: clamp(260px, 26vw, 330px); aspect-ratio: 3 / 4.1; display: grid; grid-template-rows: 1fr auto; border-radius: var(--radius-l); background: var(--surface); border: 1px solid var(--line);
+    overflow: hidden; transition: transform .45s var(--ease-out), border-color .3s, box-shadow .45s var(--ease-out); }
+  .card:hover { transform: translateY(-6px); border-color: var(--line-2); box-shadow: var(--shadow); }
+  .card-text { padding: 20px 22px 24px; display: grid; gap: 8px; }
+  .card-text h3 { display: flex; align-items: center; gap: 10px; font-size: 1.375rem; letter-spacing: -0.025em; line-height: 1.1; }
+  .card-text h3 :global(.ai) { color: var(--accent-hi); }
+  .card-text p { color: var(--muted); font-size: 1rem; line-height: 1.5; }
+  .frag { position: relative; margin: 14px 14px 0; border-radius: 16px; background: radial-gradient(120% 100% at 50% 0%, color-mix(in srgb, var(--accent) 16%, var(--surface-2)), var(--surface-2)); overflow: hidden;
+    display: grid; place-items: center; padding: 22px; font-size: 1rem; color: var(--text); }
+  .frag > div { width: 100%; max-width: 250px !important; }
+  .frag .mono { font-size: 0.75rem; color: var(--muted); }
+
+  /* Up to 8K: the list settles on its top row */
+  .fq { position: relative; width: 100%; max-width: 230px; display: grid; gap: 10px; }
+  .fq-list { display: grid; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); padding: 6px 0; }
+  .fq-row { display: flex; align-items: baseline; gap: 6px; padding: 7px 14px; font-family: var(--font-mono); font-size: 0.8125rem; }
+  .fq-row b { font-size: 0.5625rem; color: var(--accent-hi); font-weight: 700; align-self: flex-start; }
+  .fq-hl { position: absolute; left: 1px; right: 1px; top: 7px; height: 33px; border-radius: 6px; background: color-mix(in srgb, var(--accent) 22%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent);
+    transform: translateY(132px); }
+  .fq-tag { justify-self: start; }
+  .play .fq-hl { animation: fq 1.6s .2s var(--ease-out) both; }
+  @keyframes fq { 0% { transform: translateY(132px); } 35% { transform: translateY(99px); } 60% { transform: translateY(33px); } 100% { transform: translateY(0); } }
+
+  /* Keeps going: stops at a restart, then continues where it was */
+  .fr { width: 100%; max-width: 230px; display: grid; gap: 12px; justify-items: start; }
+  .fr-bar { width: 100%; height: 12px; border-radius: 6px; background: var(--line-2); overflow: hidden; }
+  .fr-bar i { display: block; height: 100%; width: 100%; background: var(--accent); border-radius: 4px; transform-origin: 0 50%; transform: scaleX(0); }
+  .fr-state { display: grid; } .fr-state > span { grid-area: 1 / 1; opacity: 0; }
+  .fr-icon { color: var(--muted); }
+  .play .fr-bar i { animation: fr-bar 4s .2s linear both; }
+  .play .fr-state .a { animation: show 1.4s .2s both; } .play .fr-state .b { animation: show 1.2s 1.6s both; } .play .fr-state .c { animation: show-stay 1s 2.8s both; }
+  .play .fr-icon :global(.m-turn) { animation: spin 1s 1.6s var(--ease-out) both; }
+  @keyframes fr-bar { 0% { transform: scaleX(0); } 35% { transform: scaleX(.58); } 65% { transform: scaleX(.58); } 100% { transform: scaleX(1); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes show { 0%, 100% { opacity: 0; } 15%, 85% { opacity: 1; } }
+  @keyframes show-stay { from { opacity: 0; } to { opacity: 1; } }
+
+  /* Fast: four parts at once */
+  .ff { width: 100%; max-width: 230px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .ff-seg { height: 44px; border-radius: 8px; background: var(--line-2); overflow: hidden; }
+  .ff-seg i { display: block; height: 100%; background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); }
+  .play .ff-seg i { animation: fill 1.6s calc(.2s + var(--k) * .08s) cubic-bezier(.4, 0, .3, 1) both; }
+  .play .ff-seg:nth-child(2) i { animation-duration: 1.9s; } .play .ff-seg:nth-child(3) i { animation-duration: 1.4s; } .play .ff-seg:nth-child(4) i { animation-duration: 1.75s; }
+  @keyframes fill { to { transform: scaleX(1); } }
+
+  /* Your video comes first */
+  .fy { width: 100%; max-width: 230px; display: grid; gap: 8px; }
+  .fy-player { position: relative; height: 96px; border-radius: 8px; background: linear-gradient(160deg, #3c5a9e, #12203f 80%); overflow: hidden; }
+  .fy-buf { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgb(255 255 255 / 0.5); transform-origin: 0 50%; transform: scaleX(.7); }
+  .fy-head { position: absolute; left: 0; bottom: 0; width: 100%; height: 3px; background: #fff; transform-origin: 0 50%; transform: scaleX(.2); }
+  .fy-row { display: flex; justify-content: space-between; }
+  .fy-ok { color: #4CC38A !important; }
+  .fy-dl { height: 12px; border-radius: 6px; background: var(--line-2); overflow: hidden; }
+  .fy-dl i { display: block; height: 100%; width: 200%; background: repeating-linear-gradient(90deg, var(--accent) 0 10px, var(--accent-hi) 10px 20px); }
+  .fy-slow { display: grid; } .fy-slow > span { grid-area: 1 / 1; } .fy-slow .b { opacity: 0; color: var(--accent-hi); }
+  .play .fy-buf { animation: buf 4s .2s ease-in-out both; }
+  .play .fy-head { animation: head 4s .2s linear both; }
+  .play .fy-dl i { animation: stripes 4s .2s cubic-bezier(.2, .7, .4, 1) both; }
+  .play .fy-slow .a { animation: show-out 4s .2s both; } .play .fy-slow .b { animation: show-mid 4s .2s both; }
+  @keyframes buf { 0% { transform: scaleX(.7); } 40% { transform: scaleX(.34); } 100% { transform: scaleX(.9); } }
+  @keyframes head { to { transform: scaleX(.32); } }
+  @keyframes stripes { 0% { transform: translateX(0); } 30% { transform: translateX(-30%); } 65% { transform: translateX(-34%); } 100% { transform: translateX(-50%); } }
+  @keyframes show-out { 0%, 28%, 70%, 100% { opacity: 1; } 32%, 66% { opacity: 0; } }
+  @keyframes show-mid { 0%, 28%, 70%, 100% { opacity: 0; } 32%, 66% { opacity: 1; } }
+
+  /* Members and age-restricted: it finishes like any other */
+  .fm { width: 100%; max-width: 230px; display: grid; gap: 10px; padding: 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+  .fm-title { font-weight: 550; }
+  .fm-chips { display: flex; gap: 6px; flex-wrap: wrap; font-size: 0.6875rem; font-weight: 600; }
+  .fm-chips > span { height: 20px; padding: 0 8px; border-radius: 10px; display: inline-flex; align-items: center; }
+  .chip-age { background: color-mix(in srgb, var(--text) 10%, transparent); color: var(--text); }
+  .chip-st { display: inline-grid !important; padding: 0 !important; } .chip-st > span { grid-area: 1 / 1; height: 20px; padding: 0 8px; border-radius: 10px; display: inline-flex; align-items: center; }
+  .chip-st .a { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent-hi); }
+  .chip-st .b { background: color-mix(in srgb, #4CC38A 18%, transparent); color: #6fd6a0; opacity: 0; }
+  .fm-bar { height: 6px; border-radius: 3px; background: var(--line-2); overflow: hidden; }
+  .fm-bar i { display: block; height: 100%; background: var(--accent); transform-origin: 0 50%; transform: scaleX(.1); }
+  .play .fm-bar i { animation: fill 2.2s .2s cubic-bezier(.4, 0, .3, 1) both; }
+  .play .chip-st .a { animation: show-out2 .4s 2.3s both; } .play .chip-st .b { animation: show-stay .4s 2.3s both; }
+  @keyframes show-out2 { to { opacity: 0; } }
+
+  /* Updates itself */
+  .fu { width: 100%; max-width: 240px; display: grid; gap: 8px; }
+  .fu-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font-size: 0.8125rem; }
+  .fu-btn { display: inline-grid; place-items: center; min-width: 74px; height: 30px; border-radius: 8px; background: var(--accent-fill); color: var(--on-accent); font-weight: 600; font-size: 0.75rem; }
+  .fu-btn > span { grid-area: 1 / 1; }
+  .fu-btn .b { opacity: 0; }
+  .fu-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); box-shadow: 0 0 0 3px color-mix(in srgb, var(--muted) 25%, transparent); }
+  .play .fu-btn { animation: press .3s .8s both; }
+  .play .fu-btn .a { animation: show-out2 .2s 1s both; }
+  .play .fu-btn .b { animation: show-stay .2s 1s both; }
+  .play .fu-btn :global(.m-done) { stroke-dashoffset: 0 !important; opacity: 1 !important; transition-delay: 1.15s !important; }
+  .play .fu-btn :global(.m-drop), .play .fu-btn :global(.ai-download > path:nth-child(2)) { opacity: 0; transition-delay: 1s; }
+  .play .fu-dot { animation: dot .4s 1.9s both; }
+  @keyframes press { 50% { transform: scale(.92); } }
+  @keyframes dot { to { background: #4CC38A; box-shadow: 0 0 0 3px color-mix(in srgb, #4CC38A 30%, transparent); } }
+
+  .chips { list-style: none; margin: clamp(28px, 4vw, 40px) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px 0 12px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface); font-size: 0.9375rem; color: var(--text);
+    transition: border-color .2s, transform .3s var(--ease-out); }
+  .chip:hover { border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+  .chip :global(.ai) { width: 18px; height: 18px; color: var(--accent-hi); }
+  .js .chips .chip { opacity: 0; transform: translateY(10px); }
+  .js .chips.play .chip { opacity: 1; transform: none; transition: opacity .5s var(--ease-out), transform .5s var(--ease-out), border-color .2s; transition-delay: calc(var(--i) * 60ms); }
+  [data-motion="reduced"] .chips .chip { opacity: 1 !important; transform: none !important; }
 </style>

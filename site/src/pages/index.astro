@@ -1,45 +1,39 @@
 ---
 // The page, top to bottom. Each section is in src/components; the interactive parts are React islands in
-// src/islands, hydrated when they come into view; scripts/ui.ts does the rest without React.
-import Announcement from '../components/Announcement.astro';
-import Compare from '../components/Compare.astro';
-import Compatibility from '../components/Compatibility.astro';
+// src/islands; scripts/ui.ts does the rest without React.
 import Faq from '../components/Faq.astro';
 import Features from '../components/Features.astro';
 import FinalCta from '../components/FinalCta.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
+import HowItWorks from '../components/HowItWorks.astro';
 import Install from '../components/Install.astro';
-import Maker from '../components/Maker.astro';
-import Marquee from '../components/Marquee.astro';
-import Numbers from '../components/Numbers.astro';
-import Showcase from '../components/Showcase.astro';
-import TrustStrip from '../components/TrustStrip.astro';
-import TwoParts from '../components/TwoParts.astro';
-import WhatsNew from '../components/WhatsNew.astro';
+import OldWay from '../components/OldWay.astro';
+import Support from '../components/Support.astro';
+import TrustLine from '../components/TrustLine.astro';
+import TrySection from '../components/TrySection.astro';
 import Base from '../layouts/Base.astro';
 ---
 <Base>
-  <Announcement />
   <Header />
   <main id="main">
     <Hero />
-    <TrustStrip />
-    <Marquee />
-    <TwoParts />
-    <Showcase />
+    <TrustLine />
+    <TrySection />
+    <HowItWorks />
     <Features />
-    <Compare />
-    <Numbers />
+    <OldWay />
     <Install />
-    <Compatibility />
-    <WhatsNew />
     <Faq />
-    <Maker />
+    <Support />
     <FinalCta />
   </main>
   <Footer />
+  <div class="cur" aria-hidden="true" data-cursor-el>
+    <span class="cur-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v12m0 0-5-5m5 5 5-5" /></svg><span>Try</span></span>
+    <span class="cur-dot"></span>
+  </div>
 </Base>
 
 <script>
