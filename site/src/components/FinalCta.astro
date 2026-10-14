@@ -1,21 +1,37 @@
 ---
-// The closing line is the README's own, from the end of the install guide.
-import DownloadCta from './DownloadCta.astro';
-import { closing } from '../lib/content';
+// One big statement and the download button, over a slow loop of the hero's film (the small, blurred copy).
+import { AI } from '../lib/anim-icons';
+import { DOWNLOAD_X64, EXTENSION_ZIP, finalCta, hero } from '../lib/content';
+import { back } from '../lib/media';
 ---
-<section class="final" aria-labelledby="fin-h">
-  <div class="wrap fin">
-    <h2 id="fin-h">{closing.title}</h2>
-    <p>{closing.text}</p>
-    <DownloadCta id="final-dl" />
+<section class="fin" aria-labelledby="fin-title">
+  <div class="fin-back" aria-hidden="true">
+    <video data-back data-slow muted playsinline loop preload="none" poster={back.poster} disablepictureinpicture>
+      {back.sources.map((s) => <source data-src={s.src} type={s.type} />)}
+    </video>
+    <div class="grain"></div>
+    <div class="fin-shade"></div>
+  </div>
+  <div class="wrap fin-in">
+    <h2 id="fin-title" class="fin-h" data-reveal>{finalCta.title}</h2>
+    <p class="fin-line" data-reveal style="--i:1">{finalCta.line}</p>
+    <div data-reveal style="--i:2">
+      <a class="btn btn-primary os-windows" href={DOWNLOAD_X64} data-download><Fragment set:html={AI.download} />{finalCta.button}</a>
+      <a class="btn btn-primary os-other" href={EXTENSION_ZIP} data-download><Fragment set:html={AI.download} />{hero.extension}</a>
+      <a class="btn btn-primary os-phone" href="#install">{hero.phone}</a>
+    </div>
   </div>
 </section>
 
 <style>
-  .final { padding-block: clamp(120px, 16vw, 220px) clamp(96px, 12vw, 160px); }
-  .fin { display: grid; justify-items: center; text-align: center; gap: 28px; }
-  h2 { font-size: clamp(4rem, 1rem + 12vw, 13rem); font-weight: 700; letter-spacing: -0.06em; line-height: 0.85; }
-  p { color: var(--ink-2); font-size: clamp(1.125rem, 1rem + 0.4vw, 1.375rem); max-width: 40ch; }
-  .fin :global(.cta), .fin :global(.os) { justify-items: center; }
-  .fin :global(.more) { text-align: center; }
+  .fin { position: relative; margin-top: clamp(96px, 13vw, 176px); padding-block: clamp(120px, 16vw, 220px); overflow: clip; isolation: isolate; text-align: center; }
+  .fin-back { position: absolute; inset: 0; z-index: -1; background: #0b1226; }
+  .fin-back video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.15); }
+  .fin-shade { position: absolute; inset: 0; background: radial-gradient(80% 70% at 50% 50%, rgb(7 8 11 / 0.35), rgb(7 8 11 / 0.85)), linear-gradient(180deg, var(--bg), transparent 25%, transparent 75%, var(--bg)); }
+  .fin-in { display: grid; justify-items: center; gap: 20px; color: #EDF0F7; }
+  .fin-h { font-size: clamp(3rem, 1.4rem + 6vw, 7rem); font-weight: 700; letter-spacing: -0.05em; }
+  .fin-line { font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem); color: #C3CADA; margin-bottom: 10px; }
+  .os-other, .os-phone { display: none !important; }
+  :global([data-os="linux"]) .os-windows, :global([data-os="mac"]) .os-windows, :global([data-os="phone"]) .os-windows { display: none; }
+  :global([data-os="linux"]) .os-other, :global([data-os="mac"]) .os-other, :global([data-os="phone"]) .os-phone { display: inline-flex !important; }
 </style>

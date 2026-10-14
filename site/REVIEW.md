@@ -1,65 +1,45 @@
 # Self-review
 
-The finished page, opened at 360 to 1920 px in dark and light, checked against the brief's anti-AI-look rules and
-its other requirements. What I found and what I changed.
+The built page, checked at 390 to 1920 px in dark and light against the brief's section 12 ("Never") and its other
+requirements: what I found and what I changed.
 
-## The anti-AI-look rules
+## Section 12, item by item
 
-| Rule | Where the page stands |
-|---|---|
-| No three identical icon cards in a row | None. Features are a ruled two-column list; numbers are a ledger; the two parts are an asymmetric 7/4 split. |
-| No bento of icon-plus-two-lines boxes | None. The previous site's bento is gone. |
-| No generic icon library as decoration | The demos use the extension's own icons. The feature list uses 24 icons drawn for the page (`src/lib/site-icons.ts`) in the same filled, rounded style. |
-| Glass only on the nav | Only the nav. Nothing else blurs. |
-| No shadow on every element | Shadows only on things that float: the nav, the demo stage, the menus inside the demos (the extension's own), the compare handle and the hover preview. |
-| No coloured left-border stripes | None. |
-| No sparkles, "AI-native", "supercharge", "unlock", "seamless", "next-level" | None. The copy is the README's. |
-| No headline that fits any product | "Up to 8K, right under the video." only fits a toolbar that downloads; section titles say what the section shows. |
-| No fake logos, stats or testimonials | None. Every number is in the README; the star count isn't shown. |
-| No animation that explains nothing | Every moving part shows something real: the tour (how the toolbar works), the ring (progress), the line (the extension finding the app), the ticker (the figure), the marquee (the ten languages). The headline rise and title reveals are the only ornament, once each, under a second. |
+| Never | Found | Fixed |
+|---|---|---|
+| Orange | An amber "Age-restricted" chip in a feature card, an amber USDT warning, red 8K/4K labels in a feature fragment, a yellow folder icon in the demo's folder window | All four turned blue or neutral. The app's icon (a red cassette) and the red quality labels inside the real toolbar demo stay: they are the product's own look |
+| Purple, neon glow, gradient text, emoji | None | — |
+| Version numbers, changelogs, spec tables, RAM figures, checksums, star counts | None visible (the structured data for search engines names the version) | — |
+| Testimonials, invented numbers | "4 parts at once" in the Fast card: the README says "several parts" | Removed the label |
+| Section numbers | None; the install steps are numbered because their order is real | — |
+| Bento grids, three identical icon cards | None | — |
+| Copy-pasted library components, library credits | None; every component is built here | — |
+| Raster screenshots of the app | None. The only raster media are the film (with its posters) and the social preview | — |
+| More than one interactive demo | Only Try it | — |
+| A cursor that clicks beside its target | 16 of 16 cursor tests pass at 390, 768, 1280 and 1920 px | Fixed a test that clicked before the stepper was ready |
+| More than 2 buttons per section | Hero: Download and Watch it work, plus the small replay icon the brief asks for | — |
+| Paragraphs over 2 lines | The install steps wrapped to 3 lines in their column | Wider column, slightly smaller text |
+| YouTube logos or red play buttons | None; the player and page around the toolbar are neutral | — |
 
-## Fixed during the review
+## Other requirements
 
-- **Condensed nav overlapped "FAQ"**: the shift was computed from total widths; it's now limited by the measured gap
-  on each side of the centred links.
-- **Links had no underline**: Tailwind's reset made links inherit `text-decoration: none`; links in text are
-  underlined again (Lighthouse "link in text block").
-- **Inactive showcase chapters were dimmed with opacity**: that failed contrast; they now step back in colour only.
-- **The quality select's spoken name didn't match its text**: now labelled by its label and its own content.
-- **The extension's 8K/4K badge** (`#ff0033` on `#2c2c2c`, 3.5:1): the demos use the extension's dark-theme red
-  (5:1). The extension and the userscript now use that red too (`CHANGELOG.md`, Unreleased).
-- **Tiny tap targets on phones**: the scaled demos' buttons were ~20 px; on phones the demos play as illustrations
-  (inert, with a text alternative).
-- **The trim summary**: the previous site showed "Clip · 02:45"; the extension writes "Clip · 2:45" (`fmtClock`).
-- **Before/after collapsed on phones**: the extension's floating dropdown style won over the in-flow one.
-- **The line between Side A and Side B crossed the text when stacked**: hidden below 1024 px; the caption says it.
-- **Checksum code blocks widened the page at 360 px**: grid children now shrink.
-- **Tooltips near the stage edge were cut off**: they're kept inside, as the extension clamps them to the window.
-- **The Shorts screenshot** (`docs/images/shorts-menu.png`) showed NASA's insignia; it's re-shot with Blender
-  Studio's Short, the menu open.
-- **Light theme**: the size label inside the download button failed contrast (it was dimmed); now full colour.
-- **Performance** (Lighthouse mobile went from 82 to 98): the hero's demo hydrates after the first paint
-  (a small `client:lazy` directive), smooth scrolling and the glass load on the first scroll, the glass map is
-  drawn only along the rim at half size (300 ms → a few ms), the marquee's Cyrillic and CJK fonts load late, the body
-  font doesn't swap after the first paint, long sections use `content-visibility`.
+- **White text on `#3D7BFF`** is 3.8:1, below AA for 16 px text. Filled buttons and tabs use `#2F6BF0` (4.7:1); `#3D7BFF`
+  stays for rings, lines and glow. Lighthouse accessibility went from 97 to 100.
+- **Lighthouse (phone, simulated)**: Performance 99, Accessibility 100, Best Practices 100, SEO 100; LCP 1.8–2.0 s
+  (the film's poster), CLS 0, TBT 0 ms.
+- **First JavaScript**: about 120 KB gzipped once the hero's demo has loaded; it loads after the first paint.
+- **Hero**: the toolbar used to appear only once the script ran (about 3 s on a slow load); it now rises with CSS on
+  the first paint, and the cursor part starts when the script is ready. The cursor part takes about 3.5 s, the whole
+  intro with the pill's flight about 4.5 s.
+- **Install loops**: labels match the measured loops (6.7 s, 6.9 s, 10.3 s → `0:07`, `0:07`, `0:10`).
+  The last step now ends on the app window saying Connected; before, that change happened behind the extensions page.
+- **The 8K hero**: no Blender open movie is on YouTube above 4K, so the player shows Big Buck Bunny's real top
+  quality, `2160p60 4K`.
+- **Phones**: no custom cursor, no tilt, no pinning; Try it is a picture there (its real-size buttons would be too
+  small to tap) and its tabs still switch it; the hero plays its intro without a cursor.
 
-## Requirements, checked
+## Not verified
 
-- Lighthouse (mobile, simulated): Performance 98, Accessibility 100, Best Practices 100, SEO 100; LCP 2.3 s, CLS 0,
-  TBT under 50 ms. Desktop: 100 / 100 / 100 / 100.
-- No horizontal scroll at 360, 390, 768, 1024, 1280, 1440 and 1920 px.
-- One `h1`, no skipped heading levels, alt text on every image, every control reachable by keyboard.
-- Every fact, link and section of the previous page: see `CHECKLIST.md`.
-
-## Not verified, or not done
-
-- **The 8K hero**: the hero shows *Big Buck Bunny* at up to 2160p60, because that's what YouTube serves for it.
-  NASA's public-domain 8K video is 7680×3840, which the toolbar currently labels "3840p · 4K"; see the open issue
-  about labelling wide videos.
-- **The glass's refraction** was checked in headless Chrome 155 only, with the hero's picture scrolled under the
-  nav: the nav gets `backdrop-filter: url(#ydm-glass) blur(3px) saturate(1.5)`, and the picture behind it is
-  visibly displaced compared with the same spot under the plain blur. Not checked on a real phone or a low-memory
-  device (both should get the blur), and whether the effect reads well is a matter of taste.
-- **Recordings**: four of five chapters have a clip of the real app (`video`, `trim`, `audio`, `shorts`).
-  `history` still shows the README's screenshot: YouTube asked the recording browser to sign in ("confirm you're
-  not a bot") during the download, twice, and I didn't sign in.
+- Glass refraction, the custom cursor and the tilt on a real phone or tablet (checked in desktop Chrome and its phone
+  emulation only).
+- Safari and Firefox (the glass falls back to blur there by design; not opened).

@@ -1,64 +1,88 @@
 ---
-// The hero: the headline, the download button for the visitor's system, and the product itself at full width:
-// the toolbar under a player, run by a guided cursor until the visitor clicks. The headline's words are split
-// here, at build time, and rise in with CSS, so the first paint needs no script and nothing moves (CLS 0).
-import { getImage } from 'astro:assets';
-import DownloadCta from './DownloadCta.astro';
-import Demo from '../islands/Demo.tsx';
-import bbb from '../assets/frames/bbb.jpg';
-import cover from '../assets/frames/bbb-cover.jpg';
-import video from '../data/videos/aqz-KE-bpKQ.json';
-import { REPO, hero } from '../lib/content';
-import { latestRelease } from '../lib/release';
+// The hero: the film loop, blurred and graded blue, fills the back (its poster paints first; the video starts after
+// the page has loaded, see scripts/ui.ts). In front, the player with the toolbar plays the intro once and tilts a
+// little with the pointer. The download button follows the visitor's system.
+import Demo from '../islands/Demo';
 import type { VideoData } from '../islands/demo/model';
-
-const { version } = await latestRelease();
-const [f640, f989, c144] = await Promise.all([
-  getImage({ src: bbb, width: 640, format: 'webp', quality: 80 }),
-  getImage({ src: bbb, width: 989, format: 'webp', quality: 80 }),
-  getImage({ src: cover, width: 144, format: 'webp', quality: 80 }),
-]);
-const frame = { src: f989.src, srcset: `${f640.src} 640w, ${f989.src} 989w`, width: 989, height: 556, alt: 'A frame of Big Buck Bunny paused in the player' };
-const words = hero.title.split(' ');
+import video from '../data/videos/aqz-KE-bpKQ.json';
+import { DOWNLOAD_X64, EXTENSION_ZIP, SITE_URL, hero } from '../lib/content';
+import { film, back } from '../lib/media';
+import { AI } from '../lib/anim-icons';
 ---
 <section class="hero" id="top" aria-labelledby="hero-title">
-  <div class="wrap">
-    <div class="hero-head">
-      <div class="hero-title">
-        <p class="label hero-eyebrow"><span>{hero.eyebrow}</span><span class="mono">v<span data-release-version>{version}</span></span></p>
-        <h1 id="hero-title">
-          <span class="sr-only">{hero.title}</span>
-          {words.map((w, i) => <><span class="w" aria-hidden="true" style={`--i:${i}`}>{w}</span>{i < words.length - 1 ? ' ' : ''}</>)}
-        </h1>
-      </div>
-      <div class="hero-side">
-        <p class="hero-lead">{hero.lead}</p>
-        <DownloadCta id="hero-dl" />
-        <a class="hero-src" href={REPO}>Source code on GitHub</a>
-      </div>
-    </div>
+  <div class="hero-back" aria-hidden="true">
+    <video data-back muted playsinline loop preload="none" poster={back.poster} disablepictureinpicture>
+      {back.sources.map((s) => <source data-src={s.src} type={s.type} />)}
+    </video>
+    <div class="grain"></div>
+    <div class="hero-shade"></div>
   </div>
-  <div class="hero-stage">
-    <Demo client:lazy scene="video" data={video as VideoData} frame={frame} cover={c144.src} label="Illustration of the download toolbar under a video" />
-    <p class="caption hero-caption">
-      {hero.caption} Quality list and sizes as the toolbar shows them for this video with the app running. Picture: <i>Big Buck Bunny</i>, © Blender Foundation, <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.
-    </p>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="label hero-eyebrow">{hero.eyebrow}</p>
+      <h1 id="hero-title" class="hero-title">{hero.title.map((l) => <span>{l}</span>)}</h1>
+      <p class="hero-sub">{hero.sub}</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary os-windows" href={DOWNLOAD_X64} data-download>
+          <Fragment set:html={AI.download} />
+          {hero.primary}
+        </a>
+        <a class="btn btn-primary os-other" href={EXTENSION_ZIP} data-download>{hero.extension}</a>
+        <span class="os-phone hero-phone">
+          <span class="hero-phone-text">{hero.phone}</span>
+          <button class="btn btn-primary" type="button" data-copy={SITE_URL}>{hero.copyLink}<span class="sr-only" data-copy-status aria-live="polite"></span></button>
+        </span>
+        <a class="btn btn-quiet" href="#try">{hero.secondary}</a>
+      </div>
+      <p class="hero-small">{hero.small}</p>
+    </div>
+    <figure class="hero-product" aria-label="The download toolbar under a video: the camera button opens the video picker, the top quality is picked, and the download starts.">
+      <div class="hero-frame" data-tilt>
+        <Demo client:lazy mode="hero" scene="video" data={video as VideoData} film={film} label="The download toolbar under a video" />
+      </div>
+    </figure>
   </div>
 </section>
 
 <style>
-  .hero { padding-top: clamp(112px, 14vw, 168px); }
-  .hero-head { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(16px, 2.4vw, 32px); row-gap: 36px; align-items: end; }
-  .hero-title { grid-column: 1 / span 8; }
-  .hero-side { grid-column: 9 / span 4; display: grid; gap: 22px; justify-items: start; padding-bottom: 0.6rem; }
-  @media (max-width: 1023px) { .hero-title, .hero-side { grid-column: 1 / -1; } }
-  .hero-eyebrow { display: flex; gap: 14px; margin-bottom: 22px; }
-  .hero-eyebrow .mono { color: var(--tape-text); letter-spacing: 0.02em; text-transform: none; }
-  h1 { font-size: clamp(3.1rem, 0.9rem + 8.2vw, 8.4rem); font-weight: 700; letter-spacing: -0.052em; line-height: 0.9; max-width: 11ch; }
-  .w { display: inline-block; animation: rise 0.9s var(--ease-tape) both; animation-delay: calc(0.08s + var(--i) * 0.055s); }
-  @keyframes rise { from { opacity: 0; transform: translateY(0.32em); clip-path: inset(0 0 100% 0); } to { opacity: 1; transform: none; clip-path: inset(0 0 -20% 0); } }
-  .hero-lead { font-size: clamp(1.125rem, 1.05rem + 0.35vw, 1.3125rem); line-height: 1.5; color: var(--ink-2); max-width: 36ch; }
-  .hero-src { font-size: 0.9375rem; color: var(--ink-2); }
-  .hero-stage { width: 100%; max-width: 1304px; margin: clamp(48px, 7vw, 88px) auto 0; padding-inline: clamp(8px, 2vw, 32px); }
-  .hero-caption { margin-top: 6px; max-width: 80ch; padding-inline: 4px; }
+  .hero { position: relative; overflow: clip; padding-block: clamp(120px, 15vh, 168px) clamp(64px, 9vw, 112px); isolation: isolate; }
+  .hero-back { position: absolute; inset: 0; z-index: -1; background: #0b1226; }
+  .hero-back video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); }
+  .hero-shade { position: absolute; inset: 0;
+    background:
+      radial-gradient(120% 90% at 70% 40%, transparent 0%, rgb(7 8 11 / 0.55) 70%, var(--bg) 100%),
+      linear-gradient(90deg, rgb(7 8 11 / 0.82) 0%, rgb(7 8 11 / 0.35) 55%, rgb(7 8 11 / 0.2) 100%),
+      linear-gradient(180deg, transparent 60%, var(--bg) 100%); }
+  [data-theme="light"] .hero-shade { background:
+      radial-gradient(120% 90% at 70% 40%, transparent 0%, rgb(7 8 11 / 0.5) 70%, rgb(7 8 11 / 0.9) 100%),
+      linear-gradient(90deg, rgb(7 8 11 / 0.8) 0%, rgb(7 8 11 / 0.3) 60%),
+      linear-gradient(180deg, transparent 70%, var(--bg) 100%); }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); align-items: center; gap: clamp(32px, 5vw, 72px); }
+  .hero-copy { display: grid; gap: 22px; justify-items: start; color: #EDF0F7; }
+  .hero-eyebrow { color: #A9B3C9; }
+  .hero-title { font-size: clamp(2.75rem, 1.3rem + 3.7vw, 4.75rem); font-weight: 700; letter-spacing: -0.045em; line-height: 0.95; }
+  .hero-title span { display: block; }
+  .hero-title span + span { color: #8FB2FF; }
+  .hero-sub { font-size: clamp(1.125rem, 1rem + 0.4vw, 1.3125rem); color: #C3CADA; max-width: 30ch; }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+  .hero-cta .btn-quiet { color: #EDF0F7; background: rgb(237 240 247 / 0.08); border-color: rgb(237 240 247 / 0.18); }
+  .hero-cta .btn-quiet:hover { background: rgb(237 240 247 / 0.14); }
+  .hero-small { font-size: 0.875rem; color: #9AA3B6; }
+  .os-other, .os-phone { display: none !important; }
+  :global([data-os="linux"]) .os-windows, :global([data-os="mac"]) .os-windows, :global([data-os="phone"]) .os-windows { display: none; }
+  :global([data-os="linux"]) .os-other, :global([data-os="mac"]) .os-other { display: inline-flex !important; }
+  :global([data-os="phone"]) .os-phone { display: inline-flex !important; }
+  .hero-phone { align-items: center; gap: 12px; flex-wrap: wrap; }
+  .hero-phone-text { font-weight: 550; }
+
+  .hero-product { margin: 0; perspective: 1200px; display: grid; gap: 14px; justify-items: end; }
+  .hero-frame { width: 100%; transform-style: preserve-3d; will-change: transform; border-radius: var(--radius-m); box-shadow: 0 40px 120px -30px rgb(0 0 0 / 0.85), 0 0 0 1px rgb(237 240 247 / 0.1), 0 0 90px -20px var(--accent-glow); }
+  .hero-frame :global(.replay) { position: absolute; right: 0; bottom: -46px; }
+  .hero-frame { position: relative; }
+
+  @media (max-width: 899px) {
+    .hero { padding-top: 112px; }
+    .hero-grid { grid-template-columns: 1fr; gap: 56px; }
+    .hero-product { justify-items: stretch; }
+  }
 </style>

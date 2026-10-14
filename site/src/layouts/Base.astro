@@ -1,34 +1,30 @@
 ---
-// The document: every tag of the previous site's head (search engines, link previews, structured data), the fonts
-// (only the subsets the page uses, self-hosted), and a script that runs before the first paint so nothing flashes
-// or moves: the theme, the visitor's system (which download button to show) and the motion setting.
+// The document: the previous site's head (search engines, link previews, structured data), the fonts (only the
+// subsets the page uses, self-hosted), and a script that runs before the first paint so nothing flashes or moves:
+// the theme, the visitor's system (which download button to show) and the motion setting.
 import funnelLatin from '@fontsource-variable/funnel-display/files/funnel-display-latin-wght-normal.woff2?url';
 import funnelLatinExt from '@fontsource-variable/funnel-display/files/funnel-display-latin-ext-wght-normal.woff2?url';
 import onestLatin from '@fontsource-variable/onest/files/onest-latin-wght-normal.woff2?url';
 import onestLatinExt from '@fontsource-variable/onest/files/onest-latin-ext-wght-normal.woff2?url';
-import onestCyrillic from '@fontsource-variable/onest/files/onest-cyrillic-wght-normal.woff2?url';
 import monoLatin from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
 import { DOWNLOAD_X64, RELEASES, REPO, SITE_URL, faq, seo } from '../lib/content';
-import { latestRelease } from '../lib/release';
+import { latestVersion } from '../lib/release';
 import '../styles/global.css';
 
-const release = await latestRelease();
+const version = await latestVersion();
 const base = import.meta.env.BASE_URL;
 
 const LATIN = 'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD';
 const LATIN_EXT = 'U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF';
-const CYRILLIC = 'U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116';
 const face = (family: string, url: string, range: string, weight = '100 900', display = 'swap') =>
   `@font-face{font-family:'${family}';font-style:normal;font-display:${display};font-weight:${weight};src:url(${url}) format('woff2-variations');unicode-range:${range}}`;
-// Both faces are preloaded. The display face swaps in when it arrives; the body face is "optional": if it isn't
-// there within the first moment (a slow first visit), the text stays in the fallback for that visit instead of
-// being drawn twice, which keeps the largest paint early. It's cached for the next page view.
+// The display face swaps in when it arrives; the body face is "optional": on a slow first visit the text stays in
+// the fallback instead of being drawn twice, which keeps the largest paint early. It's cached for the next visit.
 const fonts = [
   face('Funnel Display', funnelLatin, LATIN, '300 800'),
   face('Funnel Display', funnelLatinExt, LATIN_EXT, '300 800'),
   face('Onest', onestLatin, LATIN, '100 900', 'optional'),
   face('Onest', onestLatinExt, LATIN_EXT, '100 900', 'optional'),
-  face('Onest', onestCyrillic, CYRILLIC, '100 900', 'optional'),
   face('JetBrains Mono', monoLatin, LATIN, '100 800'),
 ].join('');
 
@@ -40,7 +36,7 @@ const app = {
   description: seo.ldDescription,
   applicationCategory: 'MultimediaApplication',
   operatingSystem: 'Windows 10, Windows 11',
-  softwareVersion: release.version,
+  softwareVersion: version || undefined,
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
   downloadUrl: RELEASES,
   installUrl: DOWNLOAD_X64,
@@ -55,11 +51,11 @@ const app = {
 const faqLd = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
-  mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.ldQ ?? f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
 };
 ---
 <!doctype html>
-<html lang="en" data-theme="dark" data-os="windows" data-motion="full" data-built={new Date().toISOString()}>
+<html lang="en" data-theme="dark" data-os="windows" data-motion="full">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -68,12 +64,11 @@ const faqLd = {
     <meta name="keywords" content={seo.keywords} />
     <meta name="author" content="NyxiYT" />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#0f0f0f" />
+    <meta name="theme-color" content="#07080B" />
     <link rel="canonical" href={SITE_URL} />
     <link rel="icon" type="image/png" href={`${base}images/icon.png`} />
     <link rel="preload" href={funnelLatin} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={onestLatin} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={monoLatin} as="font" type="font/woff2" crossorigin />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="YT Download Manager" />
     <meta property="og:title" content={seo.ogTitle} />
@@ -89,6 +84,7 @@ const faqLd = {
     <script type="application/ld+json" set:html={JSON.stringify(app)} />
     <script type="application/ld+json" set:html={JSON.stringify(faqLd)} />
     <style is:inline set:html={fonts}></style>
+    <slot name="head" />
     <!-- Before the first paint: the theme the visitor picked, their system (for the download button) and whether
          they turned motion down in the footer. Motion stays on unless they did; the system setting isn't read. -->
     <script is:inline>
@@ -96,26 +92,31 @@ const faqLd = {
         var d = document.documentElement;
         d.classList.add('js');
         try {
-          if (localStorage.getItem('theme') === 'light') { d.dataset.theme = 'light'; document.querySelector('meta[name=theme-color]').content = '#faf6f2'; }
+          if (localStorage.getItem('theme') === 'light') { d.dataset.theme = 'light'; document.querySelector('meta[name=theme-color]').content = '#F5F7FB'; }
           if (localStorage.getItem('motion') === 'reduced') d.dataset.motion = 'reduced';
         } catch (e) {}
         var ua = navigator.userAgent, uad = navigator.userAgentData, p = (uad && uad.platform) || navigator.platform || '';
         var touch = (uad && uad.mobile) || /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Mac/i.test(p) && navigator.maxTouchPoints > 1);
-        d.dataset.os = touch ? 'touch' : /Win/i.test(p) || /Windows NT/i.test(ua) ? 'windows' : /Mac/i.test(p) ? 'mac' : /Linux|X11|CrOS/i.test(p + ua) ? 'linux' : 'windows';
+        d.dataset.os = touch ? 'phone' : /Win/i.test(p) || /Windows NT/i.test(ua) ? 'windows' : /Mac/i.test(p) ? 'mac' : /Linux|X11|CrOS/i.test(p + ua) ? 'linux' : 'windows';
       })();
     </script>
   </head>
   <body>
     <a href="#main" class="skip btn btn-primary btn-sm">Skip to content</a>
     <slot />
-    <!-- Demo stages are built at a fixed design size: this scales each to its box. A ResizeObserver reports the
-         size after layout and before paint, so there's no forced reflow and nothing shows unscaled. On phones the
-         stages play as illustrations (inert): their real-size buttons would be too small to tap. -->
+    <!-- Product stages are built at a fixed design size: this scales each to its box. A ResizeObserver reports the
+         size after layout and before paint, so nothing shows unscaled. On phones the Try it stage switches to its
+         narrow layout and becomes a picture (its real-size buttons would be too small to tap). -->
     <script is:inline>
       (function () {
         var small = window.matchMedia('(max-width: 719px)');
-        var design = function (st) { return small.matches ? 640 : (parseFloat(st.style.getPropertyValue('--dw-d')) || 1120); };
-        var fit = function (st, w) { st.style.setProperty('--s', String(w / design(st))); var p = st.querySelector('.d-page'); if (p) { p.inert = small.matches; if (small.matches) p.setAttribute('aria-hidden', 'true'); else p.removeAttribute('aria-hidden'); } };
+        var design = function (st) { return small.matches && st.classList.contains('stage-try') ? 640 : (parseFloat(st.style.getPropertyValue('--dw-d')) || 1120); };
+        var fit = function (st, w) {
+          st.style.setProperty('--s', String(w / design(st)));
+          if (!st.classList.contains('stage-try')) return;
+          var p = st.querySelector('.d-page');
+          if (p) { p.inert = small.matches; if (small.matches) p.setAttribute('aria-hidden', 'true'); else p.removeAttribute('aria-hidden'); }
+        };
         if (!('ResizeObserver' in window)) return;
         var ro = new ResizeObserver(function (es) { es.forEach(function (e) { fit(e.target, e.contentRect.width); }); });
         var watch = function () { document.querySelectorAll('.stage').forEach(function (st) { ro.observe(st); }); };

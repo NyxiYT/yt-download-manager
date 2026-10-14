@@ -1,92 +1,60 @@
-// The page's small behaviours, without React: theme and motion switches, the leader strip, copy buttons, the
-// download buttons' confirmation and magnetic pull, the menu on phones, the nav (condensing, the section you're
-// in, the right download for your system), the feature filter and previews, and the install guide's step list.
-// Then, once the browser is idle: smooth scrolling and title reveals (scroll-engine.ts) and the nav's glass.
-import { getMotion, setMotion } from '../islands/motion-pref';
+// The page's small behaviours, without React: theme and motion switches, copy buttons, the download buttons' check,
+// the menu on phones, the nav (condensing, the section in view, the right download for the system), the films in
+// the background (after the page has loaded; still while off screen), the hero's tilt, the section reveals, and the
+// visitor's cursor. Smooth scrolling and the nav's glass load on the first interaction.
+import { getMotion, onMotion, setMotion } from '../islands/motion-pref';
 
 const $ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => root.querySelector<T>(s);
 const $$ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => [...root.querySelectorAll<T>(s)];
 const root = document.documentElement;
 const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
-const store = { get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } } };
+const store = { set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } } };
 
 // ---------- theme ----------
-const themeBtn = $('[data-theme-toggle]');
 const themeSwitch = $<HTMLInputElement>('[data-theme-switch]');
 function paintTheme() {
   const light = root.dataset.theme === 'light';
-  themeBtn?.setAttribute('aria-label', light ? 'Switch to dark theme' : 'Switch to light theme');
   if (themeSwitch) themeSwitch.checked = light;
-  $<HTMLMetaElement>('meta[name=theme-color]')!.content = light ? '#faf6f2' : '#0f0f0f';
+  $<HTMLMetaElement>('meta[name=theme-color]')!.content = light ? '#F5F7FB' : '#07080B';
 }
-function setTheme(light: boolean) {
-  root.dataset.theme = light ? 'light' : 'dark';
-  store.set('theme', light ? 'light' : 'dark');
-  paintTheme();
-}
-themeBtn?.addEventListener('click', () => setTheme(root.dataset.theme !== 'light'));
-themeSwitch?.addEventListener('change', () => setTheme(themeSwitch.checked));
+themeSwitch?.addEventListener('change', () => { root.dataset.theme = themeSwitch.checked ? 'light' : 'dark'; store.set('theme', root.dataset.theme); paintTheme(); });
 paintTheme();
 
-// ---------- motion (off only when the visitor turns it down here) ----------
+// ---------- motion (turned down only here, never by the system setting) ----------
 const motionSwitch = $<HTMLInputElement>('[data-motion-toggle]');
 if (motionSwitch) {
   motionSwitch.checked = getMotion() === 'reduced';
   motionSwitch.addEventListener('change', () => setMotion(motionSwitch.checked ? 'reduced' : 'full'));
 }
 
-// ---------- leader strip ----------
-$('[data-leader-close]')?.addEventListener('click', () => {
-  const l = $('[data-leader]')!;
-  store.set('leader', l.dataset.leader!);
-  l.hidden = true;
-});
-
-// ---------- copy buttons: a checkmark, and "Copied" for screen readers ----------
+// ---------- copy buttons ----------
 document.addEventListener('click', async (e) => {
   const btn = (e.target as Element).closest<HTMLButtonElement>('[data-copy]');
   if (!btn) return;
   const text = btn.dataset.copy!;
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
+  try { await navigator.clipboard.writeText(text); } catch {
     const ta = Object.assign(document.createElement('textarea'), { value: text });
-    document.body.append(ta);
-    ta.select();
-    document.execCommand('copy');
-    ta.remove();
+    document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove();
   }
-  btn.setAttribute('data-copied', '');
+  btn.setAttribute('data-done', '');
   const status = $('[data-copy-status]', btn);
   if (status) status.textContent = 'Copied';
-  setTimeout(() => { btn.removeAttribute('data-copied'); if (status) status.textContent = ''; }, 1800);
+  setTimeout(() => { btn.removeAttribute('data-done'); if (status) status.textContent = ''; }, 1800);
 });
 
-// ---------- download buttons: a short check when the download starts (the link itself downloads) ----------
+// ---------- download buttons: the arrow becomes a check when the download starts (the link itself downloads) ----------
 document.addEventListener('click', (e) => {
   const a = (e.target as Element).closest<HTMLElement>('[data-download]');
-  if (!a || !$('.done', a)) return;
-  a.setAttribute('data-started', '');
-  setTimeout(() => a.removeAttribute('data-started'), 2200);
+  if (!a || !$('.ai-download', a)) return;
+  a.setAttribute('data-done', '');
+  setTimeout(() => a.removeAttribute('data-done'), 2200);
 });
 
-// ---------- magnetic primary buttons (after React Bits' Magnet): they lean toward the pointer, then settle ----------
-if (fine) {
-  $$('[data-magnetic]').forEach((el) => {
-    el.style.transition = 'transform 0.45s cubic-bezier(0.2, 0, 0, 1)';
-    el.addEventListener('pointermove', (e) => {
-      if (getMotion() === 'reduced') return;
-      const r = el.getBoundingClientRect();
-      el.style.transform = `translate(${(e.clientX - (r.left + r.width / 2)) * 0.18}px, ${(e.clientY - (r.top + r.height / 2)) * 0.3}px)`;
-    });
-    el.addEventListener('pointerleave', () => { el.style.transform = ''; });
-  });
-}
-
-// ---------- the right download for this system in the nav ----------
+// ---------- the right download for this system ----------
+const os = root.dataset.os;
 const navDl = $<HTMLAnchorElement>('[data-nav-download]');
-if (navDl && (root.dataset.os === 'linux' || root.dataset.os === 'mac')) navDl.href = navDl.dataset.zip!;
-if (navDl && root.dataset.os === 'touch') navDl.href = '#install';
+if (navDl && (os === 'linux' || os === 'mac')) navDl.href = navDl.dataset.zip!;
+if (navDl && os === 'phone') navDl.href = '#install';
 
 // ---------- the menu on phones ----------
 const sheet = $('[data-menu]');
@@ -95,8 +63,7 @@ function menu(open: boolean) {
   if (!sheet || !openBtn) return;
   sheet.hidden = !open;
   openBtn.setAttribute('aria-expanded', String(open));
-  if (open) $<HTMLElement>('[data-menu-close]', sheet)?.focus();
-  else openBtn.focus();
+  if (open) $<HTMLElement>('[data-menu-close]', sheet)?.focus(); else openBtn.focus();
 }
 openBtn?.addEventListener('click', () => menu(true));
 $('[data-menu-close]')?.addEventListener('click', () => menu(false));
@@ -105,9 +72,6 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sheet &&
 
 // ---------- the nav: condenses after the hero's top, marks the section in view ----------
 const bar = $('[data-nav-bar]');
-const word = $('[data-nav-word]');
-// Condensed, the capsule shrinks by the same amount on both sides (clip-path) and the ends move in with it
-// (transform), as far as the gap to the centred links allows. Nothing is laid out again.
 function measureNav() {
   if (!bar) return;
   const w = bar.offsetWidth;
@@ -115,12 +79,10 @@ function measureNav() {
   const end = $('[data-nav-end]', bar)!;
   const links = $('.links', bar);
   const shown = links && getComputedStyle(links).display !== 'none';
-  const icon = $('img', start)?.offsetWidth ?? 28;
-  const gap = 20;
+  const icon = 28, gap = 20;
   const left = shown ? links.offsetLeft - start.offsetLeft - icon - gap : w / 2 - start.offsetLeft - icon - gap;
   const right = shown ? end.offsetLeft - (links.offsetLeft + links.offsetWidth) - gap : end.offsetLeft - w / 2 - gap;
-  const dx = Math.max(0, Math.min(left, right));
-  bar.style.setProperty('--dx', `${dx}px`);
+  bar.style.setProperty('--dx', `${Math.max(0, Math.min(left, right))}px`);
 }
 let condensed = false;
 function onScroll() {
@@ -128,79 +90,88 @@ function onScroll() {
   if (c === condensed || !bar) return;
   condensed = c;
   bar.toggleAttribute('data-condensed', c);
-  const glass = $('[data-glass]', bar);
-  glass?.style.setProperty('--cx', c ? bar.style.getPropertyValue('--dx') : '0px');
-  window.dispatchEvent(new CustomEvent('ydm:nav', { detail: c }));
+  $('[data-glass]', bar)?.style.setProperty('--cx', c ? bar.style.getPropertyValue('--dx') : '0px');
 }
 measureNav();
 addEventListener('resize', () => { measureNav(); condensed = !condensed; onScroll(); }, { passive: true });
 addEventListener('scroll', onScroll, { passive: true });
 onScroll();
-
 const links = $$<HTMLAnchorElement>('[data-nav-link]');
 const targets = links.map((a) => $(a.hash)).filter(Boolean) as HTMLElement[];
-if ('IntersectionObserver' in window && targets.length) {
+if (targets.length) {
   const io = new IntersectionObserver((entries) => {
-    for (const e of entries) {
-      if (!e.isIntersecting) continue;
-      links.forEach((a) => (a.hash === `#${e.target.id}` ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current')));
-    }
+    for (const e of entries) if (e.isIntersecting) links.forEach((a) => (a.hash === `#${e.target.id}` ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current')));
   }, { rootMargin: '-45% 0px -50% 0px' });
   targets.forEach((t) => io.observe(t));
 }
 
-// ---------- features: filter, and a picture of the feature where the README has one ----------
-const chips = $$<HTMLButtonElement>('[data-chip]');
-chips.forEach((c) => c.addEventListener('click', () => {
-  chips.forEach((x) => x.setAttribute('aria-pressed', String(x === c)));
-  $$('[data-group]').forEach((g) => { g.hidden = c.dataset.chip !== 'all' && g.dataset.group !== c.dataset.chip; });
-}));
-const peek = $('[data-peek]');
-if (peek && fine) {
-  const img = $<HTMLImageElement>('img', peek)!;
-  $$('[data-preview]').forEach((row) => {
-    const name = $('.name', row)!;
-    name.addEventListener('pointerenter', () => { img.src = row.dataset.preview!; peek.setAttribute('data-on', ''); });
-    name.addEventListener('pointerleave', () => peek.removeAttribute('data-on'));
-    name.addEventListener('pointermove', (e) => {
-      const x = Math.min(e.clientX + 24, innerWidth - 320);
-      const y = Math.min(e.clientY + 24, innerHeight - 220);
-      peek.style.setProperty('--px', `${x}px`);
-      peek.style.setProperty('--py', `${y}px`);
-    });
+// ---------- the films behind the hero and the final call: after load, only while on screen ----------
+function films() {
+  $$<HTMLVideoElement>('video[data-back]').forEach((v) => {
+    let on = false;
+    const start = () => {
+      if (!v.dataset.loaded) {
+        $$<HTMLSourceElement>('source[data-src]', v).forEach((s) => { s.src = s.dataset.src!; });
+        v.load();
+        v.dataset.loaded = '1';
+        if (v.hasAttribute('data-slow')) v.playbackRate = 0.6;
+      }
+      if (getMotion() === 'full') v.play().catch(() => {});
+    };
+    new IntersectionObserver(([e]) => { on = e.isIntersecting; if (on) start(); else v.pause(); }).observe(v);
+    onMotion((p) => { if (p === 'reduced') v.pause(); else if (on) start(); });
+    v.addEventListener('loadedmetadata', () => { if (v.hasAttribute('data-slow')) v.playbackRate = 0.6; });
   });
 }
+if (document.readyState === 'complete') setTimeout(films, 200); else addEventListener('load', () => setTimeout(films, 200), { once: true });
 
-// ---------- install: the step list follows the steps ----------
-const stepLinks = $$<HTMLAnchorElement>('[data-step-link]');
-if (stepLinks.length && 'IntersectionObserver' in window) {
-  const io = new IntersectionObserver((entries) => {
-    for (const e of entries) {
-      if (!e.isIntersecting) continue;
-      const n = (e.target as HTMLElement).dataset.step;
-      stepLinks.forEach((a) => (a.dataset.stepLink === n ? a.setAttribute('aria-current', 'step') : a.removeAttribute('aria-current')));
-    }
-  }, { rootMargin: '-40% 0px -55% 0px' });
-  $$('[data-step]').forEach((s) => io.observe(s));
+// ---------- the hero's player tilts toward the pointer (at most 4°, on a spring; wide screens only) ----------
+const tilt = $('[data-tilt]');
+if (tilt && fine && matchMedia('(min-width: 900px)').matches) {
+  const hero = tilt.closest('section')!;
+  let tx = 0, ty = 0, x = 0, y = 0, vx = 0, vy = 0, raf = 0;
+  const step = () => {
+    // a damped spring: stiffness 120, damping 18, 60 fps
+    const k = 120, d = 18, dt = 1 / 60;
+    vx += (k * (tx - x) - d * vx) * dt; x += vx * dt;
+    vy += (k * (ty - y) - d * vy) * dt; y += vy * dt;
+    tilt.style.transform = `rotateX(${y.toFixed(2)}deg) rotateY(${x.toFixed(2)}deg)`;
+    raf = Math.abs(tx - x) + Math.abs(ty - y) + Math.abs(vx) + Math.abs(vy) > 0.01 ? requestAnimationFrame(step) : 0;
+  };
+  const kick = () => { if (!raf) raf = requestAnimationFrame(step); };
+  hero.addEventListener('pointermove', (e) => {
+    if (getMotion() === 'reduced') return;
+    const r = tilt.getBoundingClientRect();
+    tx = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (r.width / 2))) * 4;
+    ty = Math.max(-1, Math.min(1, -(e.clientY - (r.top + r.height / 2)) / (r.height / 2))) * 4;
+    kick();
+  });
+  hero.addEventListener('pointerleave', () => { tx = 0; ty = 0; kick(); });
 }
 
-// ---------- the marquee rests while it's off screen ----------
-const track = $('[data-marquee]');
-if (track && 'IntersectionObserver' in window) {
-  new IntersectionObserver(([e]) => track.toggleAttribute('data-paused', !e.isIntersecting)).observe(track);
-}
+// ---------- reveals (fade up 24 px, staggered, once) and the feature fragments (play when they come into view) ----------
+const rev = new IntersectionObserver((entries) => {
+  for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); rev.unobserve(e.target); }
+}, { rootMargin: '0px 0px -8% 0px' });
+$$('[data-reveal]').forEach((el) => rev.observe(el));
+const play = new IntersectionObserver((entries) => {
+  for (const e of entries) {
+    if (e.isIntersecting && e.intersectionRatio > 0.5) e.target.classList.add('play');
+    else if (!e.isIntersecting) e.target.classList.remove('play');
+  }
+}, { threshold: [0, 0.5] });
+$$('[data-play]').forEach((el) => play.observe(el));
 
-// ---------- later: on the first scroll, touch or key (or after a few seconds) ----------
-// Smooth scrolling, the title reveals and the nav's glass only matter once the page moves, so they stay out of the
-// first paint entirely.
+// ---------- the visitor's cursor (fine pointers only) ----------
+if (fine) import('./cursor');
+
+// ---------- later: smooth scrolling and the glass, on the first interaction (or after a few seconds) ----------
 let started = false;
 const later = () => {
   if (started) return;
   started = true;
-  root.classList.add('fonts-late');
   import('./scroll-engine');
   import('./glass').then((m) => m.initGlass());
-  import('./live');
 };
 for (const ev of ['scroll', 'wheel', 'pointerdown', 'touchstart', 'keydown']) addEventListener(ev, later, { once: true, passive: true });
 setTimeout(later, 5000);

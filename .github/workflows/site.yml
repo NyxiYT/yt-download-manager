@@ -1,9 +1,8 @@
 name: Website
 
 # Builds the website in site/ (Astro) and publishes it on GitHub Pages at https://nyxiyt.github.io/yt-download-manager/.
-# Runs when the site, its pictures or the changelog change, after every release (the page shows the latest version,
-# its date and installer sizes, read from the GitHub API while building, and the last releases from CHANGELOG.md),
-# once a day (so a missed release run is caught up) and by hand. The release workflow publishes
+# Runs when the site, its pictures or the changelog change (the structured data names the latest version), after
+# every release, once a day (so a missed release run is caught up) and by hand. The release workflow publishes
 # with the workflow's token, which doesn't start other workflows on its own, so this one follows it with
 # workflow_run. Needs Settings > Pages > Source set to "GitHub Actions".
 on:
@@ -47,9 +46,6 @@ jobs:
 
       - name: Build
         working-directory: site
-        env:
-          # Read-only use of the public API for the latest release (a token raises the limit).
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm ci --no-fund --no-audit
           npm run check
@@ -60,6 +56,13 @@ jobs:
       - name: Lighthouse
         working-directory: site
         run: npx --yes @lhci/cli@0.15.1 autorun --config=lighthouserc.json
+
+      # The showcases' drawn cursor must land on what it clicks, at 390, 768, 1280 and 1920 px (tests/cursor.spec.ts).
+      - name: Cursor tests
+        working-directory: site
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test
 
       - uses: actions/upload-pages-artifact@v3
         with:
