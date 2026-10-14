@@ -1,0 +1,74 @@
+---
+// Every feature from the README, as a listing: icon, name, one line. Grouped as the README groups them, filterable
+// with the chips. Where the README has a screenshot of a feature, hovering its name shows it (scripts/ui.ts).
+import { getImage } from 'astro:assets';
+import Icon from './Icon.astro';
+import { featureGroups } from '../lib/content';
+
+const shots = import.meta.glob<{ default: ImageMetadata }>('../../../docs/images/{download-video.jpg,download-audio.jpg,shorts-menu.png,app-window.png,download-history.png,settings.png}', { eager: true });
+const preview = async (name: string) => {
+  const hit = Object.entries(shots).find(([k]) => k.includes(`/${name}.`));
+  if (!hit) return null;
+  const img = await getImage({ src: hit[1].default, width: Math.min(420, hit[1].default.width), format: 'webp', quality: 80 });
+  return img.src;
+};
+const groups = await Promise.all(featureGroups.map(async (g) => ({
+  ...g, items: await Promise.all(g.items.map(async (f) => ({ ...f, preview: f.shot ? await preview(f.shot) : null }))),
+})));
+const total = groups.reduce((n, g) => n + g.items.length, 0);
+---
+<section class="section" id="features" aria-labelledby="ft-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="counter">008</span>
+      <h2 id="ft-h">Everything it does, on one list.</h2>
+      <p class="lede">{total} features, as the README lists them. Some need the Windows app; the tag says so.</p>
+    </div>
+    <div class="chips" role="group" aria-label="Show features" data-chips>
+      <button type="button" aria-pressed="true" data-chip="all">All <span class="mono">{total}</span></button>
+      {groups.map((g) => <button type="button" aria-pressed="false" data-chip={g.id}>{g.title} <span class="mono">{g.items.length}</span></button>)}
+    </div>
+    <div class="index defer" data-index>
+      {groups.map((g) => (
+        <div class="group" data-group={g.id}>
+          <h3 class="group-title"><span>{g.title}</span>{g.note && <span class="tag">{g.note}</span>}</h3>
+          <ul>
+            {g.items.map((f) => (
+              <li data-preview={f.preview ?? undefined}>
+                <span class="ico"><Icon name={f.icon} size={24} /></span>
+                <div class="body">
+                  <p class="name">{f.name}{f.tag && <span class="tag tag-tape">{f.tag}</span>}</p>
+                  <p class="text">{f.text}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+    <figure class="peek" data-peek aria-hidden="true"><img alt="" width="420" height="260" /></figure>
+  </div>
+</section>
+
+<style>
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 40px; }
+  .chips button { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border: 1px solid var(--rule-strong); border-radius: var(--radius-sm); background: none; font-size: 0.9375rem; color: var(--ink-2); cursor: pointer; transition: color 0.15s var(--ease-tape), background-color 0.15s var(--ease-tape), border-color 0.15s var(--ease-tape); }
+  .chips button:hover { color: var(--ink); border-color: var(--ink-2); }
+  .chips button[aria-pressed="true"] { background: var(--ink); color: var(--ground); border-color: var(--ink); }
+  .chips .mono { font-size: 0.75rem; }
+  .group { margin-top: 8px; }
+  .group[hidden] { display: none; }
+  .group + .group { margin-top: 56px; }
+  .group-title { display: flex; align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); padding-bottom: 12px; border-bottom: 1px solid var(--ink); }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(24px, 4vw, 64px); }
+  li { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 16px; padding: 22px 0; border-bottom: 1px solid var(--rule); }
+  .ico { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--panel); border: 1px solid var(--rule); color: var(--ink); }
+  li[data-preview] .name { text-decoration: underline; text-decoration-color: var(--rule-strong); text-underline-offset: 0.25em; text-decoration-thickness: 1px; cursor: default; }
+  .name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-weight: 500; font-size: 1.0625rem; line-height: 1.35; }
+  .text { margin-top: 6px; color: var(--ink-2); font-size: 0.9688rem; line-height: 1.55; }
+  @media (max-width: 767px) { ul { grid-template-columns: minmax(0, 1fr); } }
+  .peek { position: fixed; left: 0; top: 0; z-index: 40; width: 300px; margin: 0; pointer-events: none; opacity: 0; transform: translate3d(var(--px, 0), var(--py, 0), 0) scale(0.96); transition: opacity 0.18s var(--ease-tape), transform 0.18s var(--ease-tape);
+    border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--rule-strong); box-shadow: var(--shadow-float); background: var(--panel); }
+  .peek[data-on] { opacity: 1; transform: translate3d(var(--px, 0), var(--py, 0), 0) scale(1); }
+  .peek img { width: 100%; height: auto; }
+</style>

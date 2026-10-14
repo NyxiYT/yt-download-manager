@@ -1,0 +1,63 @@
+---
+// A short note from the maker, in their own words, and the ways to support the project or talk about it.
+import { getImage } from 'astro:assets';
+import Icon from './Icon.astro';
+import btc from '../../../docs/images/donate-btc.png';
+import usdt from '../../../docs/images/donate-usdt-erc20.png';
+import { DISCUSSIONS, ISSUES, REPO, maker } from '../lib/content';
+
+const qr = { 'donate-btc': await getImage({ src: btc, width: 160, format: 'png' }), 'donate-usdt-erc20': await getImage({ src: usdt, width: 160, format: 'png' }) };
+---
+<section class="section" id="maker" aria-labelledby="mk-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="counter">015</span>
+      <h2 id="mk-h">From the maker.</h2>
+    </div>
+    <div class="maker defer">
+      <div class="letter">
+        {maker.letter.map((p) => <p>{p}</p>)}
+        <blockquote><p>{maker.pull}</p></blockquote>
+        <p class="sign">— {maker.sign}</p>
+        <p class="talk"><a href={DISCUSSIONS}>Start a discussion</a> for a question or an idea, or <a href={ISSUES}>report a bug</a>.</p>
+      </div>
+      <div class="support">
+        <p class="label">Support the project</p>
+        <p class="donate">{maker.donate} <a href={`${REPO}#support-the-project`}>More in the README</a>.</p>
+        {maker.wallets.map((w) => (
+          <div class="wallet">
+            <img src={qr[w.qr as keyof typeof qr].src} width="120" height="120" alt={w.alt} loading="lazy" />
+            <div class="w-body">
+              <p class="w-name">{w.name}</p>
+              <div class="codeblock"><code>{w.address}</code><button class="copy" type="button" data-copy={w.address} aria-label={`Copy the ${w.name} address`}>
+                <span class="idle"><Icon name="copy" size={16} /></span><span class="ok"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span><span class="sr-only" data-copy-status></span>
+              </button></div>
+              {w.warning && <p class="warn">{w.warning}</p>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .maker { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(16px, 2.4vw, 32px); row-gap: 56px; }
+  .letter { grid-column: 3 / span 5; display: grid; gap: 20px; align-content: start; }
+  .letter > p:first-child { font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem); line-height: 1.45; color: var(--ink); }
+  blockquote { margin: 12px 0 0; padding-top: 16px; border-top: 2px solid var(--tape); }
+  blockquote p { font-family: var(--font-display); font-style: italic; font-weight: 500; font-size: clamp(1.375rem, 1.1rem + 1vw, 2rem); letter-spacing: -0.02em; line-height: 1.2; }
+  .sign { font-family: var(--font-mono); font-size: 0.875rem; color: var(--ink-2); }
+  .talk { color: var(--ink-2); font-size: 0.9688rem; }
+  .talk a { color: var(--ink); }
+  .support { grid-column: 9 / span 4; display: grid; gap: 18px; align-content: start; }
+  .donate { color: var(--ink-2); font-size: 0.9688rem; }
+  .wallet { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; padding-top: 18px; border-top: 1px solid var(--rule); }
+  .wallet img { border-radius: var(--radius-sm); background: #fff; }
+  .w-body { display: grid; gap: 10px; align-content: start; min-width: 0; }
+  .w-name { font-weight: 500; }
+  .w-body .codeblock code { white-space: normal; overflow-wrap: anywhere; font-size: 0.75rem; }
+  .warn { font-size: 0.8125rem; color: var(--tape-text); }
+  @media (max-width: 1023px) { .letter, .support { grid-column: 1 / -1; } }
+  @media (max-width: 420px) { .wallet { grid-template-columns: minmax(0, 1fr); } }
+</style>

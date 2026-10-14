@@ -1,77 +1,64 @@
 ---
-// The first screen: what it is, the download button, the latest version, and the moving picture of the toolbar.
-import { Picture } from 'astro:assets';
-import icon from '../../../docs/images/icon.png';
-import HeroDemo from '../islands/HeroDemo';
-import { RELEASES, REPO, hero } from '../lib/content';
-import { formatDate, latestRelease } from '../lib/release';
-import DownloadButton from './DownloadButton.astro';
-import Icon from './Icon.astro';
+// The hero: the headline, the download button for the visitor's system, and the product itself at full width:
+// the toolbar under a player, run by a guided cursor until the visitor clicks. The headline's words are split
+// here, at build time, and rise in with CSS, so the first paint needs no script and nothing moves (CLS 0).
+import { getImage } from 'astro:assets';
+import DownloadCta from './DownloadCta.astro';
+import Demo from '../islands/Demo.tsx';
+import bbb from '../assets/frames/bbb.jpg';
+import cover from '../assets/frames/bbb-cover.jpg';
+import video from '../data/videos/aqz-KE-bpKQ.json';
+import { REPO, hero } from '../lib/content';
+import { latestRelease } from '../lib/release';
+import type { VideoData } from '../islands/demo/model';
 
-const release = await latestRelease();
+const { version } = await latestRelease();
+const [f640, f989, c144] = await Promise.all([
+  getImage({ src: bbb, width: 640, format: 'webp', quality: 80 }),
+  getImage({ src: bbb, width: 989, format: 'webp', quality: 80 }),
+  getImage({ src: cover, width: 144, format: 'webp', quality: 80 }),
+]);
+const frame = { src: f989.src, srcset: `${f640.src} 640w, ${f989.src} 989w`, width: 989, height: 556, alt: 'A frame of Big Buck Bunny paused in the player' };
+const words = hero.title.split(' ');
 ---
-<section id="top" class="hero relative overflow-hidden pb-16 pt-[112px] sm:pt-[128px] lg:pb-24">
-  <div class="hero-glow" aria-hidden="true"></div>
-  <div class="container-page relative grid items-center gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
-    <div class="text-center lg:text-left">
-      <a href={RELEASES} class="version-pill" data-release>
-        <span class="version-dot" aria-hidden="true"></span>
-        <span>Version <b data-release-version>{release.version}</b> · <span data-release-date>{formatDate(release.date)}</span></span>
-        <Icon name="chevronRight" class="h-4 w-4 opacity-60" />
-      </a>
-      <div class="mt-7 flex items-center justify-center gap-4 lg:justify-start">
-        <Picture src={icon} formats={['avif', 'webp']} alt="YT Download Manager icon" width={72} height={72} densities={[1, 1.75]} pictureAttributes={{ class: 'flex-none' }} class="h-[72px] w-[72px] drop-shadow-[0_12px_30px_rgba(62,166,255,0.35)]" loading="eager" fetchpriority="high" />
-        <h1 class="m-0 text-left text-[length:var(--text-3xl)] font-bold leading-[1.04] tracking-[-0.03em]">{hero.title}</h1>
+<section class="hero" id="top" aria-labelledby="hero-title">
+  <div class="wrap">
+    <div class="hero-head">
+      <div class="hero-title">
+        <p class="label hero-eyebrow"><span>{hero.eyebrow}</span><span class="mono">v<span data-release-version>{version}</span></span></p>
+        <h1 id="hero-title">
+          <span class="sr-only">{hero.title}</span>
+          {words.map((w, i) => <><span class="w" aria-hidden="true" style={`--i:${i}`}>{w}</span>{i < words.length - 1 ? ' ' : ''}</>)}
+        </h1>
       </div>
-      <p class="lede mx-auto mt-6 max-w-[40ch] lg:mx-0">{hero.lead}</p>
-      <div class="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-        <DownloadButton size="lg" />
-        <a class="btn btn-secondary btn-lg" href={RELEASES}>All downloads</a>
-        <a class="btn btn-secondary btn-lg" href={REPO}>
-          <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z" /></svg>
-          Source code on GitHub
-        </a>
+      <div class="hero-side">
+        <p class="hero-lead">{hero.lead}</p>
+        <DownloadCta id="hero-dl" />
+        <a class="hero-src" href={REPO}>Source code on GitHub</a>
       </div>
-      <!-- Windows (and phones) see the first line, other computers the second; chosen before the first paint (Base.astro). -->
-      <p class="mt-4 min-h-[1.6em] text-[length:var(--text-xs)] text-[var(--muted)]" data-os-note>
-        <span data-os="windows">64-bit installer · <a href={`${RELEASES}`}>32-bit and other files</a></span>
-        <span data-os="other">{hero.otherOs} <a href={`${REPO}#linux`}>How to add it</a></span>
-      </p>
-      <p class="mt-3 text-[length:var(--text-sm)] text-[var(--muted)]">{hero.badges}</p>
     </div>
-
-    <div class="relative">
-      <HeroDemo client:idle />
-    </div>
+  </div>
+  <div class="hero-stage">
+    <Demo client:lazy scene="video" data={video as VideoData} frame={frame} cover={c144.src} label="Illustration of the download toolbar under a video" />
+    <p class="caption hero-caption">
+      {hero.caption} Quality list and sizes as the toolbar shows them for this video with the app running. Picture: <i>Big Buck Bunny</i>, © Blender Foundation, <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.
+    </p>
   </div>
 </section>
 
 <style>
-  .hero-glow {
-    position: absolute; inset: -20% -10% auto; height: 720px; pointer-events: none;
-    background:
-      radial-gradient(40% 50% at 70% 35%, rgb(var(--glow) / 0.22), transparent 70%),
-      radial-gradient(30% 40% at 20% 10%, rgb(var(--glow) / 0.10), transparent 70%);
-  }
-  .version-pill {
-    position: relative; display: inline-flex; align-items: center; gap: 10px; height: 36px; padding: 0 12px 0 14px;
-    border-radius: 999px; overflow: hidden; isolation: isolate;
-    font-size: var(--text-xs); color: var(--muted); text-decoration: none;
-    background: var(--surface); border: 1px solid var(--border);
-  }
-  .version-pill b { color: var(--foreground); font-weight: 600; font-variant-numeric: tabular-nums; }
-  .version-pill [data-release-date] { display: inline-block; min-width: 9.5em; text-align: left; }
-  .version-pill:hover { color: var(--foreground); }
-  /* A light that sweeps across the pill now and then: moved with transform only. */
-  .version-pill::after {
-    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-    background: linear-gradient(100deg, transparent 30%, rgb(var(--glow) / 0.22) 50%, transparent 70%);
-    transform: translateX(-120%);
-    animation: sweep 4.5s cubic-bezier(0.4, 0, 0.2, 1) 1.2s infinite;
-  }
-  @keyframes sweep { 0% { transform: translateX(-120%); } 45%, 100% { transform: translateX(120%); } }
-  [data-os="other"], :global([data-platform="other"]) [data-os="windows"] { display: none; }
-  :global([data-platform="other"]) [data-os="other"] { display: inline; }
-  .version-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--success); box-shadow: 0 0 0 4px rgb(43 166 64 / 0.18); }
-  @media (prefers-reduced-motion: reduce) { .version-pill::after { animation: none; display: none; } }
+  .hero { padding-top: clamp(112px, 14vw, 168px); }
+  .hero-head { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(16px, 2.4vw, 32px); row-gap: 36px; align-items: end; }
+  .hero-title { grid-column: 1 / span 8; }
+  .hero-side { grid-column: 9 / span 4; display: grid; gap: 22px; justify-items: start; padding-bottom: 0.6rem; }
+  @media (max-width: 1023px) { .hero-title, .hero-side { grid-column: 1 / -1; } }
+  .hero-eyebrow { display: flex; gap: 14px; margin-bottom: 22px; }
+  .hero-eyebrow .mono { color: var(--tape-text); letter-spacing: 0.02em; text-transform: none; }
+  h1 { font-size: clamp(3.1rem, 0.9rem + 8.2vw, 8.4rem); font-weight: 700; letter-spacing: -0.052em; line-height: 0.9; max-width: 11ch; }
+  .w { display: inline-block; animation: rise 0.9s var(--ease-tape) both; animation-delay: calc(0.08s + var(--i) * 0.055s); }
+  @keyframes rise { from { opacity: 0; transform: translateY(0.32em); clip-path: inset(0 0 100% 0); } to { opacity: 1; transform: none; clip-path: inset(0 0 -20% 0); } }
+  .hero-lead { font-size: clamp(1.125rem, 1.05rem + 0.35vw, 1.3125rem); line-height: 1.5; color: var(--ink-2); max-width: 36ch; }
+  .hero-src { font-size: 0.9375rem; color: var(--ink-2); }
+  .hero-stage { width: 100%; max-width: 1304px; margin: clamp(48px, 7vw, 88px) auto 0; padding-inline: clamp(8px, 2vw, 32px); }
+  .hero-caption { margin-top: 6px; max-width: 80ch; padding-inline: 4px; }
 </style>

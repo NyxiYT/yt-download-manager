@@ -1,0 +1,33 @@
+---
+// Four real numbers, each on a hairline with what it means (README). No made-up stats.
+import Ticker from '../islands/Ticker.tsx';
+import { numbers } from '../lib/content';
+---
+<section class="section" id="numbers" aria-labelledby="num-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="counter">010</span>
+      <h2 id="num-h">The numbers, and what they mean.</h2>
+    </div>
+    <dl class="ledger">
+      {numbers.map((n) => (
+        <div class="row">
+          <dt class="figure"><Ticker client:visible value={n.value} decimals={n.decimals ?? 0} suffix={n.suffix} /></dt>
+          <dd><span class="label">{n.label}</span><p>{n.caption}</p></dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>
+
+<style>
+  .ledger { margin: 0; }
+  .row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(16px, 2.4vw, 32px); align-items: end; padding: clamp(18px, 3vw, 32px) 0; border-top: 1px solid var(--rule); }
+  .row:last-child { border-bottom: 1px solid var(--rule); }
+  .figure { grid-column: 1 / span 7; font-family: var(--font-display); font-weight: 650; font-size: clamp(3.5rem, 1rem + 8vw, 9rem); letter-spacing: -0.05em; line-height: 0.85; font-variant-numeric: tabular-nums; }
+  .figure :global(.ticker-s) { font-family: var(--font-mono); font-size: clamp(1rem, 0.6rem + 1.2vw, 1.75rem); font-weight: 500; letter-spacing: 0; color: var(--tape-text); margin-left: 0.25em; }
+  .row:not(:first-child) .figure :global(.ticker-s) { color: var(--ink-2); }
+  dd { grid-column: 8 / span 5; margin: 0; display: grid; gap: 8px; padding-bottom: 0.4em; }
+  dd p { color: var(--ink-2); max-width: 44ch; }
+  @media (max-width: 767px) { .figure, dd { grid-column: 1 / -1; } dd { margin-top: 14px; } }
+</style>

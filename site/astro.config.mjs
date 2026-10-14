@@ -25,6 +25,15 @@ export default defineConfig({
         },
       },
     },
+    {
+      // client:lazy (src/directives/lazy.ts): hydrate after the first paint, or on the first interaction.
+      name: 'client-lazy',
+      hooks: {
+        'astro:config:setup': ({ addClientDirective }) => {
+          addClientDirective({ name: 'lazy', entrypoint: fileURLToPath(new URL('./src/directives/lazy.ts', import.meta.url)) });
+        },
+      },
+    },
   ],
   vite: {
     plugins: [tailwindcss()],
@@ -33,4 +42,5 @@ export default defineConfig({
   image: { responsiveStyles: false },
   build: { inlineStylesheets: 'always' },
   prefetch: false,
+  devToolbar: { enabled: false },
 });

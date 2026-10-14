@@ -27,3 +27,6 @@ extension/app-key.json
 
 # Test results (dotnet test --blame, loggers)
 manager/**/TestResults/
+
+# Lighthouse CI reports (site/lighthouserc.json)
+.lighthouseci/

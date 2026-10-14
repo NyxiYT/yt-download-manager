@@ -1,0 +1,170 @@
+/* The extension's own look, ported from extension/content/content.css for the demos on this page: the same
+   sizes, radii, colours (YouTube's dark theme), easing and timings, so a visitor who installs it recognises
+   every button. Changes: ids became classes, fixed positions became absolute (inside the demo stage), and the
+   font is Arial (the extension's own fallback) instead of YouTube's Roboto. Keep in step with content.css. */
+.ysd {
+  --ysd-bg: #0f0f0f; --ysd-text: #f1f1f1; --ysd-text2: #aaa; --ysd-hover: rgba(255, 255, 255, .1); --ysd-active: rgba(255, 255, 255, .14);
+  --ysd-divider: rgba(255, 255, 255, .1); --ysd-border: rgba(255, 255, 255, .14); --ysd-surface: #212121; --ysd-raised: #2c2c2c; --ysd-field: rgba(255, 255, 255, .05);
+  --ysd-accent: #3ea6ff; --ysd-on-accent: #0f0f0f; --ysd-red: #ff6b62; --ysd-green: #4cc26e; --ysd-amber: #f5b041;
+  --ysd-track: rgba(255, 255, 255, .18); --ysd-shadow: 0 8px 32px rgba(0, 0, 0, .55);
+  --ysd-ease: cubic-bezier(.2, 0, 0, 1);
+  position: relative;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--ysd-text);
+  background: var(--ysd-bg);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+.ysd, .ysd * { box-sizing: border-box; }
+.ysd button { font-family: inherit; }
+.ysd svg { flex: none; display: inline-block; }
+
+/* ---------- toolbar ---------- */
+.ysd-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 48px; padding: 0 2px; border-bottom: 1px solid var(--ysd-divider); }
+.ysd-group { display: flex; align-items: center; gap: 2px; min-width: 0; }
+.ysd-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: none; width: 36px; height: 36px; padding: 0; margin: 0;
+  border: 0; border-radius: 18px; background: transparent; color: var(--ysd-text); cursor: pointer; outline: none;
+  transition: background-color .15s var(--ysd-ease), color .15s var(--ysd-ease); }
+.ysd-btn:hover, .ysd-btn.ysd-open, .ysd-btn[data-hover] { background: var(--ysd-hover); }
+.ysd-btn.ysd-on { background: var(--ysd-active); }
+.ysd-btn.ysd-open { color: var(--ysd-accent); }
+.ysd-btn svg, .ysd-ibtn svg { transition: transform .12s var(--ysd-ease); }
+.ysd-btn:active svg, .ysd-ibtn:active svg, .ysd [data-press] svg { transform: scale(.86); }
+.ysd-btn.ysd-sm { width: 32px; height: 32px; }
+.ysd-btn:focus-visible, .ysd-ibtn:focus-visible, .ysd-primary:focus-visible, .ysd-select:focus-visible, .ysd-hist:focus-visible { outline: 2px solid var(--ysd-accent); outline-offset: 1px; }
+.ysd-sep { width: 1px; height: 20px; margin: 0 6px; background: var(--ysd-divider); }
+@container ysd-stage (max-width: 520px) { .ysd-toolbar .ysd-wide { display: none; } }
+
+.ysd-tip { position: absolute; z-index: 60; max-width: 280px; padding: 6px 8px; border-radius: 4px; background: rgba(97, 97, 97, .95); color: #fff;
+  font: 400 12px/16px Arial, Helvetica, sans-serif; pointer-events: none; white-space: nowrap; }
+
+.ysd-ibtn { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%;
+  background: none; color: var(--ysd-text2); cursor: pointer; transition: background-color .15s, color .15s; }
+.ysd-ibtn:hover, .ysd-ibtn[data-hover] { background: var(--ysd-hover); color: var(--ysd-text); }
+.ysd-ibtn.ysd-on { color: var(--ysd-accent); }
+.ysd-ibtn.ysd-danger:hover { color: var(--ysd-red); }
+.ysd-ibtn.ysd-xs { width: 28px; height: 28px; }
+
+/* ---------- pickers ---------- */
+.ysd-pop { position: absolute; z-index: 40; width: 340px; max-width: calc(100% - 16px); overflow: hidden; background: var(--ysd-surface);
+  border-radius: 12px; box-shadow: var(--ysd-shadow); font-size: 14px; line-height: 20px; transform-origin: top left; }
+.ysd-pop.ysd-menu { width: auto; min-width: 240px; max-width: min(340px, calc(100% - 16px)); padding: 8px 0; }
+.ysd-pop-head { display: flex; align-items: center; gap: 4px; padding: 10px 6px 2px 16px; }
+.ysd-pop-title { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+.ysd-pop-title svg { color: var(--ysd-text2); }
+.ysd-pop-body { display: flex; flex-direction: column; gap: 14px; padding: 10px 16px 16px; }
+.ysd-label { margin-bottom: 6px; color: var(--ysd-text2); font-size: 12px; line-height: 16px; font-weight: 500; }
+.ysd-note { display: flex; align-items: flex-start; gap: 6px; color: var(--ysd-text2); font-size: 12px; line-height: 16px; }
+
+.ysd-select { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 40px; padding: 0 10px 0 12px; border: 1px solid var(--ysd-border);
+  border-radius: 8px; background: var(--ysd-field); color: var(--ysd-text); font-size: 14px; text-align: left; cursor: pointer; transition: border-color .15s; }
+.ysd-select:hover, .ysd-select.ysd-open, .ysd-select[data-hover] { border-color: var(--ysd-text2); }
+.ysd-select .ysd-opt { flex: 1; }
+.ysd-select > svg { color: var(--ysd-text2); transition: transform .18s var(--ysd-ease); }
+.ysd-select.ysd-open > svg { transform: rotate(180deg); }
+.ysd-opt { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ysd-opt-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ysd-opt-hint { color: var(--ysd-text2); font-size: 12px; white-space: nowrap; }
+.ysd-opt-right { margin-left: auto; padding-left: 12px; color: var(--ysd-text2); font-size: 12px; white-space: nowrap; }
+/* The theme's red (5:1 on the dark menus), as in the extension since its #ff0033 was found too faint. */
+.ysd-badge { margin-left: -4px; color: var(--ysd-red); font-size: 9px; font-weight: 700; line-height: 1; align-self: flex-start; padding-top: 9px; }
+.ysd-dd { position: absolute; z-index: 45; min-width: 200px; overflow-y: auto; padding: 6px 0; background: var(--ysd-raised); border-radius: 10px;
+  box-shadow: var(--ysd-shadow); border: 1px solid var(--ysd-divider); transform-origin: top center; }
+.ysd-dd-item { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 36px; padding: 6px 12px; border: 0; background: none; color: var(--ysd-text);
+  font-size: 14px; text-align: left; cursor: pointer; }
+.ysd-dd-item:hover, .ysd-dd-item:focus-visible, .ysd-dd-item[data-hover] { background: var(--ysd-hover); outline: none; }
+.ysd-dd-item .ysd-opt { flex: 1; }
+.ysd-dd-item > .ysd-check { display: flex; width: 18px; flex: none; color: var(--ysd-accent); }
+
+.ysd-trim { display: flex; flex-direction: column; gap: 10px; }
+.ysd-trim-top { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
+.ysd-trim-top .ysd-label { margin: 0; display: flex; align-items: center; gap: 6px; }
+.ysd-trim-sum { flex: 1; text-align: right; color: var(--ysd-text2); font-size: 12px; white-space: nowrap; }
+.ysd-trim-sum b { color: var(--ysd-text); font-weight: 500; }
+.ysd-mini { padding: 0; border: 0; background: none; color: var(--ysd-accent); font-size: 12px; font-weight: 500; cursor: pointer; }
+.ysd-range { position: relative; height: 24px; margin: 0 8px; touch-action: none; }
+.ysd-range-track, .ysd-range-fill { position: absolute; top: 10px; height: 4px; border-radius: 2px; }
+.ysd-range-track { left: 0; right: 0; background: var(--ysd-track); }
+.ysd-range-fill { background: var(--ysd-accent); }
+.ysd-thumb-dot { position: absolute; top: 4px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: #fff; border: 2px solid var(--ysd-accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .35); cursor: grab; transition: transform .12s; padding: 0; }
+.ysd-thumb-dot:active, .ysd-thumb-dot[data-press] { cursor: grabbing; transform: scale(1.15); }
+.ysd-thumb-dot:focus-visible { outline: 2px solid var(--ysd-accent); outline-offset: 2px; }
+.ysd-range-ends { display: flex; justify-content: space-between; margin-top: -6px; color: var(--ysd-text2); font-size: 11px; font-variant-numeric: tabular-nums; }
+.ysd-times { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.ysd-time .ysd-label { margin-bottom: 4px; }
+.ysd-time-box { display: flex; align-items: center; height: 36px; padding: 0 2px 0 10px; border: 1px solid var(--ysd-border); border-radius: 8px; background: var(--ysd-field); }
+.ysd-time-box span { flex: 1; font: 500 14px/1 Arial, Helvetica, sans-serif; font-variant-numeric: tabular-nums; }
+.ysd-switch-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.ysd-switch { position: relative; width: 34px; height: 20px; flex: none; border-radius: 10px; background: var(--ysd-accent); }
+.ysd-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .3); transform: translateX(14px); }
+
+.ysd-pop-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; padding-top: 2px; }
+.ysd-pop-sum { flex: 1 1 120px; min-width: 0; color: var(--ysd-text2); font-size: 12px; line-height: 16px; }
+.ysd-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; margin-left: auto; padding: 0 16px; border: 0; border-radius: 18px;
+  background: var(--ysd-accent); color: var(--ysd-on-accent); font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap;
+  transition: filter .15s, transform .1s; }
+.ysd-primary:hover, .ysd-primary[data-hover] { filter: brightness(1.08); }
+.ysd-primary:active, .ysd-primary[data-press] { transform: scale(.97); }
+
+/* ---------- menus (Shorts) ---------- */
+.ysd-mitem { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 36px; padding: 6px 16px; border: 0; background: none; color: var(--ysd-text);
+  font-size: 14px; line-height: 20px; text-align: left; cursor: pointer; }
+.ysd-mitem:hover, .ysd-mitem:focus-visible, .ysd-mitem[data-hover] { background: var(--ysd-hover); outline: none; }
+.ysd-mitem > .ysd-mlead { display: flex; width: 20px; flex: none; color: var(--ysd-text2); }
+.ysd-mitem > .ysd-mlabel { flex: 1; min-width: 0; }
+.ysd-msep { height: 1px; margin: 8px 0; background: var(--ysd-divider); }
+
+/* ---------- history: the clock button and its ring ---------- */
+.ysd-hist { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 40px; height: 40px; margin: 0; padding: 0;
+  border: 0; border-radius: 50%; background: transparent; color: var(--ysd-text); cursor: pointer; transition: background-color .15s, color .15s; }
+.ysd-hist:hover, .ysd-hist[data-hover] { background: var(--ysd-hover); }
+.ysd-hist.ysd-on { color: var(--ysd-accent); background: var(--ysd-hover); }
+.ysd-hist .ysd-hist-ring { position: absolute; inset: 0; width: 40px; height: 40px; transform: rotate(-90deg); pointer-events: none; }
+.ysd-hist .ysd-hist-ring circle { fill: none; stroke-width: 2.5; }
+.ysd-hist .ysd-hist-track { stroke: currentColor; opacity: .14; }
+.ysd-hist .ysd-hist-arc { stroke: var(--ysd-accent); stroke-linecap: round; transition: stroke-dashoffset .6s linear, stroke .3s; }
+.ysd-hist.ysd-idle .ysd-hist-ring { display: none; }
+.ysd-hist.ysd-flash-done .ysd-hist-ring { display: block; }
+.ysd-hist.ysd-flash-done .ysd-hist-arc { stroke: var(--ysd-green); stroke-dashoffset: 0 !important; }
+.ysd-hist .ysd-hist-ico, .ysd-hist .ysd-hist-check { transition: opacity .2s var(--ysd-ease), transform .2s var(--ysd-ease); }
+.ysd-hist .ysd-hist-check { position: absolute; color: var(--ysd-green); opacity: 0; transform: scale(.5); pointer-events: none; }
+.ysd-hist.ysd-flash-done .ysd-hist-check { opacity: 1; transform: none; }
+.ysd-hist.ysd-flash-done .ysd-hist-ico { opacity: 0; transform: scale(.5); }
+.ysd-hist .ysd-count { position: absolute; top: -7px; right: -9px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--ysd-accent);
+  color: var(--ysd-on-accent); font-size: 10px; font-weight: 500; line-height: 16px; text-align: center; box-shadow: 0 0 0 2px var(--ysd-bg); }
+.ysd-hist .ysd-hist-dot { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--ysd-accent); box-shadow: 0 0 0 2px var(--ysd-bg); }
+
+/* ---------- history: the panel ---------- */
+.ysd-panel { position: absolute; z-index: 30; display: flex; flex-direction: column; width: min(400px, calc(100% - 16px)); background: var(--ysd-surface); border-radius: 12px;
+  box-shadow: var(--ysd-shadow); overflow: hidden; transform-origin: top right; }
+.ysd-phead { display: flex; align-items: center; gap: 6px; flex: none; padding: 8px 6px 8px 16px; border-bottom: 1px solid var(--ysd-divider); }
+.ysd-ptitle { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 8px; font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; }
+.ysd-ptitle small { color: var(--ysd-text2); font-size: 12px; font-weight: 400; }
+.ysd-textbtn { flex: none; height: 30px; padding: 0 10px; border: 0; border-radius: 15px; background: none; color: var(--ysd-text2); font-size: 13px; font-weight: 500; cursor: pointer; }
+.ysd-row + .ysd-row .ysd-item { box-shadow: inset 0 1px var(--ysd-divider); }
+.ysd-item { display: flex; gap: 8px; padding: 12px 6px 12px 16px; }
+.ysd-item-main { flex: 1; min-width: 0; }
+.ysd-item-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--ysd-text); font-size: 14px; line-height: 20px; font-weight: 500; word-break: break-word; }
+.ysd-item-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 10px; margin-top: 4px; font-size: 12px; line-height: 18px; color: var(--ysd-text2); }
+.ysd-item-meta b { color: var(--ysd-text); font-weight: 500; }
+.ysd-clip { display: inline-flex; align-items: center; gap: 3px; }
+.ysd-chip { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 7px; border-radius: 10px; font-size: 11px; font-weight: 500; white-space: nowrap;
+  color: var(--c, var(--ysd-text2)); background: color-mix(in srgb, var(--c, var(--ysd-text2)) 14%, transparent); transition: color .2s, background-color .2s; }
+.ysd-c-accent { --c: var(--ysd-accent); } .ysd-c-green { --c: var(--ysd-green); }
+.ysd-item-sub { margin-top: 4px; color: var(--ysd-text2); font-size: 12px; line-height: 16px; font-variant-numeric: tabular-nums; }
+.ysd-bar { position: relative; height: 3px; margin-top: 8px; border-radius: 2px; background: var(--ysd-track); overflow: hidden; }
+.ysd-bar i { position: absolute; inset: 0 auto 0 0; width: 100%; border-radius: 2px; background: var(--ysd-accent); transform: translateX(-100%); transition: transform .3s; }
+.ysd-item-actions { display: flex; align-items: flex-start; flex-wrap: wrap; justify-content: flex-end; max-width: 72px; padding-top: 2px; }
+.ysd-pfoot { display: flex; align-items: center; gap: 8px; flex: none; min-height: 44px; padding: 6px 8px 6px 16px; border-top: 1px solid var(--ysd-divider); font-size: 12px; color: var(--ysd-text2); }
+.ysd-pfoot > span { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; overflow: hidden; white-space: nowrap; }
+.ysd-pfoot b { color: var(--ysd-text); font-weight: 500; }
+.ysd-link { flex: none; padding: 4px 6px; border: 0; border-radius: 6px; background: none; color: var(--ysd-accent); font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+
+/* ---------- Shorts: the column beside the Short (the extension's own look, ysd-own) ---------- */
+.ysd-shorts { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ysd-sbtn { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%;
+  background: var(--ysd-hover); color: var(--ysd-text); cursor: pointer; transition: background-color .15s var(--ysd-ease); }
+.ysd-sbtn:hover, .ysd-sbtn.ysd-open, .ysd-sbtn[data-hover] { background: var(--ysd-active); }
+.ysd-sbtn.ysd-open { color: var(--ysd-accent); }
+.ysd-slab { margin-top: 4px; font-size: 12px; line-height: 18px; text-align: center; }

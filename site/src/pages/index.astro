@@ -1,26 +1,47 @@
 ---
-import Bento from '../components/Bento.astro';
-import Closing from '../components/Closing.astro';
-import FaqSection from '../components/FaqSection.astro';
+// The page, top to bottom. Each section is in src/components; the interactive parts are React islands in
+// src/islands, hydrated when they come into view; scripts/ui.ts does the rest without React.
+import Announcement from '../components/Announcement.astro';
+import Compare from '../components/Compare.astro';
+import Compatibility from '../components/Compatibility.astro';
+import Faq from '../components/Faq.astro';
+import Features from '../components/Features.astro';
+import FinalCta from '../components/FinalCta.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
 import Install from '../components/Install.astro';
-import Nav from '../components/Nav.astro';
-import ShowcaseSection from '../components/ShowcaseSection.astro';
+import Maker from '../components/Maker.astro';
+import Marquee from '../components/Marquee.astro';
+import Numbers from '../components/Numbers.astro';
+import Showcase from '../components/Showcase.astro';
+import TrustStrip from '../components/TrustStrip.astro';
+import TwoParts from '../components/TwoParts.astro';
+import WhatsNew from '../components/WhatsNew.astro';
 import Base from '../layouts/Base.astro';
 ---
 <Base>
-  <Nav />
+  <Announcement />
+  <Header />
   <main id="main">
     <Hero />
-    <ShowcaseSection />
-    <Bento />
+    <TrustStrip />
+    <Marquee />
+    <TwoParts />
+    <Showcase />
+    <Features />
+    <Compare />
+    <Numbers />
     <Install />
-    <FaqSection />
+    <Compatibility />
+    <WhatsNew />
+    <Faq />
+    <Maker />
+    <FinalCta />
   </main>
-  <Closing />
+  <Footer />
 </Base>
 
 <script>
-  import '../scripts/interact';
-  import '../scripts/live';
+  import '../scripts/ui';
 </script>

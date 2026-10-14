@@ -1,0 +1,137 @@
+{
+  "source": "yt-dlp -J, read 2026-10-13",
+  "vid": "7k2uKb9vCOI",
+  "title": "First 8K Video from Space - Ultra HD",
+  "author": "NASA",
+  "duration": 189,
+  "video": [
+    {
+      "key": "v3840",
+      "quality": "3840p",
+      "height": 3840,
+      "badge": "4K",
+      "codec": "AV1",
+      "size": 409971026
+    },
+    {
+      "key": "v1920",
+      "quality": "1920p",
+      "height": 1920,
+      "badge": "2K",
+      "codec": "AV1",
+      "size": 173167557
+    },
+    {
+      "key": "v1280",
+      "quality": "1280p",
+      "height": 1280,
+      "badge": "HD",
+      "codec": "AV1",
+      "size": 89006905
+    },
+    {
+      "key": "v960",
+      "quality": "960p",
+      "height": 960,
+      "badge": "HD",
+      "codec": "H.264",
+      "size": 40351532
+    },
+    {
+      "key": "v640",
+      "quality": "640p",
+      "height": 640,
+      "badge": "",
+      "codec": "H.264",
+      "size": 17321762
+    },
+    {
+      "key": "v428",
+      "quality": "428p",
+      "height": 428,
+      "badge": "",
+      "codec": "H.264",
+      "size": 10947144
+    },
+    {
+      "key": "v320",
+      "quality": "320p",
+      "height": 320,
+      "badge": "",
+      "codec": "H.264",
+      "size": 7426728
+    },
+    {
+      "key": "v214",
+      "quality": "214p",
+      "height": 214,
+      "badge": "",
+      "codec": "H.264",
+      "size": 5530726
+    },
+    {
+      "key": "v128",
+      "quality": "128p",
+      "height": 128,
+      "badge": "",
+      "codec": "H.264",
+      "size": 4161369
+    }
+  ],
+  "audio": [
+    {
+      "key": "mp3-320",
+      "format": "MP3",
+      "kbps": 320,
+      "hint": "with cover art",
+      "size": 7560000,
+      "approx": true,
+      "trimmable": true
+    },
+    {
+      "key": "mp3-192",
+      "format": "MP3",
+      "kbps": 192,
+      "hint": "with cover art",
+      "size": 4536000,
+      "approx": true,
+      "trimmable": true
+    },
+    {
+      "key": "mp3-128",
+      "format": "MP3",
+      "kbps": 128,
+      "hint": "with cover art",
+      "size": 3024000,
+      "approx": true,
+      "trimmable": true
+    },
+    {
+      "key": "m4a",
+      "format": "M4A",
+      "kbps": 129,
+      "hint": "original quality",
+      "size": 3062974,
+      "approx": false,
+      "trimmable": true
+    },
+    {
+      "key": "opus",
+      "format": "OPUS",
+      "kbps": 137,
+      "hint": "original quality",
+      "size": 3234141,
+      "approx": false,
+      "trimmable": false
+    },
+    {
+      "key": "wav",
+      "format": "WAV",
+      "kbps": 0,
+      "hint": "",
+      "size": 33339600,
+      "approx": true,
+      "trimmable": true
+    }
+  ]
+}
