@@ -100,7 +100,7 @@ html[dark]{--ysd-bg:#0f0f0f;--ysd-text:#f1f1f1;--ysd-text2:#aaa;--ysd-hover:rgba
 .ysd-opt-hint{color:var(--ysd-text2);font-size:12px;white-space:nowrap}
 .ysd-opt-right{margin-left:auto;padding-left:12px;color:var(--ysd-text2);font-size:12px;white-space:nowrap}
 .ysd-opt>svg{color:var(--ysd-accent)}
-.ysd-badge{margin-left:-4px;color:#ff0033;font-size:9px;font-weight:700;line-height:1;align-self:flex-start;padding-top:9px}
+.ysd-badge{margin-left:-4px;color:var(--ysd-red);font-size:9px;font-weight:700;line-height:1;align-self:flex-start;padding-top:9px}
 .ysd-dd{position:fixed;z-index:2350;min-width:200px;overflow-y:auto;padding:6px 0;background:var(--ysd-raised);border-radius:10px;
   box-shadow:var(--ysd-shadow);border:1px solid var(--ysd-divider);animation:ysd-pop-in .12s var(--ysd-ease)}
 .ysd-dd-item{display:flex;align-items:center;gap:8px;width:100%;min-height:36px;padding:6px 12px;border:0;background:none;color:var(--ysd-text);
