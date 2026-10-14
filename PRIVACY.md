@@ -47,8 +47,10 @@ manager. Removing the extension deletes them.
 
 ## The website
 
-The website (`nyxiyt.github.io/yt-download-manager`) is hosted by GitHub Pages and loads its images from
-jsDelivr. It has no analytics and sets no cookies.
+The website (`nyxiyt.github.io/yt-download-manager`) is hosted by GitHub Pages and serves its fonts, pictures
+and videos itself. It has no analytics and sets no cookies. Your choices on it (light or dark, reduced motion, a
+dismissed release note) are kept in your browser's local storage. Only if the page you got was built more than a
+day ago does it ask GitHub's API (`api.github.com`) once for the latest version number.
 
 ## Other services' privacy policies
 

@@ -1,0 +1,65 @@
+---
+// The README's tested platforms and browsers, word for word, with the requirements and the note on 8K sizes.
+import Icon from './Icon.astro';
+import { browsers, platforms, qualityNote, requirements, type Result } from '../lib/content';
+
+const tables: { title: string; rows: { name: string; result: Result; text: string }[] }[] = [
+  { title: 'Platform', rows: platforms },
+  { title: 'Browser', rows: browsers },
+];
+---
+<section class="section" id="compatibility" aria-labelledby="co-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="counter">012</span>
+      <h2 id="co-h">Where it runs.</h2>
+      <p class="lede">Every release is installed and run on these before it is published, and was tested by hand on Windows 10 and 11.</p>
+    </div>
+    <div class="co defer">
+      <aside class="co-side">
+        <p class="big">{qualityNote.big}</p>
+        <p class="co-note">{qualityNote.text}</p>
+        <dl class="req">
+          {requirements.map((r) => <div><dt class="label">{r.k}</dt><dd>{r.v}</dd></div>)}
+        </dl>
+      </aside>
+      <div class="co-tables">
+        {tables.map((t) => (
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th scope="col">{t.title}</th><th scope="col">Result</th></tr></thead>
+              <tbody>
+                {t.rows.map((r) => (
+                  <tr>
+                    <th scope="row">{r.name}</th>
+                    <td><span class:list={['res', r.result]}><Icon name={r.result === 'yes' ? 'yes' : 'no'} size={18} /><span class="sr-only">{r.result === 'yes' ? 'Works:' : 'Not supported:'}</span></span>{r.text}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .co { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(16px, 2.4vw, 32px); row-gap: 48px; }
+  .co-side { grid-column: 1 / span 4; display: grid; gap: 16px; align-content: start; }
+  .co-tables { grid-column: 6 / span 7; display: grid; gap: 40px; min-width: 0; }
+  @media (max-width: 1023px) { .co-side, .co-tables { grid-column: 1 / -1; } }
+  .big { font-family: var(--font-display); font-weight: 650; font-size: clamp(1.75rem, 1.2rem + 1.8vw, 2.75rem); letter-spacing: -0.035em; line-height: 1.05; }
+  .co-note { color: var(--ink-2); }
+  .req { margin: 18px 0 0; border-top: 1px solid var(--rule); }
+  .req > div { padding: 12px 0; border-bottom: 1px solid var(--rule); display: grid; gap: 4px; }
+  .req dd { margin: 0; font-size: 0.9375rem; color: var(--ink-2); }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; min-width: 540px; border-collapse: collapse; font-size: 0.9375rem; }
+  thead th { text-align: left; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); padding: 0 16px 12px 0; border-bottom: 1px solid var(--ink); }
+  tbody th { text-align: left; font-weight: 500; padding: 14px 16px 14px 0; border-bottom: 1px solid var(--rule); vertical-align: top; width: 36%; }
+  td { padding: 14px 0; border-bottom: 1px solid var(--rule); color: var(--ink-2); vertical-align: top; }
+  .res { display: inline-flex; vertical-align: -3px; margin-right: 10px; }
+  .res.yes { color: var(--ink); }
+  .res.no { color: var(--tape-text); }
+</style>

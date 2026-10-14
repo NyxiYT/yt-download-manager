@@ -1,0 +1,75 @@
+/* The demo stage: the extension's interface at its real pixel sizes, on a page built at a fixed design size and
+   scaled to fit (scripts/stage-fit.ts sets --s), so every width shows the same layout the product has. The page
+   around the toolbar is neutral: no YouTube logo, red play button or fonts. */
+.demo { margin: 0; }
+.stage { --dw: var(--dw-d, 1120); --dh: var(--dh-d, 814); position: relative; width: 100%; aspect-ratio: var(--dw) / var(--dh); overflow: hidden;
+  border-radius: var(--radius-lg); background: #0f0f0f; box-shadow: 0 0 0 1px var(--rule), 0 40px 120px -40px rgb(0 0 0 / 0.65); isolation: isolate; }
+@media (max-width: 719px) { .stage { --dw: 640; --dh: 544; } }
+.stage-inner { position: absolute; left: 0; top: 0; width: calc(var(--dw) * 1px); height: calc(var(--dh) * 1px); transform: scale(var(--s, 1)); transform-origin: 0 0; container: ysd-stage / inline-size; }
+.d-page { width: 100%; height: 100%; overflow: hidden; display: flex; flex-direction: column; }
+
+/* Top bar: a plain search field and the history button, where the extension puts it. */
+.d-top { flex: none; height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 16px; }
+.d-top-start { display: flex; align-items: center; gap: 16px; width: 200px; }
+.d-burger { display: grid; gap: 4px; width: 18px; }
+.d-burger i { display: block; height: 2px; border-radius: 1px; background: #f1f1f1; opacity: .85; }
+.d-mark { width: 92px; height: 18px; border-radius: 4px; background: rgba(255, 255, 255, .1); }
+.d-search { flex: 1; max-width: 560px; display: flex; height: 40px; }
+.d-search-field { flex: 1; border: 1px solid #303030; border-right: 0; border-radius: 20px 0 0 20px; background: #121212; }
+.d-search-btn { width: 64px; display: grid; place-items: center; border: 1px solid #303030; border-radius: 0 20px 20px 0; background: #222; color: #f1f1f1; }
+.d-top-end { display: flex; align-items: center; justify-content: flex-end; gap: 12px; width: 200px; }
+.d-avatar { width: 32px; height: 32px; border-radius: 50%; background: #3a3a3a; }
+@container ysd-stage (max-width: 700px) { .d-mark, .d-search { display: none; } .d-top-start, .d-top-end { width: auto; } }
+
+.d-player { position: relative; flex: none; aspect-ratio: 16 / 9; background: #000; overflow: hidden; }
+.d-player img { width: 100%; height: 100%; object-fit: cover; }
+.d-controls { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 12px 10px; background: linear-gradient(transparent, rgba(0, 0, 0, .55)); }
+.d-progress { height: 3px; background: rgba(255, 255, 255, .25); border-radius: 2px; overflow: hidden; }
+.d-progress i { display: block; height: 100%; background: #f1f1f1; }
+.d-time { display: block; margin-top: 8px; font: 500 13px/1 Arial, Helvetica, sans-serif; color: #f1f1f1; font-variant-numeric: tabular-nums; }
+.d-page .ysd-toolbar { margin-top: 8px; }
+.d-meta { padding: 12px 4px 0; }
+.d-vtitle { font: 700 18px/26px Arial, Helvetica, sans-serif; color: #f1f1f1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.d-channel { margin-top: 4px; font: 400 14px/20px Arial, Helvetica, sans-serif; color: #aaa; }
+
+/* Shorts */
+.d-shorts { flex: 1; display: flex; align-items: flex-end; justify-content: center; gap: 16px; padding: 4px 0 24px; min-height: 0; }
+.d-short-frame { height: 100%; aspect-ratio: 9 / 16; border-radius: 12px; overflow: hidden; background: #000; }
+.d-short-frame img { width: 100%; height: 100%; object-fit: cover; }
+.d-sitem { display: flex; flex-direction: column; align-items: center; padding-bottom: 8px; }
+.d-yt-btn { width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, .06); margin-bottom: 26px; }
+.ysd-shorts { align-self: flex-end; padding-bottom: 8px; gap: 0; }
+
+/* Overlays: each layer covers the stage, its panel takes the clicks. */
+.d-layer { position: absolute; inset: 0; pointer-events: none; z-index: 30; }
+.d-layer > * { pointer-events: auto; }
+.d-plist { max-height: 320px; overflow: hidden; }
+
+.d-folder { position: absolute; width: 520px; max-width: calc(100% - 32px); background: #202020; border: 1px solid #333; border-radius: 10px; box-shadow: 0 24px 64px rgba(0, 0, 0, .6);
+  font: 400 13px/18px Arial, Helvetica, sans-serif; color: #f1f1f1; overflow: hidden; }
+.d-folder-head { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 6px 0 14px; border-bottom: 1px solid #333; color: #ddd; }
+.d-folder-head span { flex: 1; font-weight: 700; }
+.d-folder-head svg { color: #f5c451; }
+.d-folder-x { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 6px; background: none; color: #aaa; cursor: pointer; }
+.d-folder ul { list-style: none; margin: 0; padding: 6px; }
+.d-folder li { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 6px; }
+.d-folder li.sel { background: rgba(62, 166, 255, .22); box-shadow: inset 0 0 0 1px rgba(62, 166, 255, .5); }
+.d-file-ico { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 6px; background: #2c2c2c; color: #aaa; }
+.d-cover { border-radius: 4px; object-fit: cover; }
+.d-file-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.d-file-size { color: #aaa; font-variant-numeric: tabular-nums; }
+.d-folder-note { margin: 0; padding: 8px 14px 12px; color: #aaa; font-size: 12px; }
+
+.d-cursor { position: absolute; left: 0; top: 0; z-index: 70; pointer-events: none; will-change: transform; }
+.d-cursor[hidden] { display: none; }
+.d-cursor-svg { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .45)); transform-origin: 6px 4px; transition: transform .12s var(--ease-tape); }
+.d-cursor-svg.press { transform: scale(.86); }
+
+/* Under the stage: what state it's in, and the way back to the tour. */
+.demo-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 14px; font-size: 0.875rem; color: var(--ink-2); }
+.demo-state { display: inline-flex; align-items: center; gap: 10px; }
+.demo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--tape); }
+.demo[data-mode="interactive"] .demo-dot { background: var(--ink-3); }
+.demo-replay { height: 32px; padding: 0 12px; border: 1px solid var(--rule-strong); border-radius: var(--radius-sm); background: none; font-size: 0.8125rem; cursor: pointer; color: var(--ink); }
+.demo-replay:hover { border-color: var(--ink-2); }
+.demo-replay:disabled { opacity: 0.5; cursor: default; }

@@ -1,122 +1,156 @@
-// "See it in action" as a scroll story. On wide screens with motion allowed the section is pinned and scrolling
-// moves through its five chapters; elsewhere the chapters stack, each playing when it comes into view. Both
-// layouts come from the same elements and CSS (the `pin:` variant), so nothing jumps when the script loads.
-import { LazyMotion, MotionConfig, domAnimation, useMotionValueEvent, useScroll } from 'motion/react';
+// "How to use", chapter by chapter, in the README's words. On wide screens the stage holds still (CSS sticky) while
+// the chapters scroll past; GSAP's ScrollTrigger picks the chapter in view and fills the progress rail. Each
+// chapter can be tried (the demo, which runs as a guided loop until clicked) or seen in the real app (a recording,
+// or the README's screenshot until the recording exists). On small screens the chapters stack.
 import { useEffect, useRef, useState } from 'react';
-import { showcase } from '../lib/content';
-import ClipsVisual from './showcase/ClipsVisual';
-import HistoryVisual from './showcase/HistoryVisual';
-import Mp3Visual from './showcase/Mp3Visual';
-import QualityVisual from './showcase/QualityVisual';
-import ShortsVisual from './showcase/ShortsVisual';
+import Demo from './Demo';
+import type { Frame, Scene, VideoData } from './demo/model';
+import type { Recording } from '../data/recordings';
+import { onMotion, getMotion } from './motion-pref';
 
-const PIN_QUERY = '(min-width: 1024px) and (prefers-reduced-motion: no-preference)';
+interface Chapter { id: Scene; counter: string; title: string; loop: string; steps: readonly string[] }
+interface Shot { src: string; srcset: string; width: number; height: number; alt: string }
+interface Props {
+  chapters: Chapter[];
+  video: VideoData;
+  short: VideoData;
+  frame: Frame;
+  tall: Frame;
+  cover: string;
+  shots: Record<string, Shot>;
+  recordings: Partial<Record<string, Recording>>;
+}
 
-export type Shot = { avif: string; webp: string; src: string; width: number; height: number; alt: string };
-
-export default function Showcase({ frames, frame, shots }: { frames: string[]; frame: string; shots: Record<string, Shot> }) {
-  const track = useRef<HTMLDivElement>(null);
-  const [pinned, setPinned] = useState(false);
-  const [active, setActive] = useState(0);
-  const { scrollYProgress } = useScroll({ target: track, offset: ['start start', 'end end'] });
-
+function useWide() {
+  const [wide, setWide] = useState(true); // the page is built for wide screens; phones switch after loading
   useEffect(() => {
-    const mq = window.matchMedia(PIN_QUERY);
-    const on = () => setPinned(mq.matches);
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const on = () => setWide(mq.matches);
     on();
     mq.addEventListener('change', on);
     return () => mq.removeEventListener('change', on);
   }, []);
+  return wide;
+}
 
-  useMotionValueEvent(scrollYProgress, 'change', (p) => {
-    if (pinned) setActive(Math.min(showcase.length - 1, Math.max(0, Math.floor(p * showcase.length))));
-  });
-
-  // Jumps to a chapter: the scroll position where the pinned section shows it.
-  const goTo = (i: number) => {
-    const el = track.current;
-    if (!el) return;
-    const top = el.getBoundingClientRect().top + window.scrollY;
-    const span = el.offsetHeight - window.innerHeight;
-    window.scrollTo({ top: top + (span * (i + 0.5)) / showcase.length, behavior: 'smooth' });
-  };
-
-  const visual = (i: number, on: boolean) => {
-    const props = { pinned, active: on };
-    switch (showcase[i].id) {
-      case 'quality': return <QualityVisual frames={frames} {...props} />;
-      case 'mp3': return <Mp3Visual frame={frame} {...props} />;
-      case 'clips': return <ClipsVisual frame={frame} {...props} />;
-      case 'shorts': return <ShortsVisual {...props} />;
-      default: return <HistoryVisual {...props} />;
-    }
-  };
-
+function Real({ id, shot, rec }: { id: string; shot: Shot; rec?: Recording }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    // Plays only while on screen, and not with motion turned down.
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting && getMotion() === 'full') v.play().catch(() => {}); else v.pause(); }, { threshold: 0.3 });
+    io.observe(v);
+    const off = onMotion((p) => { if (p === 'reduced') v.pause(); });
+    return () => { io.disconnect(); off(); };
+  }, []);
+  if (rec) {
+    return (
+      <figure className="real">
+        <video ref={ref} muted playsInline loop preload="none" poster={rec.poster} aria-label={rec.label} width={rec.width} height={rec.height}>
+          <source src={rec.webm} type='video/webm; codecs="av01.0.08M.08"' />
+          <source src={rec.mp4} type="video/mp4" />
+        </video>
+        <figcaption className="caption">Recording of the real app. {rec.label}</figcaption>
+      </figure>
+    );
+  }
   return (
-    <LazyMotion features={domAnimation} strict>
-      <MotionConfig reducedMotion="user">
-        <div ref={track} className="relative pin:h-[520vh]">
-          <div className="pin:sticky pin:top-0 pin:flex pin:h-dvh pin:items-center">
-            <div className="container-page grid gap-x-16 gap-y-10 pin:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] pin:grid-rows-[auto_1fr] pin:gap-y-8">
-              {/* Chapter list: wide screens only. */}
-              <nav className="hidden pin:col-start-1 pin:row-start-1 pin:block" aria-label="See it in action">
-                <ol className="m-0 flex list-none flex-wrap gap-2 p-0">
-                  {showcase.map((s, i) => (
-                    <li key={s.id}>
-                      <button type="button" className="demo-step !pl-3" aria-current={active === i ? 'step' : undefined} aria-pressed={active === i} onClick={() => goTo(i)}>
-                        {s.eyebrow}
-                      </button>
-                    </li>
-                  ))}
-                </ol>
-                <div className="mt-6 h-1 overflow-hidden rounded-full bg-[var(--surface-secondary)]" aria-hidden="true">
-                  <div className="h-full origin-left rounded-full bg-[var(--accent)] transition-transform duration-500 ease-[var(--ease-spring)]" style={{ transform: `scaleX(${(active + 1) / showcase.length})` }} />
-                </div>
-              </nav>
-
-              {/* Before the script runs, CSS shows the first chapter only (pin:opacity-0); then inline styles take over. */}
-              {showcase.map((s, i) => {
-                const on = !pinned || active === i;
-                return (
-                  <div key={s.id} className="contents">
-                    <div
-                      className={`pin:col-start-1 pin:row-start-2 pin:self-start pin:transition-[opacity,transform] pin:duration-500 pin:ease-[var(--ease-spring)] ${i > 0 ? 'pin:opacity-0' : ''}`}
-                      style={pinned ? { opacity: on ? 1 : 0, transform: `translateY(${on ? 0 : active > i ? -16 : 16}px)` } : undefined}
-                      inert={pinned && !on ? true : undefined}
-                    >
-                      <p className="eyebrow">{s.eyebrow}</p>
-                      <h3 className="mt-3 text-[length:var(--text-2xl)] font-bold leading-tight tracking-tight">{s.title}</h3>
-                      <p className="lede mt-4 max-w-[46ch]">{s.text}</p>
-                      {shots[s.id] && <Screenshot shot={shots[s.id]} />}
-                    </div>
-                    <div
-                      className={`mx-auto mb-10 w-full max-w-[720px] pin:mb-0 pin:max-w-none pin:aspect-[4/3] pin:col-start-2 pin:row-span-2 pin:row-start-1 pin:self-center pin:transition-[opacity,transform] pin:duration-500 pin:ease-[var(--ease-spring)] ${i > 0 ? 'pin:opacity-0' : ''}`}
-                      style={pinned ? { opacity: on ? 1 : 0, transform: `scale(${on ? 1 : 0.96})` } : undefined}
-                      inert={pinned && !on ? true : undefined}
-                    >
-                      {visual(i, on)}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </MotionConfig>
-    </LazyMotion>
+    <figure className="real" data-chapter={id}>
+      <img src={shot.src} srcSet={shot.srcset} sizes="(min-width: 1024px) 760px, 100vw" width={shot.width} height={shot.height} alt={shot.alt} loading="lazy" decoding="async" />
+      <figcaption className="caption">Screenshot of the real extension, from the README.</figcaption>
+    </figure>
   );
 }
 
-// The real thing, small, under the text: the moving picture beside it is an illustration.
-function Screenshot({ shot }: { shot: Shot }) {
+function ViewSwitch({ view, onView }: { view: 'try' | 'real'; onView: (v: 'try' | 'real') => void }) {
   return (
-    <figure className="relative mt-6 inline-block max-w-full overflow-hidden rounded-[var(--radius-md)] ring-1 ring-[var(--border)]">
-      <picture>
-        <source type="image/avif" srcSet={shot.avif} sizes="400px" />
-        <source type="image/webp" srcSet={shot.webp} sizes="400px" />
-        <img src={shot.src} alt={shot.alt} width={shot.width} height={shot.height} loading="lazy" decoding="async" className="block h-auto max-h-[min(28vh,260px)] w-auto max-w-full" />
-      </picture>
-      <figcaption className="absolute right-2 top-2 rounded-full bg-black/70 px-2.5 py-0.5 text-[11px] font-medium text-white">Screenshot</figcaption>
-    </figure>
+    <div className="view-switch" role="group" aria-label="Show">
+      <button type="button" aria-pressed={view === 'try'} onClick={() => onView('try')}>Try it</button>
+      <button type="button" aria-pressed={view === 'real'} onClick={() => onView('real')}>The real app</button>
+    </div>
+  );
+}
+
+export default function Showcase({ chapters, video, short, frame, tall, cover, shots, recordings }: Props) {
+  const wide = useWide();
+  const [active, setActive] = useState(0);
+  const [view, setView] = useState<'try' | 'real'>('try');
+  const [mobileView, setMobileView] = useState<Record<string, 'try' | 'real'>>({});
+  const list = useRef<HTMLOListElement>(null);
+  const fill = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!wide) return;
+    let revert = () => {};
+    let alive = true;
+    import('../scripts/scroll-engine').then(({ gsap, ScrollTrigger }) => {
+      if (!alive) return;
+      const ctx = gsap.context(() => {
+        list.current!.querySelectorAll<HTMLElement>('[data-chapter-text]').forEach((el, i) => {
+          ScrollTrigger.create({ trigger: el, start: 'top 55%', end: 'bottom 55%', onToggle: (self) => { if (self.isActive) setActive(i); } });
+        });
+        gsap.fromTo(fill.current, { scaleY: 0 }, { scaleY: 1, ease: 'none', scrollTrigger: { trigger: list.current, start: 'top 55%', end: 'bottom 55%', scrub: 0.6 } });
+      });
+      revert = () => ctx.revert();
+    });
+    return () => { alive = false; revert(); };
+  }, [wide]);
+
+  const go = (i: number) => {
+    const el = list.current?.querySelectorAll<HTMLElement>('[data-chapter-text]')[i];
+    if (!el) return;
+    const lenis = (window as Window & { __lenis?: { scrollTo: (t: HTMLElement, o: object) => void } }).__lenis;
+    if (lenis) lenis.scrollTo(el, { offset: -window.innerHeight * 0.25 });
+    else el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  const demoFor = (c: Chapter, autoplay = true) => (
+    <Demo key={c.id} scene={c.id} data={c.id === 'shorts' ? short : video} frame={frame} tall={tall} cover={cover} width={960} autoplay={autoplay}
+      label={`Illustration: ${c.title}`} />
+  );
+  const cur = chapters[active];
+
+  return (
+    <div className="showcase" data-wide={wide || undefined}>
+      <div className="sc-rail">
+        <span className="sc-progress" aria-hidden="true"><span ref={fill} /></span>
+        <ol ref={list}>
+          {chapters.map((c, i) => (
+            <li key={c.id} className={i === active ? 'on' : ''} data-chapter-text>
+              <h3 className="sc-h3">
+                <button type="button" className="sc-head" onClick={() => go(i)} aria-current={i === active ? 'step' : undefined}>
+                  <span className="counter">{c.counter}</span>
+                  <span className="sc-title">{c.title}</span>
+                </button>
+              </h3>
+              <ol className="sc-steps">
+                {c.steps.map((s) => <li key={s}>{s}</li>)}
+              </ol>
+              <p className="sc-loop label">Loop · <span className="mono">{c.loop}</span></p>
+              {!wide && (
+                <div className="sc-inline">
+                  <ViewSwitch view={mobileView[c.id] ?? 'real'} onView={(v) => setMobileView((m) => ({ ...m, [c.id]: v }))} />
+                  {(mobileView[c.id] ?? 'real') === 'try' ? demoFor(c) : <Real id={c.id} shot={shots[c.id]} rec={recordings[c.id]} />}
+                </div>
+              )}
+            </li>
+          ))}
+        </ol>
+      </div>
+      {wide && (
+        <div className="sc-stage">
+          <div className="sc-sticky">
+            <div className="sc-stage-head">
+              <p className="label"><span className="counter-inline">{cur.counter}</span> {cur.title}</p>
+              <ViewSwitch view={view} onView={setView} />
+            </div>
+            <div className="sc-swap" key={`${cur.id}-${view}`}>
+              {view === 'try' ? demoFor(cur) : <Real id={cur.id} shot={shots[cur.id]} rec={recordings[cur.id]} />}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

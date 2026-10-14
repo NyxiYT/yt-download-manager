@@ -1,0 +1,50 @@
+---
+// Side A and Side B: the extension and the Windows app, with the line that shows the one finding the other.
+import { getImage } from 'astro:assets';
+import Beam from '../islands/Beam.tsx';
+import toolbar from '../../../docs/images/toolbar.jpg';
+import appWindow from '../../../docs/images/app-window.png';
+import { twoParts } from '../lib/content';
+
+const img = async (src: ImageMetadata, widths: number[], alt: string) => {
+  const list = await Promise.all(widths.map((w) => getImage({ src, width: w, format: 'webp', quality: 82 })));
+  return { src: list.at(-1)!.src, srcset: list.map((x, i) => `${x.src} ${widths[i]}w`).join(', '), width: src.width, height: src.height, alt };
+};
+const a = { ...twoParts.a, img: await img(toolbar, [600, 989], twoParts.a.alt) };
+const b = { ...twoParts.b, img: await img(appWindow, [445], twoParts.b.alt) };
+---
+<section class="section" id="how-it-works" aria-labelledby="two-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="counter">006</span>
+      <h2 id="two-h">{twoParts.title}</h2>
+      <p class="lede">{twoParts.lede}</p>
+    </div>
+    <div class="defer two-body"><Beam client:visible a={a} b={b} caption={twoParts.caption} /></div>
+  </div>
+</section>
+
+<style>
+  .two-body { contain-intrinsic-size: auto 1100px; }
+  :global(.beam) { position: relative; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(16px, 2.4vw, 32px); row-gap: 72px; align-items: start; }
+  :global(.side) { display: grid; gap: 14px; align-content: start; }
+  :global(.side-a) { grid-column: 1 / span 7; }
+  :global(.side-b) { grid-column: 9 / span 4; padding-top: clamp(40px, 8vw, 120px); }
+  :global(.side h3) { font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.5rem); }
+  :global(.side-text) { color: var(--ink-2); max-width: 44ch; }
+  :global(.side-tag) { color: var(--tape-text); }
+  :global(.side .shot) { margin-top: 18px; }
+  :global(.side .shot.app) { max-width: 445px; border-radius: var(--radius-md); }
+  :global(.beam-svg) { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+  :global(.beam-track) { fill: none; stroke: var(--rule-strong); stroke-width: 1.5; stroke-dasharray: 2 6; stroke-linecap: round; }
+  :global(.beam-line) { fill: none; stroke: var(--tape); stroke-width: 2; stroke-linecap: round; }
+  :global(.beam-pulse) { fill: none; stroke: var(--label); stroke-width: 3; stroke-linecap: round; }
+  :global(.beam-label) { position: absolute; transform: translate(-50%, -150%); padding: 6px 9px; font-size: 0.75rem; white-space: nowrap; background: var(--panel); border: 1px solid var(--rule-strong); border-radius: var(--radius-xs); color: var(--ink); pointer-events: none; }
+  :global(.beam-ok) { position: absolute; width: 132px; height: 40px; margin: -20px 0 0 -66px; border-radius: 20px; box-shadow: 0 0 0 2px var(--tape), 0 0 0 7px var(--tape-wash); pointer-events: none; }
+  :global(.beam-caption) { margin-top: 28px; font-size: 1rem; color: var(--ink); }
+  /* Stacked, the line would cross the text: the caption says it instead. */
+  @media (max-width: 1023px) {
+    :global(.side-a), :global(.side-b) { grid-column: 1 / -1; padding-top: 0; }
+    :global(.beam-svg), :global(.beam-label), :global(.beam-ok) { display: none; }
+  }
+</style>

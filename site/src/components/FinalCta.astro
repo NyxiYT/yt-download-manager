@@ -1,0 +1,21 @@
+---
+// The closing line is the README's own, from the end of the install guide.
+import DownloadCta from './DownloadCta.astro';
+import { closing } from '../lib/content';
+---
+<section class="final" aria-labelledby="fin-h">
+  <div class="wrap fin">
+    <h2 id="fin-h">{closing.title}</h2>
+    <p>{closing.text}</p>
+    <DownloadCta id="final-dl" />
+  </div>
+</section>
+
+<style>
+  .final { padding-block: clamp(120px, 16vw, 220px) clamp(96px, 12vw, 160px); }
+  .fin { display: grid; justify-items: center; text-align: center; gap: 28px; }
+  h2 { font-size: clamp(4rem, 1rem + 12vw, 13rem); font-weight: 700; letter-spacing: -0.06em; line-height: 0.85; }
+  p { color: var(--ink-2); font-size: clamp(1.125rem, 1rem + 0.4vw, 1.375rem); max-width: 40ch; }
+  .fin :global(.cta), .fin :global(.os) { justify-items: center; }
+  .fin :global(.more) { text-align: center; }
+</style>

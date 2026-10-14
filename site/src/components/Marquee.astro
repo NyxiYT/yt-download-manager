@@ -1,0 +1,39 @@
+---
+// "Download" in the ten languages the extension and the app speak, exactly as the extension writes it, moving
+// slowly. A CSS track duplicated once (after Magic UI's Marquee, MIT), paused off screen (scripts/ui.ts) and on
+// hover. Screen readers get the list once, as a sentence.
+import { downloadWords, languageNames } from '../lib/content';
+
+const face = (lang: string) => (lang === 'ja' ? 'f-ja' : lang === 'zh-Hans' ? 'f-zh' : lang === 'ru' ? 'f-ru' : '');
+---
+<section class="marquee" aria-label="Languages">
+  <p class="sr-only">The extension and the app speak {languageNames}.</p>
+  <div class="track" data-marquee aria-hidden="true">
+    {[0, 1].map(() => (
+      <ul>
+        {downloadWords.map((w) => (
+          <li lang={w.lang} class:list={[face(w.lang), { en: w.lang === 'en' }]}>{w.word}<sup>{w.code}</sup></li>
+        ))}
+      </ul>
+    ))}
+  </div>
+</section>
+
+<style>
+  /* Drawn (and its Cyrillic and CJK fonts fetched) only once it comes near the screen. */
+  .marquee { content-visibility: auto; contain-intrinsic-size: auto 280px; padding-top: clamp(72px, 10vw, 140px); overflow: hidden; border-bottom: 1px solid var(--rule); padding-bottom: clamp(20px, 3vw, 36px); }
+  .track { display: flex; width: max-content; animation: slide 64s linear infinite; }
+  .track:hover, .track[data-paused] { animation-play-state: paused; }
+  ul { display: flex; align-items: baseline; gap: clamp(36px, 5vw, 80px); list-style: none; margin: 0; padding: 0 clamp(18px, 2.5vw, 40px); }
+  li { font-family: var(--font-display); font-weight: 650; font-size: clamp(3.5rem, 1rem + 8vw, 9.5rem); letter-spacing: -0.045em; line-height: 1; white-space: nowrap; color: var(--ink); }
+  li.en { color: var(--tape-text); }
+  /* Until the page first moves (scripts/ui.ts adds .fonts-late), these words use the system's fonts, so their
+     font files don't compete with the first paint; then they switch to Onest and the two subset faces. */
+  li.f-ru { font-family: system-ui, sans-serif; font-weight: 650; letter-spacing: -0.04em; }
+  li.f-ja, li.f-zh { font-family: system-ui, sans-serif; letter-spacing: 0; font-weight: 600; }
+  :global(.fonts-late) li.f-ru { font-family: var(--font-sans); }
+  :global(.fonts-late) li.f-ja { font-family: 'Download JA', var(--font-sans); }
+  :global(.fonts-late) li.f-zh { font-family: 'Download ZH', var(--font-sans); }
+  sup { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; color: var(--ink-2); margin-left: 0.7em; vertical-align: 2.2em; }
+  @keyframes slide { to { transform: translateX(-50%); } }
+</style>
