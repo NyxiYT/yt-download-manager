@@ -3,6 +3,13 @@
 All notable changes to YT Download Manager are listed here. Versions follow
 [semantic versioning](https://semver.org): `MAJOR.MINOR.PATCH`.
 
+## [Unreleased]
+
+### Changed
+
+- The quality labels in the video picker (8K, 4K, 2K, HD) are drawn in the theme's red, which is easier to read:
+  the bright red they had was too faint against the menu (3.5:1 in dark mode, below what WCAG asks for small text).
+
 ## [1.12.0] - 2026-10-13
 
 ### Fixed
