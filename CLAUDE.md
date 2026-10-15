@@ -110,7 +110,7 @@ Watching: download history (clock button in YouTube's top bar, progress ring), B
 ## Open issues
 - Some videos fail with "No downloadable video formats" (noted early October 2026, check if still open).
 - Installers are unsigned (SmartScreen warning).
-- Section 14 of `site/BRIEF.md`: #1 to #9 done, #10 to #12 open.
+- Section 14 of `site/BRIEF.md`: #1 to #10 done, #11 and #12 open.
 - `site/public/media/back.{avif,webm,mp4}` (the old blurred background film) are no longer used by the page. Delete them only after asking Nyxi.
 - Astro scopes every class in a component `<style>`, including `.js` and `.in` on other elements. Page-level hooks need `:global(.js)`. The feature chips' reveal (`Features.astro`, `.js .chips`) has this bug and never runs.
 - Feature card mini-scenes are the old ones, now 4:3. Their animations run 1.8 to 4.2 s, not all a clear 4 s story yet (BRIEF 8.6 examples). The card icons are still wrong (Members uses a clock, refresh is used twice): fix #12.
@@ -145,3 +145,4 @@ Watching: download history (clock button in YouTube's top bar, progress ring), B
 - 2026-10-15: BRIEF section 14 fixes #6 and #7 done: the frame stream replaces the background film in the hero and the final CTA (particles fall into a glow at the bottom or onto the CTA button), seamless mask fades, real light theme for both. 45 Playwright tests pass. Next: fix #8 (the empty band above the nav, nav 16 px from the top).
 - 2026-10-15: BRIEF section 14 fix #8 done: the 54 px band above the nav came from the skip link (`.btn` overrode its `position: fixed`) plus the nav's top margin passing through the zero-height sticky shell. The hero now starts at the top edge; the nav floats 16 px (12 px on phones) via `top`. 48 Playwright tests pass. Next: fix #9 (theme and Reduce motion toggles into the nav).
 - 2026-10-15: BRIEF section 14 fix #9 done: Theme (sun morphs into moon) and Reduce motion (speed lines pull in, aria-pressed) are icon buttons with tooltips in the nav, in the menu on phones, remembered in localStorage; removed from the footer. 53 Playwright tests pass. Next: fix #10 (categorized footer).
+- 2026-10-15: BRIEF section 14 fix #10 done: categorized footer (brand line and small Download, Product / Help / Project / Legal with the brief's links, legal left and film credit right under a hairline). Support section got `id="support"` for its footer link. 55 Playwright tests pass. Next: fix #11 (shared arrow cursor).
