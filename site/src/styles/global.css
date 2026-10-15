@@ -81,7 +81,7 @@
   ::selection { background: var(--accent-fill); color: var(--on-accent); }
 }
 
-/* Reduce motion (footer switch, off by default): everything works, nothing moves. The system setting isn't read. */
+/* Reduce motion (the nav's button, off by default): everything works, nothing moves. The system setting isn't read. */
 [data-motion="reduced"] *,
 [data-motion="reduced"] *::before,
 [data-motion="reduced"] *::after {

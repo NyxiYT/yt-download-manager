@@ -1,5 +1,5 @@
 ---
-// Links, the two settings (Reduce motion, Theme), one line of legal text and the film's credit.
+// Links, one line of legal text and the film's credit. The two settings live in the nav (Toggles.astro).
 import { appIcon } from '../lib/app-icon';
 import { footer } from '../lib/content';
 ---
@@ -12,10 +12,6 @@ import { footer } from '../lib/content';
     <nav aria-label="Project">
       <ul class="foot-links">{footer.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}</ul>
     </nav>
-    <div class="foot-set" role="group" aria-label="Settings">
-      <label class="sw"><input type="checkbox" data-motion-toggle /><span class="sw-ui" aria-hidden="true"></span>Reduce motion</label>
-      <label class="sw"><input type="checkbox" data-theme-switch /><span class="sw-ui" aria-hidden="true"></span>Light theme</label>
-    </div>
     <p class="foot-legal">{footer.legal}</p>
     <p class="foot-credit"><a href={footer.creditHref}>Big Buck Bunny</a>, © Blender Foundation, <a href={footer.licenseHref}>CC BY 3.0</a>.</p>
   </div>
@@ -23,20 +19,12 @@ import { footer } from '../lib/content';
 
 <style>
   .foot { margin-top: clamp(40px, 6vw, 72px); padding-block: 48px 40px; border-top: 1px solid var(--line); font-size: 0.9375rem; }
-  .foot-grid { display: grid; grid-template-columns: auto 1fr auto; gap: 28px 40px; align-items: center; }
+  .foot-grid { display: grid; grid-template-columns: auto 1fr; gap: 28px 40px; align-items: center; }
   .foot-brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 650; letter-spacing: -0.02em; }
   .foot-mark { width: 32px; height: 32px; display: block; }
   .foot-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 22px; }
   .foot-links a { color: var(--muted); text-decoration: none; }
   .foot-links a:hover { color: var(--text); text-decoration: underline; }
-  .foot-set { display: flex; gap: 20px; flex-wrap: wrap; }
-  .sw { position: relative; display: inline-flex; align-items: center; gap: 10px; color: var(--muted); cursor: pointer; }
-  .sw input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-  .sw-ui { position: relative; width: 36px; height: 20px; border-radius: 10px; background: var(--line-2); transition: background-color .2s; }
-  .sw-ui::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--text); transition: transform .35s cubic-bezier(.34, 1.56, .64, 1); }
-  .sw input:checked + .sw-ui { background: var(--accent-fill); }
-  .sw input:checked + .sw-ui::after { transform: translateX(16px); background: #fff; }
-  .sw input:focus-visible + .sw-ui { outline: 2px solid var(--accent-hi); outline-offset: 3px; }
   .foot-legal, .foot-credit { grid-column: 1 / -1; color: var(--muted); font-size: 0.875rem; }
   .foot-legal { padding-top: 24px; border-top: 1px solid var(--line); }
   .foot-credit { margin-top: -18px; }
