@@ -168,3 +168,11 @@
 .ysd-sbtn:hover, .ysd-sbtn.ysd-open, .ysd-sbtn[data-hover] { background: var(--ysd-active); }
 .ysd-sbtn.ysd-open { color: var(--ysd-accent); }
 .ysd-slab { margin-top: 4px; font-size: 12px; line-height: 18px; text-align: center; }
+
+/* Light mode: the extension's light palette (content.css, YouTube without html[dark]), as on light YouTube. */
+[data-theme="light"] .ysd {
+  --ysd-bg: #fff; --ysd-text: #0f0f0f; --ysd-text2: #606060; --ysd-hover: rgba(0, 0, 0, .05); --ysd-active: rgba(0, 0, 0, .1);
+  --ysd-divider: rgba(0, 0, 0, .1); --ysd-border: rgba(0, 0, 0, .14); --ysd-surface: #fff; --ysd-raised: #fff; --ysd-field: rgba(0, 0, 0, .04);
+  --ysd-accent: #065fd4; --ysd-on-accent: #fff; --ysd-red: #cc0000; --ysd-green: #188038; --ysd-amber: #b25e00;
+  --ysd-track: rgba(0, 0, 0, .12); --ysd-shadow: 0 4px 24px rgba(0, 0, 0, .14);
+}

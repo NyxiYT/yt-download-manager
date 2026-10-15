@@ -1,7 +1,9 @@
 # Checklist
 
 Every line of the brief's section 9 on the page, where it is, and where it comes from; then every item the page no
-longer shows, and where it lives now. Visible copy: 356 words, FAQ answers not counted (limit 500).
+longer shows, and where it lives now. Visible copy: 479 words on 15 Oct 2026, counted in Chrome over every readable
+text node, without the FAQ answers, the demos' own product interface, hidden text and tooltips (limit 500). The
+categorized footer added about 25 words; little room is left.
 
 ## Section 9, line by line
 
@@ -22,7 +24,7 @@ longer shows, and where it lives now. Visible copy: 356 words, FAQ answers not c
 | Browser extension / Windows app / Your folder, with their lines | How it works captions | README:27, 68, 70 |
 | They find each other on their own. | How it works footnote | ARCHITECTURE.md:37–60 |
 | `Not connected` → `Connected` | How it works chip: the app's own words (`Ui/Strings.cs:65–66`); the brief's "Looking for the app…" doesn't exist | Strings.cs |
-| Built for how you watch. + six cards | Features rail | README:54, 63, 69–71, 75 |
+| Built for how you watch. + six cards | Features grid | README:54, 63, 69–71, 75 |
 | Thumbnails · Subtitles · Screenshots · Shorts in picture-in-picture · Big Picture · Loop · Light or dark | Feature chips (`10 languages` only in the trust line, decided on the research board) | README:59–61, 84–88 |
 | No more converter sites. + four rows | The old way | ARCHITECTURE.md:24–35 for the last row |
 | Set up in three steps. + three steps | Install stepper | README:132–162; Strings.cs:68 |
@@ -30,8 +32,9 @@ longer shows, and where it lives now. Visible copy: 356 words, FAQ answers not c
 | Five FAQ questions and answers | FAQ | README:137, 195, 280, 395, 404 |
 | Made by one person. / quote / line / Donate · Star on GitHub | Support | the maker's own words |
 | Stop pasting links. / Get the button under every video. / Download for Windows | Final call to action | — |
-| GitHub · Full guide · Changelog · Report a bug · Privacy · License · Third-party licenses | Footer links | — |
-| Reduce motion · Theme | Footer settings | — |
+| Free YouTube downloader for Windows. · Product, Help, Project, Legal and their links | Footer | — |
+| Light theme / Dark theme · Reduce motion | Nav buttons (tooltips), phone menu | — |
+| Resuming tour · Play all steps | Try it hint, under the install steps | — |
 | Only download videos you're allowed to. Not affiliated with YouTube or Google. | Footer | — |
 | The film and its license | Footer credit | Blender Foundation |
 

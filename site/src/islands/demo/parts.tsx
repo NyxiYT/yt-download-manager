@@ -1,7 +1,7 @@
 // The extension's interface, rebuilt from content.js for the demos: the same elements, classes, labels and
 // icons (the styles are in styles/ysd.css). Every part the guided tour points at carries data-t, and shows its
 // hover and pressed look when the tour's cursor is on it (the Ui context), as it would under a real pointer.
-import { createContext, useContext, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useId, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
 import { getMotion, onMotion } from '../motion-pref';
 import { ICONS, type IconName } from '../../lib/icons';
 import { ARROW_PATH, ARROW_SIZE } from '../../lib/arrow';
@@ -90,6 +90,11 @@ export function Player({ film, time }: { film: FilmSrc; time?: string }) {
   );
 }
 
+// The site's theme, followed by the demo the way the extension follows YouTube's.
+const onTheme = (cb: () => void) => { const mo = new MutationObserver(cb); mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }); return () => mo.disconnect(); };
+const isDarkSite = () => document.documentElement.dataset.theme !== 'light';
+export const useSiteDark = () => useSyncExternalStore(onTheme, isDarkSite, () => true);
+
 // ---------- the toolbar (full width mode, content.js layoutBar) ----------
 export function Toolbar({ open, onVideo, onAudio }: { open: 'video' | 'audio' | null; onVideo: () => void; onAudio: () => void }) {
   const btn = (name: IconName, tip: string, t: string, onClick?: () => void, cls = '', on = false) => (
@@ -98,6 +103,7 @@ export function Toolbar({ open, onVideo, onAudio }: { open: 'video' | 'audio' | 
       <Icon name={name} />
     </button>
   );
+  const dark = useSiteDark();
   return (
     <div className="ysd-toolbar" role="toolbar" aria-label="Download tools">
       <div className="ysd-group">
@@ -108,7 +114,7 @@ export function Toolbar({ open, onVideo, onAudio }: { open: 'video' | 'audio' | 
         {btn('camera', 'Save a screenshot of this frame', 'btn-shot')}
       </div>
       <div className="ysd-group">
-        {btn('moon', 'Switch to light theme', 'btn-moon', undefined, 'ysd-wide', true)}
+        {btn('moon', dark ? 'Switch to light theme' : 'Switch to dark theme', 'btn-moon', undefined, 'ysd-wide', dark)}
         {btn('focus', 'Big Picture: keep the video in view while you scroll, and playing when you go to Home', 'btn-focus', undefined, 'ysd-wide')}
         {btn('pip', 'Picture-in-picture', 'btn-pip', undefined, 'ysd-wide')}
         {btn('repeat', 'Loop video', 'btn-loop', undefined, 'ysd-wide')}

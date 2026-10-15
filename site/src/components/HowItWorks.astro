@@ -59,6 +59,7 @@ const tb = ['video', 'music', 'image', 'captions', 'camera'] as const;
   .ill-ext { display: grid; grid-template-rows: auto 1fr auto; padding: 10px; gap: 8px; }
   .ext-bar { display: flex; gap: 5px; } .ext-bar i { width: 7px; height: 7px; border-radius: 50%; background: var(--line-2); }
   .ext-pic { border-radius: 8px; background: linear-gradient(160deg, #3c5a9e, #12203f 80%); }
+  :global([data-theme="light"]) .ext-pic { background: linear-gradient(160deg, #c9d8fb, #8eaaf0 80%); }
   .ext-tools { display: flex; gap: 10px; padding: 4px 4px 2px; color: var(--muted); }
   .ext-tools svg.on { color: var(--accent-hi); }
   .ping { position: absolute; left: 18px; bottom: 6px; width: 22px; height: 22px; margin: -2px 0 0 -6px; border-radius: 50%; border: 2px solid var(--accent-hi); opacity: 0; }

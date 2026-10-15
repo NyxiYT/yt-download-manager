@@ -126,3 +126,53 @@
 .scr .back { filter: brightness(.6); transition: filter .3s, left .4s var(--ease-out); }
 .scr .anchor { position: absolute; width: 1px; height: 1px; }
 @keyframes pop-in { from { opacity: 0; transform: translateY(10px) scale(.98); } }
+
+/* Light mode: the app's own light theme (UiKit.cs: Back white, Card #F7F7F7, Border #E0E0E0, Footer #F3F3F3, Text
+   #1B1B1B, Text2 #5F5F5F, Accent #0F6CBD with white text, hover #115EA3, Ok #0F7B0F, buttons white with a #C8C8C8
+   edge), Windows and the browser in their light look, on a pale desktop. The SmartScreen panel stays blue, as it is. */
+[data-theme="light"] .scr { --w-back: #fff; --w-card: #F7F7F7; --w-border: #E0E0E0; --w-text: #1B1B1B; --w-text2: #5F5F5F; --w-accent: #0F6CBD; --w-btn: #fff; --w-btn-edge: #C8C8C8; --w-ok: #0F7B0F;
+  background: radial-gradient(120% 90% at 30% 10%, #eaf0fd 0%, #e0e7f6 55%, #d7dff0 100%); }
+[data-theme="light"] .win { border-color: #d5d5d5; box-shadow: 0 30px 80px -24px rgba(12, 18, 32, .35), 0 0 0 1px rgba(12, 18, 32, .05); }
+[data-theme="light"] .w-title { color: #1b1b1b; }
+[data-theme="light"] .w-ctl i::before, [data-theme="light"] .w-ctl i::after { background: #1b1b1b; }
+[data-theme="light"] .w-ctl .max::before { background: none; border-color: #1b1b1b; }
+[data-theme="light"] .w-btn { color: #1b1b1b; }
+[data-theme="light"] .w-btn[data-hover] { background: #F5F5F5; }
+[data-theme="light"] .w-btn.w-primary { color: #fff; }
+[data-theme="light"] .w-btn.w-primary[data-hover] { background: #115EA3; border-color: #115EA3; }
+[data-theme="light"] .w-ss .w-ctl i::before, [data-theme="light"] .w-ss .w-ctl i::after { background: #fff; }
+[data-theme="light"] .w-ss .w-ctl .max::before { background: none; border-color: #fff; }
+[data-theme="light"] .w-ss-btn, [data-theme="light"] .w-ss-link { color: #fff; }
+[data-theme="light"] .w-ss-btn[data-hover] { background: rgba(255, 255, 255, .12); }
+[data-theme="light"] .w-ss-link[data-hover] { background: none; }
+[data-theme="light"] .w-dl { background: #fff; border-color: #dadce0; }
+[data-theme="light"] .w-dl-h { color: #5f6368; }
+[data-theme="light"] .w-dl-row[data-hover] { background: rgba(0, 0, 0, .05); }
+[data-theme="light"] .w-dl-row[data-press] { background: rgba(0, 0, 0, .08); }
+[data-theme="light"] .w-dl-ico { background: #f1f3f4; color: #5f6368; }
+[data-theme="light"] .w-dl-name small { color: #1a73e8; }
+[data-theme="light"] .w-pill { background: #EDEDED; }
+[data-theme="light"] .w-pill.on { background: color-mix(in srgb, var(--w-ok) 12%, #fff); color: #1b1b1b; }
+[data-theme="light"] .w-ext { background: #fff; border-color: #dadce0; }
+[data-theme="light"] .w-ext-top, [data-theme="light"] .w-ext-tools { border-color: #dadce0; }
+[data-theme="light"] .w-ext-search { background: #f1f3f4; }
+[data-theme="light"] .w-ext-dev { color: #5f6368; }
+[data-theme="light"] .w-switch { background: #bdc1c6; }
+[data-theme="light"] .w-switch::after { background: #fff; }
+[data-theme="light"] .w-switch.on { background: #aecbfa; }
+[data-theme="light"] .w-switch.on::after { background: #1a73e8; }
+[data-theme="light"] .w-switch[data-hover] { box-shadow: 0 0 0 6px rgba(26, 115, 232, .12); }
+[data-theme="light"] .w-pillbtn { border-color: #dadce0; color: #1a73e8; }
+[data-theme="light"] .w-pillbtn[data-hover] { background: rgba(26, 115, 232, .06); }
+[data-theme="light"] .w-ext-empty { border-color: #dadce0; }
+[data-theme="light"] .w-ext-card { background: #f8f9fa; }
+[data-theme="light"] .w-ext-name { color: #202124; }
+[data-theme="light"] .w-ext-desc { color: #5f6368; }
+[data-theme="light"] .w-fd-bar, [data-theme="light"] .w-fd-field { background: #fff; }
+[data-theme="light"] .w-fd-bar[data-hover] { border-color: #9a9a9a; }
+[data-theme="light"] .w-caret { background: #1b1b1b; }
+[data-theme="light"] .w-fd-list i { background: #ececec; }
+[data-theme="light"] .w-fd-foot { background: #F3F3F3; }
+[data-theme="light"] .w-keys { background: rgba(255, 255, 255, .94); border-color: rgba(12, 18, 32, .1); box-shadow: 0 10px 30px rgba(12, 18, 32, .18); }
+[data-theme="light"] .w-keys kbd { background: #eef1f6; border-bottom-color: #cfd5e0; color: #1b1b1b; }
+[data-theme="light"] .scr .back { filter: brightness(.94) saturate(.85); }
