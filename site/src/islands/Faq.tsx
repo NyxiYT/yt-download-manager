@@ -1,5 +1,8 @@
-// The FAQ (Radix Accordion, restyled). Every answer stays in the page (forceMount), for search engines and without
-// scripts; a closed answer folds to zero height with grid rows and is hidden from screen readers once folded.
+// The FAQ (Radix Accordion, restyled). One answer open at a time. Opening animates the height to Radix's
+// --radix-accordion-content-height (260 ms, ease out), the answer fades in and rises 6 px, and the plus turns 45°
+// into a cross; closing plays it backwards (Faq.astro). No forceMount: with it, Radix doesn't re-render after
+// measuring, so the height variable lags behind and nothing animates. Radix keeps a closing answer in the page until
+// its animation ends.
 import * as Accordion from '@radix-ui/react-accordion';
 
 export default function Faq({ items }: { items: { q: string; a: string }[] }) {
@@ -15,7 +18,7 @@ export default function Faq({ items }: { items: { q: string; a: string }[] }) {
               </Accordion.Trigger>
             </h3>
           </Accordion.Header>
-          <Accordion.Content forceMount className="faq-a">
+          <Accordion.Content className="faq-a">
             <div><p>{i.a}</p></div>
           </Accordion.Content>
         </Accordion.Item>

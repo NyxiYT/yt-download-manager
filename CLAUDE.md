@@ -110,7 +110,7 @@ Watching: download history (clock button in YouTube's top bar, progress ring), B
 ## Open issues
 - Some videos fail with "No downloadable video formats" (noted early October 2026, check if still open).
 - Installers are unsigned (SmartScreen warning).
-- Section 14 of `site/BRIEF.md`: #1 to #4 done, #5 to #12 open.
+- Section 14 of `site/BRIEF.md`: #1 to #5 done, #6 to #12 open.
 - Astro scopes every class in a component `<style>`, including `.js` and `.in` on other elements. Page-level hooks need `:global(.js)`. The feature chips' reveal (`Features.astro`, `.js .chips`) has this bug and never runs.
 - Feature card mini-scenes are the old ones, now 4:3. Their animations run 1.8 to 4.2 s, not all a clear 4 s story yet (BRIEF 8.6 examples). The card icons are still wrong (Members uses a clock, refresh is used twice): fix #12.
 - Building needs Node 22.12+. If npm runs on an older Node, it skips Rolldown's native binary and the build fails with "Cannot find native binding". Reinstall with Node 22.
@@ -129,7 +129,8 @@ Watching: download history (clock button in YouTube's top bar, progress ring), B
 - 2026-10-15: This CLAUDE.md is the shared context across all PCs.
 - 2026-10-15: One playback model for all scenes (`site/src/lib/playback.ts`, React hook `site/src/islands/playback.ts`). The hero's file pill flies to the nav only on the first loop.
 - 2026-10-15: Features spotlight lives in `site/src/scripts/features.ts`. A walk turn is max(4 s, animation + 0.6 s).
-- 2026-10-15: Install steps last exactly their label (`InstallSteps.tsx` pads each step with a rest on its last frame). Labels changed to `0:07`, `0:08`, `0:11` so every step rests at least about 1.1 s. If a step's choreography grows, raise its label in `content.ts`: the console warns when the rest drops under 0.9 s. Tablets (640 to 1023 px) use the walk like desktop, and phones (under 640 px) play the card nearest the middle.
+- 2026-10-15: Install steps last exactly their label (`InstallSteps.tsx` pads each step with a rest on its last frame). Labels changed to `0:07`, `0:08`, `0:11` so every step rests at least about 1.1 s. If a step's choreography grows, raise its label in `content.ts`: the console warns when the rest drops under 0.9 s.
+- 2026-10-15: FAQ uses Radix Accordion without `forceMount`. With it, Radix never re-renders after measuring, so `--radix-accordion-content-height` lags and nothing animates. Trade-off: closed answers are not in the HTML until opened (only the first answer is in the static page). Tablets (640 to 1023 px) use the walk like desktop, and phones (under 640 px) play the card nearest the middle.
 
 ## Status log
 - 2026-10-15: Created CLAUDE.md. Site redesign is in progress and already blue. Next step: put BRIEF v2 at `site/BRIEF.md`, then do its section 14 fixes in order.
@@ -138,3 +139,4 @@ Watching: download history (clock button in YouTube's top bar, progress ring), B
 - 2026-10-15: BRIEF section 14 fix #2 done: features rail replaced by a 3/2/1-column grid with a spotlight walk, hover takeover, and nearest-card play on phones. No horizontal scroll at 360 to 1920 px. 32 Playwright tests pass. Committed, not pushed. Next: fix #3 ("No more converter sites").
 - 2026-10-15: BRIEF section 14 fix #3 done: "No more converter sites" rebuilt (heading on top, 960 px table, equal columns, no icons, short copy from BRIEF 9, strike then fade-in once, cards on phones). Its reveal never worked before (scoped `.js`); fixed. 35 Playwright tests pass. Committed, not pushed. Next: fix #4 (install auto-advance).
 - 2026-10-15: BRIEF section 14 fix #4 done: install steps auto-advance 1, 2, 3, 1 with progress lines; a click pins and loops a step; "Play all steps" and leaving the section resume the walk; illustration above steps on phones. 40 Playwright tests pass. Committed, not pushed. Next: fix #5 (FAQ accordion animation).
+- 2026-10-15: BRIEF section 14 fix #5 done: FAQ opens and closes with a 260 ms height animation (Radix variable), the answer fades in and rises 6 px, the plus turns 45° into a cross, one open at a time. 41 Playwright tests pass. Committed, not pushed. Next: fix #6 (frame stream backgrounds for hero and CTA).
