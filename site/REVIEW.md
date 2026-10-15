@@ -24,7 +24,7 @@ Chrome with Playwright (`site/tests/`, 62+ tests) and by looking at screenshots 
 | Dark blocks in light mode | Hero and CTA backgrounds; then, found in this review: the Try it demo, the install screens, the diagram's video picture, the "Your video comes first" player | All have light versions now: the extension's and the app's own light palettes, light Windows and browser screens |
 | An empty band above the nav | 54 px from the skip link and the nav's margin | Fix #8 (test: `top.spec.ts`) |
 | A lagging or trailing cursor | The dot and spring ring | Fix #11: the arrow sits on the pointer 1:1 (test) |
-| Cloud or landscape backgrounds | **Open question.** The frame stream's tiles are small stills of the film; they show its meadow and trees (clouds left out). They read as film frames, not as a landscape, but Nyxi should judge | Decide: keep, or grade the tiles flatter |
+| Cloud or landscape backgrounds | The frame stream's tiles are small stills of the film showing its meadow and trees (clouds left out) | Kept: Nyxi judged they read as film frames, not a landscape (15 Oct 2026) |
 | More than one interactive demo | Only Try it | — |
 | A showcase cursor that clicks beside its target | None at 390, 768, 1280, 1920 px (test: `cursor.spec.ts`) | One positioning bug found and fixed (Shorts picker) |
 | Copy-pasted library components, library credits | None; references are listed in `RESEARCH.md` as study material only | — |

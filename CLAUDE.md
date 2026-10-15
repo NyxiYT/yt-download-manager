@@ -111,7 +111,6 @@ Watching: download history (clock button in YouTube's top bar, progress ring), B
 - Some videos fail with "No downloadable video formats" (noted early October 2026, check if still open).
 - Installers are unsigned (SmartScreen warning).
 - BRIEF section 14: all 12 fixes done. Section 13: research board (`site/RESEARCH.md`), screen list (`site/SCREENS.md`) and self-review (`site/REVIEW.md`) done. Still open, see `site/REVIEW.md` "Not measured": Lighthouse after revision 2, before/after screenshots, Safari and Firefox, the live site.
-- Open question for Nyxi: the frame stream's tiles show the film's meadow and trees (no clouds). BRIEF 12 says no landscape backgrounds; decide whether they read as film frames (keep) or should be graded flatter.
 - Astro scopes every class in a component `<style>`, including `.js` and `.in` on other elements. Page-level hooks need `:global(.js)`. The feature chips' reveal had this bug; fixed.
 - Feature card mini-scenes are the old ones, now 4:3. Their animations run 1.8 to 4.2 s, not all a clear 4 s story yet (BRIEF 8.6 examples). The card icons are still wrong (Members uses a clock, refresh is used twice): fix #12.
 - Building needs Node 22.12+. If npm runs on an older Node, it skips Rolldown's native binary and the build fails with "Cannot find native binding". Reinstall with Node 22.
@@ -128,6 +127,7 @@ Watching: download history (clock button in YouTube's top bar, progress ring), B
 - 2026-10-14: Accent switches from orange to blue. Copy cut to under 500 words. Own components only.
 - 2026-10-14: Screens rebuilt as vectors. Only "Try it" is interactive. Cursor accuracy rules and Playwright tests added.
 - 2026-10-15: This CLAUDE.md is the shared context across all PCs.
+- 2026-10-15: The frame stream keeps its meadow-and-trees tiles: Nyxi judged they read as film frames, not as a landscape background (BRIEF 12).
 - 2026-10-15: One playback model for all scenes (`site/src/lib/playback.ts`, React hook `site/src/islands/playback.ts`). The hero's file pill flies to the nav only on the first loop.
 - 2026-10-15: Features spotlight lives in `site/src/scripts/features.ts`. A walk turn is max(4 s, animation + 0.6 s).
 - 2026-10-15: Install steps last exactly their label (`InstallSteps.tsx` pads each step with a rest on its last frame). Labels changed to `0:07`, `0:08`, `0:11` so every step rests at least about 1.1 s. If a step's choreography grows, raise its label in `content.ts`: the console warns when the rest drops under 0.9 s.
