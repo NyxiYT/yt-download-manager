@@ -1,7 +1,7 @@
 ---
 // The footer: the brand on the left (logo, one line, a small Download button), four link columns
 // (Product, Help, Project, Legal), and under a hairline the legal line on the left and the film's credit on the
-// right. No settings here: they are in the nav (Toggles.astro).
+// right. No settings here: they are in the nav (Toggles.astro). Links that leave the page open in a new tab.
 import { appIcon } from '../lib/app-icon';
 import { DOWNLOAD_X64, EXTENSION_ZIP, footer } from '../lib/content';
 const ext = (href: string) => href.startsWith('http');
@@ -12,19 +12,19 @@ const ext = (href: string) => href.startsWith('http');
       <div class="foot-brand">
         <span class="foot-name"><span class="foot-mark" set:html={appIcon('foot', 32)} />YT Download Manager</span>
         <p class="foot-line">{footer.brand}</p>
-        <a class="btn btn-primary btn-sm foot-dl os-win" href={DOWNLOAD_X64} data-download>{footer.download}</a>
-        <a class="btn btn-primary btn-sm foot-dl os-ext" href={EXTENSION_ZIP} data-download>{footer.download}</a>
+        <a class="btn btn-primary btn-sm foot-dl os-win" href={DOWNLOAD_X64} target="_blank" rel="noopener noreferrer" data-download>{footer.download}</a>
+        <a class="btn btn-primary btn-sm foot-dl os-ext" href={EXTENSION_ZIP} target="_blank" rel="noopener noreferrer" data-download>{footer.download}</a>
       </div>
       {footer.columns.map((c) => (
         <nav class="foot-col" aria-label={c.title}>
           <p class="foot-h">{c.title}</p>
-          <ul>{c.links.map((l) => <li><a href={l.href} rel={ext(l.href) ? 'noopener' : undefined}>{l.label}</a></li>)}</ul>
+          <ul>{c.links.map((l) => <li><a href={l.href} target={ext(l.href) ? '_blank' : undefined} rel={ext(l.href) ? 'noopener noreferrer' : undefined}>{l.label}</a></li>)}</ul>
         </nav>
       ))}
     </div>
     <div class="foot-bottom">
       <p>{footer.legal}</p>
-      <p><a href={footer.creditHref}>Big Buck Bunny</a>, © Blender Foundation, <a href={footer.licenseHref}>CC BY 3.0</a>.</p>
+      <p><a href={footer.creditHref} target="_blank" rel="noopener noreferrer">Big Buck Bunny</a>, © Blender Foundation, <a href={footer.licenseHref} target="_blank" rel="noopener noreferrer">CC BY 3.0</a>.</p>
     </div>
   </div>
 </footer>
