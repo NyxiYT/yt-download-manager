@@ -98,9 +98,9 @@ export const oldWay = {
   title: 'No more converter sites.',
   rows: [
     ['Pop-ups and redirects', 'No ads, ever'],
-    ['Copy the link, paste, wait', 'One button under the video'],
+    ['Copy, paste, wait', 'One button under the video'],
     ['Quality often capped', 'Up to 8K with HDR'],
-    ['Your video goes through their server', 'Straight from YouTube to your PC'],
+    ['Files pass through their server', 'Straight to your PC'],
   ],
   left: 'Converter sites',
   right: 'YT Download Manager',
