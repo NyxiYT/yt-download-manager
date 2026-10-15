@@ -1,21 +1,18 @@
 ---
-// One big statement and the download button, over a slow loop of the hero's film (the small, blurred copy).
+// One big statement and the download button, over the frame stream condensed (fewer tiles), its particles falling
+// toward the button. The background fades into the page at its top and bottom 25%, in both themes.
 import { AI } from '../lib/anim-icons';
 import { DOWNLOAD_X64, EXTENSION_ZIP, finalCta, hero } from '../lib/content';
-import { back } from '../lib/media';
 ---
 <section class="fin" aria-labelledby="fin-title">
   <div class="fin-back" aria-hidden="true">
-    <video data-back data-slow muted playsinline loop preload="none" poster={back.poster} disablepictureinpicture>
-      {back.sources.map((s) => <source data-src={s.src} type={s.type} />)}
-    </video>
-    <div class="grain"></div>
-    <div class="fin-shade"></div>
+    <canvas class="stream" data-stream="cta"></canvas>
+    <div class="fin-scrim"></div>
   </div>
   <div class="wrap fin-in">
     <h2 id="fin-title" class="fin-h" data-reveal>{finalCta.title}</h2>
     <p class="fin-line" data-reveal style="--i:1">{finalCta.line}</p>
-    <div data-reveal style="--i:2">
+    <div data-reveal style="--i:2" data-fin-button>
       <a class="btn btn-primary os-windows" href={DOWNLOAD_X64} data-download><Fragment set:html={AI.download} />{finalCta.button}</a>
       <a class="btn btn-primary os-other" href={EXTENSION_ZIP} data-download><Fragment set:html={AI.download} />{hero.extension}</a>
       <a class="btn btn-primary os-phone" href="#install">{hero.phone}</a>
@@ -25,13 +22,25 @@ import { back } from '../lib/media';
 
 <style>
   .fin { position: relative; margin-top: clamp(96px, 13vw, 176px); padding-block: clamp(120px, 16vw, 220px); overflow: clip; isolation: isolate; text-align: center; }
-  .fin-back { position: absolute; inset: 0; z-index: -1; background: #0b1226; }
-  .fin-back video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.15); }
-  .fin-shade { position: absolute; inset: 0; background: radial-gradient(80% 70% at 50% 50%, rgb(7 8 11 / 0.35), rgb(7 8 11 / 0.85)), linear-gradient(180deg, var(--bg), transparent 25%, transparent 75%, var(--bg)); }
-  .fin-in { display: grid; justify-items: center; gap: 20px; color: #EDF0F7; }
+  .fin-back { position: absolute; inset: 0; z-index: -1;
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 25%, #000 75%, transparent); mask-image: linear-gradient(180deg, transparent, #000 25%, #000 75%, transparent); }
+  .stream { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .fin-scrim { position: absolute; inset: 0; background: radial-gradient(50% 45% at 50% 42%, color-mix(in srgb, var(--bg) 78%, transparent), transparent 75%); }
+  .fin-in { display: grid; justify-items: center; gap: 20px; color: var(--text); }
   .fin-h { font-size: clamp(3rem, 1.4rem + 6vw, 7rem); font-weight: 700; letter-spacing: -0.05em; }
-  .fin-line { font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem); color: #C3CADA; margin-bottom: 10px; }
+  .fin-line { font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem); color: var(--muted); margin-bottom: 10px; }
   .os-other, .os-phone { display: none !important; }
   :global([data-os="linux"]) .os-windows, :global([data-os="mac"]) .os-windows, :global([data-os="phone"]) .os-windows { display: none; }
   :global([data-os="linux"]) .os-other, :global([data-os="mac"]) .os-other, :global([data-os="phone"]) .os-phone { display: inline-flex !important; }
 </style>
+
+<script>
+  import { frameStream } from '../scripts/frame-stream';
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-stream="cta"]');
+  const button = document.querySelector<HTMLElement>('[data-fin-button]');
+  // Downloads land on the button: its centre, measured in the canvas's own pixels.
+  if (canvas) frameStream({ canvas, density: 0.5, seed: 21, sink: (w, h) => {
+    const b = button?.getBoundingClientRect(), c = canvas.getBoundingClientRect();
+    return b && b.width ? { x: b.left - c.left + b.width / 2, y: b.top - c.top + b.height / 2 } : { x: w / 2, y: h * 0.7 };
+  } });
+</script>

@@ -1,9 +1,9 @@
 // The page's small behaviours, without React: theme and motion switches, copy buttons, the download buttons' check,
-// the menu on phones, the nav (condensing, the section in view, the right download for the system), the films in
-// the background (after the page has loaded; still while off screen), the hero's tilt, the section reveals, and the
-// visitor's cursor. Smooth scrolling and the nav's glass load on the first interaction. The features grid's
-// spotlight is in scripts/features.ts.
-import { getMotion, onMotion, setMotion } from '../islands/motion-pref';
+// the menu on phones, the nav (condensing, the section in view, the right download for the system), the hero's
+// tilt, the section reveals, and the visitor's cursor. Smooth scrolling and the nav's glass load on the first
+// interaction. The features grid's spotlight is in scripts/features.ts; the frame stream behind the hero and the
+// final call to action is in scripts/frame-stream.ts.
+import { getMotion, setMotion } from '../islands/motion-pref';
 
 const $ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => root.querySelector<T>(s);
 const $$ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => [...root.querySelectorAll<T>(s)];
@@ -105,26 +105,6 @@ if (targets.length) {
   }, { rootMargin: '-45% 0px -50% 0px' });
   targets.forEach((t) => io.observe(t));
 }
-
-// ---------- the films behind the hero and the final call: after load, only while on screen ----------
-function films() {
-  $$<HTMLVideoElement>('video[data-back]').forEach((v) => {
-    let on = false;
-    const start = () => {
-      if (!v.dataset.loaded) {
-        $$<HTMLSourceElement>('source[data-src]', v).forEach((s) => { s.src = s.dataset.src!; });
-        v.load();
-        v.dataset.loaded = '1';
-        if (v.hasAttribute('data-slow')) v.playbackRate = 0.6;
-      }
-      if (getMotion() === 'full') v.play().catch(() => {});
-    };
-    new IntersectionObserver(([e]) => { on = e.isIntersecting; if (on) start(); else v.pause(); }).observe(v);
-    onMotion((p) => { if (p === 'reduced') v.pause(); else if (on) start(); });
-    v.addEventListener('loadedmetadata', () => { if (v.hasAttribute('data-slow')) v.playbackRate = 0.6; });
-  });
-}
-if (document.readyState === 'complete') setTimeout(films, 200); else addEventListener('load', () => setTimeout(films, 200), { once: true });
 
 // ---------- the hero's player tilts toward the pointer (at most 4°, on a spring; wide screens only) ----------
 const tilt = $('[data-tilt]');
