@@ -37,7 +37,8 @@ import { DOWNLOAD_X64, EXTENSION_ZIP, nav, navDownload } from '../lib/content';
 
 <style>
   .nav-shell { position: sticky; top: 0; z-index: 50; height: 0; }
-  .nav { position: relative; margin: 14px auto 0; width: min(1080px, calc(100% - 24px)); height: 60px; }
+  /* Offset with top, not a margin: a margin would pass through the zero-height shell and push the page down. */
+  .nav { position: relative; top: 16px; margin: 0 auto; width: min(1080px, calc(100% - 24px)); height: 60px; }
   .nav-glass {
     position: absolute; inset: 0; border-radius: 18px;
     background: linear-gradient(180deg, color-mix(in srgb, var(--glass-tint) 85%, transparent), var(--glass-tint));
@@ -60,6 +61,7 @@ import { DOWNLOAD_X64, EXTENSION_ZIP, nav, navDownload } from '../lib/content';
   .nav[data-condensed] .brand { transform: translateX(var(--dx, 0px)); }
   .nav[data-condensed] .actions { transform: translateX(calc(-1 * var(--dx, 0px))); }
   .nav[data-condensed] .brand-word { opacity: 0; clip-path: inset(0 100% 0 0); }
+  @media (max-width: 767px) { .nav { top: 12px; } }
   @media (max-width: 899px) {
     .links { display: none; }
     .nav-row { grid-template-columns: 1fr auto; }

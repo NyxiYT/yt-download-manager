@@ -99,8 +99,9 @@
   .label { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
   .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums slashed-zero; }
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-  .skip { position: fixed; left: 16px; top: 16px; z-index: 200; transform: translateY(-160%); }
-  .skip:focus { transform: none; }
+  /* .btn (below) sets position: relative; the skip link must stay fixed, or it takes a 54 px band above the nav. */
+  .skip.btn { position: fixed; left: 16px; top: 16px; z-index: 200; transform: translateY(-160%); }
+  .skip.btn:focus { transform: none; }
 
   /* Buttons: one filled accent button per section at most, one quiet one beside it. */
   .btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 22px; border-radius: 12px;
