@@ -25,6 +25,11 @@ export const AI = {
   pip: svg('pip', '<rect x="3" y="5" width="18" height="14" rx="2"/><rect class="m-mini" x="12" y="11" width="6" height="5" rx="1"/>'),
   corner: svg('corner', '<rect x="3" y="4" width="18" height="16" rx="2"/><path class="m-corner" d="M14 13h4v4h-4Z"/>'),
   loop: svg('loop', '<g class="m-turn"><path d="M5 11V9a3 3 0 0 1 3-3h11l-3-3M19 13v2a3 3 0 0 1-3 3H5l3 3"/></g>'),
+  // The feature cards: each says its own thing (BRIEF 7.4: no icon twice in a list, every icon matches its label).
+  res: svg('res', '<path class="m-c1" d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9"/><path class="m-c2" d="M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9"/><path class="m-c3" d="M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15"/><path class="m-c4" d="M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"/><rect x="8" y="8.5" width="8" height="7" rx="1"/>'),
+  resume: svg('resume', '<g class="m-turn"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4.5v4h-4"/></g><path class="m-play" d="m10.5 9.2 4.2 2.8-4.2 2.8Z"/>'),
+  yield: svg('yield', '<rect x="3.5" y="4" width="17" height="11.5" rx="2"/><path class="m-play" d="m10.5 7.5 4 2.25-4 2.25Z"/><path class="m-slow" d="M12 17.5v3.5m0 0-1.75-1.75M12 21l1.75-1.75"/>'),
+  lock: svg('lock', '<rect x="5" y="10.5" width="14" height="10" rx="2"/><path class="m-shackle" d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/><path d="M12 14.5v2.5"/>'),
   theme: svg('theme', '<circle cx="12" cy="12" r="8.5"/><path class="m-half" d="M12 3.5a8.5 8.5 0 0 1 0 17Z" fill="currentColor" stroke="none"/>'),
 } as const;
 export type AnimIcon = keyof typeof AI;

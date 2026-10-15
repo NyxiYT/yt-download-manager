@@ -28,6 +28,17 @@
 :is(a, button, [data-ai-host]):hover .ai-pip .m-mini { transform: translate(-1.5px, -1.5px); }
 :is(a, button, [data-ai-host]):hover .ai-corner .m-corner { transform: translate(-2px, -2px) scale(1.15); }
 :is(a, button, [data-ai-host]):hover .ai-theme .m-half { transform: rotate(180deg); transform-origin: 0% 50%; }
+/* the feature cards' own icons */
+:is(a, button, [data-ai-host]):hover .ai-res .m-c1 { transform: translate(-1px, -1px); }
+:is(a, button, [data-ai-host]):hover .ai-res .m-c2 { transform: translate(1px, -1px); }
+:is(a, button, [data-ai-host]):hover .ai-res .m-c3 { transform: translate(1px, 1px); }
+:is(a, button, [data-ai-host]):hover .ai-res .m-c4 { transform: translate(-1px, 1px); }
+:is(a, button, [data-ai-host]):hover .ai-resume .m-turn { transform: rotate(180deg); }
+:is(a, button, [data-ai-host]):hover .ai-resume .m-play { transform: scale(1.2); }
+:is(a, button, [data-ai-host]):hover .ai-yield .m-slow { transform: translateY(1px) scale(.7); opacity: .6; }
+:is(a, button, [data-ai-host]):hover .ai-yield .m-play { transform: scale(1.15); }
+:is(a, button, [data-ai-host]):hover .ai-lock .m-shackle { animation: lock-click .35s cubic-bezier(.22, 1, .36, 1); }
+@keyframes lock-click { 45% { transform: translateY(-2px); } 100% { transform: none; } }
 @keyframes beat { 40% { transform: scale(1.18); } }
 
 /* success: the check draws in */

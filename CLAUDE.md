@@ -110,7 +110,7 @@ Watching: download history (clock button in YouTube's top bar, progress ring), B
 ## Open issues
 - Some videos fail with "No downloadable video formats" (noted early October 2026, check if still open).
 - Installers are unsigned (SmartScreen warning).
-- Section 14 of `site/BRIEF.md`: #1 to #11 done, #12 open.
+- Section 14 of `site/BRIEF.md`: all 12 fixes done. Still open from BRIEF section 13: research board update, the list of vector screens next to `docs/images/`, the self-review against section 12, before/after screenshots.
 - `site/public/media/back.{avif,webm,mp4}` (the old blurred background film) are no longer used by the page. Delete them only after asking Nyxi.
 - Astro scopes every class in a component `<style>`, including `.js` and `.in` on other elements. Page-level hooks need `:global(.js)`. The feature chips' reveal (`Features.astro`, `.js .chips`) has this bug and never runs.
 - Feature card mini-scenes are the old ones, now 4:3. Their animations run 1.8 to 4.2 s, not all a clear 4 s story yet (BRIEF 8.6 examples). The card icons are still wrong (Members uses a clock, refresh is used twice): fix #12.
@@ -147,3 +147,4 @@ Watching: download history (clock button in YouTube's top bar, progress ring), B
 - 2026-10-15: BRIEF section 14 fix #9 done: Theme (sun morphs into moon) and Reduce motion (speed lines pull in, aria-pressed) are icon buttons with tooltips in the nav, in the menu on phones, remembered in localStorage; removed from the footer. 53 Playwright tests pass. Next: fix #10 (categorized footer).
 - 2026-10-15: BRIEF section 14 fix #10 done: categorized footer (brand line and small Download, Product / Help / Project / Legal with the brief's links, legal left and film credit right under a hairline). Support section got `id="support"` for its footer link. 55 Playwright tests pass. Next: fix #11 (shared arrow cursor).
 - 2026-10-15: BRIEF section 14 fix #11 done: the visitor's cursor is the showcases' arrow (`site/src/lib/arrow.ts`), placed 1:1 on every pointer move, with hover halo, press ripple, "Try it" pill, download arrow, grab hand on trim handles, native I-beam in text fields; native cursor back on keyboard navigation. Press scale unified at 0.9. 59 Playwright tests pass. Next: fix #12 (icon meanings).
+- 2026-10-15: BRIEF section 14 fix #12 done: feature card icons are now res (8K), resume (Keeps going), bolt, yield (Your video comes first), lock (Members), refresh (Updates itself); new icons in `site/src/lib/anim-icons.ts` with hover motions in `icons.css`. No icon repeats in a list. 62 Playwright tests pass. All of section 14 is done. Next: BRIEF section 13 deliverables, and the open issues above (unused `back.*` files, chips reveal).
