@@ -110,8 +110,9 @@ Watching: download history (clock button in YouTube's top bar, progress ring), B
 ## Open issues
 - Some videos fail with "No downloadable video formats" (noted early October 2026, check if still open).
 - Installers are unsigned (SmartScreen warning).
-- Section 14 of `site/BRIEF.md`: all 12 fixes done. Still open from BRIEF section 13: research board update, the list of vector screens next to `docs/images/`, the self-review against section 12, before/after screenshots.
-- Astro scopes every class in a component `<style>`, including `.js` and `.in` on other elements. Page-level hooks need `:global(.js)`. The feature chips' reveal (`Features.astro`, `.js .chips`) has this bug and never runs.
+- BRIEF section 14: all 12 fixes done. Section 13: research board (`site/RESEARCH.md`), screen list (`site/SCREENS.md`) and self-review (`site/REVIEW.md`) done. Still open, see `site/REVIEW.md` "Not measured": Lighthouse after revision 2, before/after screenshots, Safari and Firefox, the live site.
+- Open question for Nyxi: the frame stream's tiles show the film's meadow and trees (no clouds). BRIEF 12 says no landscape backgrounds; decide whether they read as film frames (keep) or should be graded flatter.
+- Astro scopes every class in a component `<style>`, including `.js` and `.in` on other elements. Page-level hooks need `:global(.js)`. The feature chips' reveal had this bug; fixed.
 - Feature card mini-scenes are the old ones, now 4:3. Their animations run 1.8 to 4.2 s, not all a clear 4 s story yet (BRIEF 8.6 examples). The card icons are still wrong (Members uses a clock, refresh is used twice): fix #12.
 - Building needs Node 22.12+. If npm runs on an older Node, it skips Rolldown's native binary and the build fails with "Cannot find native binding". Reinstall with Node 22.
 
@@ -148,3 +149,4 @@ Watching: download history (clock button in YouTube's top bar, progress ring), B
 - 2026-10-15: BRIEF section 14 fix #11 done: the visitor's cursor is the showcases' arrow (`site/src/lib/arrow.ts`), placed 1:1 on every pointer move, with hover halo, press ripple, "Try it" pill, download arrow, grab hand on trim handles, native I-beam in text fields; native cursor back on keyboard navigation. Press scale unified at 0.9. 59 Playwright tests pass. Next: fix #12 (icon meanings).
 - 2026-10-15: BRIEF section 14 fix #12 done: feature card icons are now res (8K), resume (Keeps going), bolt, yield (Your video comes first), lock (Members), refresh (Updates itself); new icons in `site/src/lib/anim-icons.ts` with hover motions in `icons.css`. No icon repeats in a list. 62 Playwright tests pass. All of section 14 is done. Next: BRIEF section 13 deliverables, and the open issues above (unused `back.*` files, chips reveal).
 - 2026-10-15: Deleted the unused background film (`site/public/media/back.*`, with Nyxi's OK) and its encoding step in `site/scripts/encode-hero.mjs`. 62 Playwright tests pass.
+- 2026-10-15: Finishing pass: light versions for the Try it demo (the extension's light palette), the install screens (the app's light palette from UiKit.cs, light Windows and browser), the diagram's and the "Your video comes first" pictures; chips reveal fixed; four feature mini-scenes lengthened to about 3-4 s; RESEARCH.md, SCREENS.md, REVIEW.md written, CHECKLIST.md updated (479 visible words, 123 KB first JS). 65 Playwright tests pass.
