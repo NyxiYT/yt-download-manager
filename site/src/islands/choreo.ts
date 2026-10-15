@@ -1,6 +1,6 @@
 // The drawn cursor of the showcases (hero, install steps). It never uses stored coordinates: before every move it
 // measures its target and aims at the centre, in the showcase's own (unscaled) pixels, so it lands on the same
-// button at every width. A click is always: move, a short pause, the target's hover look, press (cursor 0.85, the
+// button at every width. A click is always: move, a short pause, the target's hover look, press (cursor 0.9, the
 // target's pressed look), and then, only if the cursor really is over the target, the result.
 //
 // A loop ends with restart(): hold the final state, cross-fade back to the start (lib/playback.ts).

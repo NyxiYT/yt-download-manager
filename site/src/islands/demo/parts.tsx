@@ -4,6 +4,7 @@
 import { createContext, useContext, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { getMotion, onMotion } from '../motion-pref';
 import { ICONS, type IconName } from '../../lib/icons';
+import { ARROW_PATH, ARROW_SIZE } from '../../lib/arrow';
 import {
   audioLabel, estimate, fmtClock, fmtSize, fmtTime, qualityText, ringPct,
   type AudioOption, type DemoState, type Job, type VideoData, type VideoOption,
@@ -440,10 +441,11 @@ export function FolderWindow({ files, selected, cover, onClose, style }: {
   );
 }
 
+// The showcases' cursor: the same arrow as the visitor's own (lib/arrow.ts, scripts/cursor.ts).
 export function Cursor({ press }: { press: boolean }) {
   return (
-    <svg className={`d-cursor-svg${press ? ' press' : ''}`} viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
-      <path d="M5.5 3.2 19 12.4l-6.1 1.3-3.3 5.6Z" fill="#fff" stroke="#0f0f0f" strokeWidth="1.4" strokeLinejoin="round" />
+    <svg className={`d-cursor-svg${press ? ' press' : ''}`} viewBox="0 0 24 24" width={ARROW_SIZE} height={ARROW_SIZE} aria-hidden="true">
+      <path d={ARROW_PATH} fill="#fff" stroke="#0f0f0f" strokeWidth="1" strokeLinejoin="round" />
     </svg>
   );
 }

@@ -129,22 +129,31 @@
     animation: grain 0.9s steps(4) infinite; }
   @keyframes grain { 0% { transform: translate(0, 0); } 25% { transform: translate(-3%, 2%); } 50% { transform: translate(2%, -3%); } 75% { transform: translate(-2%, -2%); } 100% { transform: translate(0, 0); } }
 
-  /* The visitor's cursor (desktop with a fine pointer; scripts/cursor.ts). */
-  .cur { position: fixed; left: 0; top: 0; z-index: 300; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+  /* The visitor's cursor (desktop with a fine pointer; scripts/cursor.ts). Its box sits on the pointer; (0, 0) is
+     the tip. The arrow is the showcases' own (.d-cursor-svg, lib/arrow.ts). Every variant is under 150 ms. */
+  .cur { position: fixed; left: 0; top: 0; z-index: 300; width: 0; height: 0; pointer-events: none; opacity: 0; will-change: transform; }
   .cur[data-on] { opacity: 1; }
-  .cur-dot { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--accent-hi); }
-  .cur-ring { position: absolute; width: 32px; height: 32px; margin: -16px 0 0 -16px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--accent-hi) 70%, transparent);
-    display: grid; place-items: center; transition: transform 0.25s var(--ease-out), background-color 0.2s, border-color 0.2s; }
-  .cur-ring svg { width: 14px; height: 14px; color: var(--on-accent); opacity: 0; transition: opacity 0.15s; }
-  .cur-ring span { font: 600 9px/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-accent); opacity: 0; transition: opacity 0.15s; }
-  .cur[data-state="link"] .cur-ring { transform: scale(1.5); }
-  .cur[data-state="download"] .cur-ring { transform: scale(1.5); background: var(--accent-fill); border-color: var(--accent-fill); }
-  .cur[data-state="download"] .cur-ring svg { opacity: 1; }
-  .cur[data-state="download"] .cur-dot, .cur[data-state="try"] .cur-dot { opacity: 0; }
-  .cur[data-state="try"] .cur-ring { transform: scale(1.4); background: var(--accent-fill); border-color: var(--accent-fill); }
-  .cur[data-state="try"] .cur-ring span { opacity: 1; }
-  .cur[data-state="text"] { opacity: 0; }
-  html[data-cursor] { cursor: none; }
-  html[data-cursor] a, html[data-cursor] button, html[data-cursor] [role="tab"] { cursor: none; }
-  html[data-cursor] input, html[data-cursor] textarea { cursor: text; }
+  .cur-arrow { position: absolute; left: 0; top: 0; width: 26px; height: 26px; transition: opacity .1s; }
+  .cur svg { max-width: none; } /* the base max-width: 100% would shrink them to the 0 px wide box */
+  .cur[data-press] .d-cursor-svg { transform: scale(.9); }
+  .cur-halo { position: absolute; left: -5px; top: -5px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent-hi);
+    box-shadow: 0 0 10px 2px var(--accent-glow); opacity: 0; transform: scale(.3); transition: opacity .12s, transform .12s var(--ease-out); }
+  .cur[data-hover] .cur-halo { opacity: .55; transform: none; }
+  .cur-ripple { position: absolute; left: -10px; top: -10px; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--accent-hi); opacity: 0; }
+  .cur-hand { position: absolute; left: -9px; top: -4px; opacity: 0; filter: drop-shadow(0 2px 3px rgb(0 0 0 / .45)); transition: opacity .1s; }
+  .cur[data-drag] .cur-hand { opacity: 1; }
+  .cur[data-drag] .cur-arrow { opacity: 0; }
+  .cur-pill { position: absolute; left: 14px; top: 14px; display: inline-grid; place-items: center; height: 24px; min-width: 24px; padding: 0 9px; border-radius: 12px;
+    background: var(--accent-fill); color: var(--on-accent); font: 600 11px/1 var(--font-sans); white-space: nowrap; box-shadow: 0 6px 16px -6px var(--accent-glow);
+    opacity: 0; transform: translate(-4px, -4px) scale(.85); transform-origin: 0 0; transition: opacity .12s, transform .12s var(--ease-out); }
+  .cur-pill > * { grid-area: 1 / 1; transition: opacity .1s; }
+  .cur[data-pill] .cur-pill { opacity: 1; transform: none; }
+  .cur-down { opacity: 0; }
+  .cur[data-pill="download"] .cur-pill { padding: 0; }
+  .cur[data-pill="download"] .cur-try { opacity: 0; }
+  .cur[data-pill="download"] .cur-down { opacity: 1; }
+  .cur[data-text] { opacity: 0; }
+  /* While it is on, the native cursor hides everywhere except text fields (the native I-beam). */
+  html[data-cursor], html[data-cursor] * { cursor: none !important; }
+  html[data-cursor] :is(input:not([type="checkbox"]):not([type="radio"]):not([type="button"]), textarea, [contenteditable="true"]) { cursor: text !important; }
 }
