@@ -1,19 +1,20 @@
 ---
-// "No more converter sites.": four rows, the old way struck through on the left, ours in blue on the right.
-// Static; the rows come in as they scroll into view and the strike draws through each old line.
-import { AI } from '../lib/anim-icons';
+// "No more converter sites.": the heading, then the comparison at full content width (960 px at most). Two equal
+// columns, four rows, no icons: the old way in muted text, ours in text colour and medium weight. When a row comes
+// into view, a thin line strikes through the old item, then ours fades in. Once; static after that.
+// Phones: each row is a small card, the old item small and struck through, ours under it.
 import { oldWay } from '../lib/content';
 ---
 <section class="section old" aria-labelledby="old-title">
-  <div class="wrap old-grid">
-    <h2 id="old-title" class="h2" data-reveal>{oldWay.title}</h2>
+  <div class="wrap">
+    <h2 id="old-title" class="h2 old-title" data-reveal>{oldWay.title}</h2>
     <table class="old-table">
       <thead><tr><th scope="col">{oldWay.left}</th><th scope="col">{oldWay.right}</th></tr></thead>
       <tbody>
         {oldWay.rows.map(([a, b], i) => (
           <tr data-reveal style={`--i:${i}`}>
             <td class="was"><span>{a}</span></td>
-            <td class="now"><span class="now-i" set:html={i === 0 ? AI.noads : AI.download} />{b}</td>
+            <td class="now"><span>{b}</span></td>
           </tr>
         ))}
       </tbody>
@@ -22,18 +23,31 @@ import { oldWay } from '../lib/content';
 </section>
 
 <style>
-  .old-grid { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 32px clamp(32px, 6vw, 96px); align-items: start; }
-  .old-table { width: 100%; border-collapse: collapse; font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem); }
+  .old-title { margin-bottom: clamp(32px, 4vw, 48px); }
+  .old-table { width: 100%; max-width: 960px; table-layout: fixed; border-collapse: collapse; font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem); }
   .old-table th { text-align: left; padding: 0 0 14px; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line-2); }
   .old-table th + th { color: var(--accent-hi); }
-  .old-table td { padding: 22px 0; border-bottom: 1px solid var(--line); vertical-align: top; width: 50%; }
-  .old-table td + td { padding-left: 24px; }
+  .old-table td { width: 50%; padding: 22px 0; border-bottom: 1px solid var(--line); vertical-align: baseline; white-space: nowrap; }
+  .old-table th + th, .old-table td + td { padding-left: 32px; }
   .was { color: var(--muted); }
-  .was span { background: linear-gradient(currentColor, currentColor) 0 55% / 0 1.5px no-repeat; transition: background-size .7s .25s var(--ease-out); }
-  .js .old-table tr.in .was span, html:not(.js) .was span { background-size: 100% 1.5px; }
-  .now { color: var(--accent-hi); font-weight: 550; display: flex; align-items: flex-start; gap: 10px; }
-  .now-i { padding-top: 3px; }
-  .now-i :global(.ai) { width: 20px; height: 20px; }
-  @media (max-width: 899px) { .old-grid { grid-template-columns: 1fr; } }
-  @media (max-width: 520px) { .old-table td + td { padding-left: 14px; } }
+  .now { color: var(--text); font-weight: 550; }
+
+  /* The reveal: the row itself stays put; the strike draws, then ours fades in. */
+  :global(.js) .old-table tr[data-reveal] { opacity: 1; transform: none; }
+  .was span { background: linear-gradient(currentColor, currentColor) 0 55% / 0 1.5px no-repeat; }
+  :global(.js) .old-table tr:global(.in) .was span, :global(html:not(.js)) .was span { background-size: 100% 1.5px; transition: background-size .6s calc(.15s + var(--i) * 120ms) var(--ease-out); }
+  .now span { display: inline-block; }
+  :global(.js) .now span { opacity: 0; transform: translateX(-6px); }
+  :global(.js) .old-table tr:global(.in) .now span { opacity: 1; transform: none; transition: opacity .5s calc(.65s + var(--i) * 120ms) var(--ease-out), transform .5s calc(.65s + var(--i) * 120ms) var(--ease-out); }
+  :global([data-motion="reduced"]) .old-table span { transition-delay: 0s !important; }
+
+  /* Phones: a small card per row. */
+  @media (max-width: 639px) {
+    .old-table, .old-table tbody { display: grid; gap: 10px; }
+    .old-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .old-table tr { display: grid; gap: 4px; padding: 16px 18px; border-radius: var(--radius-m); background: var(--surface); border: 1px solid var(--line); }
+    .old-table td { width: auto; padding: 0; border: 0; white-space: normal; }
+    .old-table td + td { padding-left: 0; }
+    .was { font-size: 0.9375rem; }
+  }
 </style>
