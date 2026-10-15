@@ -20,7 +20,7 @@ import { DOWNLOAD_X64, EXTENSION_ZIP, nav, navDownload } from '../lib/content';
       </nav>
       <div class="actions" data-nav-end>
         <span class="nav-tg"><Toggles where="nav" /></span>
-        <a class="btn btn-primary btn-sm nav-dl" href={DOWNLOAD_X64} data-nav-download data-download data-zip={EXTENSION_ZIP}>{navDownload}</a>
+        <a class="btn btn-primary btn-sm nav-dl" href={DOWNLOAD_X64} target="_blank" rel="noopener noreferrer" data-nav-download data-download data-zip={EXTENSION_ZIP}>{navDownload}</a>
         <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav-sheet" data-menu-open aria-label="Open menu">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 8h16M4 16h16" /></svg>
         </button>

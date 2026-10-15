@@ -9,9 +9,9 @@ import { EXTENSION_ZIP, GUIDE, LINUX_GUIDE, install } from '../lib/content';
     <h2 id="inst-title" class="h2 inst-h" data-reveal>{install.title}</h2>
     <InstallSteps client:visible steps={install.steps} labelPrefix="Install step:" playAll={install.playAll} />
     <p class="inst-more">
-      <a href={LINUX_GUIDE} data-zip={EXTENSION_ZIP}>{install.linux}</a>
+      <a href={LINUX_GUIDE} target="_blank" rel="noopener noreferrer" data-zip={EXTENSION_ZIP}>{install.linux}</a>
       <span aria-hidden="true">·</span>
-      <a href={GUIDE}>{install.guide}</a>
+      <a href={GUIDE} target="_blank" rel="noopener noreferrer">{install.guide}</a>
     </p>
   </div>
 </section>

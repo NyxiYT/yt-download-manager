@@ -22,7 +22,7 @@ const wallets = await Promise.all(support.wallets.map(async (w) => ({
         <p class="sup-line">{support.line}</p>
         <div class="sup-btns">
           <Donate client:visible label={support.donate} wallets={wallets} />
-          <a class="btn btn-quiet" href={REPO} data-ai-host><Fragment set:html={AI.github} />{support.star}</a>
+          <a class="btn btn-quiet" href={REPO} target="_blank" rel="noopener noreferrer" data-ai-host><Fragment set:html={AI.github} />{support.star}</a>
         </div>
       </div>
     </div>

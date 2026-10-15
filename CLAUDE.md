@@ -127,6 +127,7 @@ Watching: download history (clock button in YouTube's top bar, progress ring), B
 - 2026-10-14: Accent switches from orange to blue. Copy cut to under 500 words. Own components only.
 - 2026-10-14: Screens rebuilt as vectors. Only "Try it" is interactive. Cursor accuracy rules and Playwright tests added.
 - 2026-10-15: This CLAUDE.md is the shared context across all PCs.
+- 2026-10-15: Every link that leaves the site opens in a new tab (`target="_blank" rel="noopener noreferrer"`), download buttons included; links within the page (`#install`, `#faq`...) stay in the same tab. Test: `site/tests/links.spec.ts`.
 - 2026-10-15: The frame stream keeps its meadow-and-trees tiles: Nyxi judged they read as film frames, not as a landscape background (BRIEF 12).
 - 2026-10-15: One playback model for all scenes (`site/src/lib/playback.ts`, React hook `site/src/islands/playback.ts`). The hero's file pill flies to the nav only on the first loop.
 - 2026-10-15: Features spotlight lives in `site/src/scripts/features.ts`. A walk turn is max(4 s, animation + 0.6 s).

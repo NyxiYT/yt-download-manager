@@ -61,7 +61,7 @@ document.addEventListener('click', (e) => {
 const os = root.dataset.os;
 const navDl = $<HTMLAnchorElement>('[data-nav-download]');
 if (navDl && (os === 'linux' || os === 'mac')) navDl.href = navDl.dataset.zip!;
-if (navDl && os === 'phone') navDl.href = '#install';
+if (navDl && os === 'phone') { navDl.href = '#install'; navDl.removeAttribute('target'); navDl.removeAttribute('rel'); } // in the page: same tab
 
 // ---------- the menu on phones ----------
 const sheet = $('[data-menu]');
