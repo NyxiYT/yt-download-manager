@@ -7,7 +7,7 @@ import { EXTENSION_ZIP, GUIDE, LINUX_GUIDE, install } from '../lib/content';
 <section class="section inst" id="install" aria-labelledby="inst-title">
   <div class="wrap">
     <h2 id="inst-title" class="h2 inst-h" data-reveal>{install.title}</h2>
-    <InstallSteps client:visible steps={install.steps} labelPrefix="Install step:" />
+    <InstallSteps client:visible steps={install.steps} labelPrefix="Install step:" playAll={install.playAll} />
     <p class="inst-more">
       <a href={LINUX_GUIDE} data-zip={EXTENSION_ZIP}>{install.linux}</a>
       <span aria-hidden="true">·</span>
@@ -19,8 +19,9 @@ import { EXTENSION_ZIP, GUIDE, LINUX_GUIDE, install } from '../lib/content';
 <style>
   .inst-h { margin-bottom: clamp(32px, 4vw, 56px); }
   :global(.steps) { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(24px, 4vw, 56px); align-items: start; }
-  :global(.steps-list) { display: grid; gap: 4px; }
-  :global(.step) { display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: start; width: 100%; padding: 18px 18px; border: 1px solid transparent; border-radius: var(--radius-m); background: none; text-align: left; cursor: pointer;
+  :global(.steps-side) { display: grid; gap: 14px; justify-items: start; }
+  :global(.steps-list) { display: grid; gap: 4px; width: 100%; }
+  :global(.step) { position: relative; overflow: hidden; display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: start; width: 100%; padding: 18px 18px; border: 1px solid transparent; border-radius: var(--radius-m); background: none; text-align: left; cursor: pointer;
     color: var(--muted); transition: background-color .2s, border-color .2s, color .2s; }
   :global(.step:hover) { color: var(--text); }
   :global(.step[aria-selected="true"]) { background: var(--surface); border-color: var(--line-2); color: var(--text); }
@@ -30,6 +31,13 @@ import { EXTENSION_ZIP, GUIDE, LINUX_GUIDE, install } from '../lib/content';
   :global(.step-title) { font-family: var(--font-display); font-size: 1.375rem; font-weight: 650; letter-spacing: -0.02em; line-height: 1.15; color: inherit; }
   :global(.step-text) { font-size: 0.9375rem; line-height: 1.5; color: var(--muted); }
   :global(.step-loop) { font-size: 0.75rem; color: var(--muted); padding-top: 6px; }
+  /* The active step's progress: fills over the step's duration (the label), driven by InstallSteps.tsx. */
+  :global(.step-line) { position: absolute; left: 18px; right: 18px; bottom: 0; height: 2px; border-radius: 1px; background: color-mix(in srgb, var(--line-2) 60%, transparent); opacity: 0; transition: opacity .3s; }
+  :global(.step[aria-selected="true"] .step-line) { opacity: 1; }
+  :global(.step-line i) { display: block; height: 100%; border-radius: inherit; background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); }
+  :global(.steps-all) { display: inline-flex; align-items: center; gap: 8px; padding: 4px 18px; border: 0; background: none; color: var(--accent-hi); font-weight: 550; font-size: 0.9375rem; cursor: pointer; }
+  :global(.steps-all:hover) { text-decoration: underline; text-underline-offset: 4px; }
+  :global(.steps-all[hidden]) { display: none; }
   :global(.steps-stage) { min-width: 0; display: grid; gap: 14px; }
   :global(.step-now) { display: none; color: var(--muted); }
   :global(.stage-scr) { box-shadow: 0 0 0 1px var(--line-2), var(--shadow); }
@@ -37,8 +45,11 @@ import { EXTENSION_ZIP, GUIDE, LINUX_GUIDE, install } from '../lib/content';
   .inst-more a { color: var(--text); }
   @media (max-width: 899px) {
     :global(.steps) { grid-template-columns: 1fr; }
+    :global(.steps-stage) { order: -1; } /* the screen above, the steps below */
+    :global(.step-line) { left: 12px; right: 12px; }
+    :global(.step-title) { font-size: 0.9375rem; letter-spacing: -0.01em; }
     :global(.steps-list) { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-    :global(.step) { grid-template-columns: 1fr; gap: 8px; padding: 12px; }
+    :global(.step) { grid-template-columns: 1fr; gap: 8px; padding: 12px 10px; }
     :global(.step-loop) { display: none; }
     :global(.step-text) { display: none !important; }
     :global(.step-now) { display: block; }

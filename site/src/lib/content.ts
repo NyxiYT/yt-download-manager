@@ -112,9 +112,10 @@ export const install = {
   title: 'Set up in three steps.',
   steps: [
     { n: 1, title: 'Download', text: 'Open the installer. If Windows warns you, click More info, then Run anyway.', loop: '0:07' },
-    { n: 2, title: 'Install', text: 'Click Install, then Open. No admin rights needed.', loop: '0:07' },
-    { n: 3, title: 'Add to browser', text: 'Click Add to browser. Turn on Developer mode, click Load unpacked, paste, select.', loop: '0:10' },
+    { n: 2, title: 'Install', text: 'Click Install, then Open. No admin rights needed.', loop: '0:08' },
+    { n: 3, title: 'Add to browser', text: 'Click Add to browser. Turn on Developer mode, click Load unpacked, paste, select.', loop: '0:11' },
   ],
+  playAll: 'Play all steps',
   linux: 'Linux or no app? Get the extension on its own.',
   guide: 'Full guide on GitHub',
 };
