@@ -6,7 +6,8 @@
 import { AI } from '../lib/anim-icons';
 import { features } from '../lib/content';
 const chipIcon = { Thumbnails: 'image', Subtitles: 'captions', Screenshots: 'camera', 'Shorts in picture-in-picture': 'pip', 'Big Picture': 'corner', Loop: 'loop', 'Light or dark': 'theme' } as const;
-const cardIcon = { quality: 'download', resume: 'refresh', fast: 'bolt', yield: 'pause', members: 'clock', update: 'refresh' } as const;
+// One icon per card, each meaning its card, none twice.
+const cardIcon = { quality: 'res', resume: 'resume', fast: 'bolt', yield: 'yield', members: 'lock', update: 'refresh' } as const;
 const rows = [['4320p', '8K'], ['2160p60', '4K'], ['1440p60', '2K'], ['1080p60', 'HD'], ['720p60', 'HD']];
 ---
 <section class="section feats" id="features" aria-labelledby="feat-title">
@@ -27,7 +28,7 @@ const rows = [['4320p', '8K'], ['2160p60', '4K'], ['1440p60', '2K'], ['1080p60',
               <div class="fr">
                 <span class="fr-bar"><i></i></span>
                 <span class="fr-state mono"><span class="a">Downloading</span><span class="b">Restarted</span><span class="c">Downloading</span></span>
-                <span class="fr-icon" set:html={AI.refresh} />
+                <span class="fr-icon" set:html={AI.resume} />
               </div>
             )}
             {c.id === 'fast' && (
