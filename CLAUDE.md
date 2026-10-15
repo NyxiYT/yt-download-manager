@@ -1,0 +1,130 @@
+# YT Download Manager: Project Context
+
+This file is the shared memory for every PC and every Claude Code session.
+Personal Claude memory and old chats are NOT shared between PCs. This file is, through git.
+
+## How to use this file
+- Start of every session: `git pull`, then read this file. For website work, also read `site/BRIEF.md`.
+- End of every session: add a dated line to "Status log" at the bottom, update "Decisions" if anything changed, then commit and push.
+- If this file and the code disagree, the code and README win. Fix this file.
+- Facts marked (check) were not verified in the code yet. Verify before relying on them.
+
+## Owner
+- Nyxi (GitHub: NyxiYT), apprentice application developer in Austria.
+- Uses Claude Code on several PCs. Changes are made through prompts to a coding agent.
+- Wants: compact answers, clear steps, nothing invented. Ask before big or irreversible changes.
+
+## Product in one paragraph
+YT Download Manager is a free, open-source (MIT) YouTube downloader for Windows.
+It has two parts: a **browser extension** that adds a toolbar under every YouTube video and a Download button beside every Short,
+and a **Windows app** that does the downloading in the background with yt-dlp and FFmpeg.
+No ads, no account, no tracking.
+
+## Links
+- Repo: https://github.com/NyxiYT/yt-download-manager
+- Website: https://nyxiyt.github.io/yt-download-manager/
+- Latest release: https://github.com/NyxiYT/yt-download-manager/releases/latest
+- Release assets (stable names, use `/releases/latest/download/<name>`):
+  - `YTDownloadManager-Setup-x64.exe` (Windows 64-bit)
+  - `YTDownloadManager-Setup-x86.exe` (Windows 32-bit)
+  - `YTStandaloneDownloader-Extension.zip` (extension only, Linux or without the app)
+  - `yt-standalone-downloader.user.js` (Tampermonkey userscript)
+  - `SHA256SUMS.txt`
+
+## Repo map
+| Path | What it is |
+|---|---|
+| `extension/` | Browser extension source ("YT Standalone Downloader"). Toolbar, menus, Shorts button, history panel |
+| `extension-build/` | Extension build output or build tooling (check) |
+| `manager/` | Windows app source (the "Download Manager") |
+| `site/` | Website (Astro), deployed to GitHub Pages |
+| `docs/` | `ARCHITECTURE.md` (local API, pairing, data storage, threat model) and `docs/images/` (screenshots) |
+| `bucket/` | Scoop bucket manifest |
+| `.github/` | Workflows (builds, releases, Pages) |
+| `yt-standalone-downloader.user.js` | Userscript version |
+| `CHANGELOG.md`, `README.md`, `PRIVACY.md`, `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `LICENSE` | Project docs |
+| `package.json`, `eslint.config.mjs` | JS tooling |
+
+## Tech facts
+- Windows app needs .NET Framework 4.8 (built into Windows 10 1903+ and 11). Likely C# (check).
+- Installer bundles yt-dlp, FFmpeg, and Deno (64-bit) or Node.js (32-bit). yt-dlp updates itself about weekly.
+- Installs per user, no admin rights. Installer offers Update, Repair, Uninstall when opened again.
+- App starts with Windows, sits in the system tray, follows Windows light or dark mode.
+- App self-updates (since 1.9.0). The extension updates itself with the app once no YouTube tab is open.
+- App checks GitHub for updates at most every 10 minutes when used, every 12 hours otherwise. Can be turned off under Advanced.
+- Advanced also allows using your own `yt-dlp.exe`.
+- Extension talks only to YouTube, the local app, and jsDelivr (to fetch ffmpeg.wasm when the browser must convert). Includes lamejs for MP3.
+- The extension finds the app by itself. App window shows `Connected` or `Not connected`.
+- Installers are NOT code-signed. SmartScreen shows "Windows protected your PC": More info, then Run anyway.
+- 10 languages in extension and app: EN, DE, ES, FR, IT, PT, PL, RU, JA, ZH.
+- Supported: Windows 10 and 11 (x64, x86, ARM via emulation). Browsers: Chrome, Edge, Chromium, Brave, Opera, Vivaldi, version 111+. Not Firefox. No app for Linux or macOS. Extension alone works on Linux, untested on macOS.
+- Without the app, the extension usually gets up to 1080p. With the app: up to 4320p (8K), 60 fps, HDR. 1440p and up need the app.
+
+## Features (source of truth: README)
+Downloading: up to 8K with 60 fps and HDR (highest preselected), audio as MP3 320 kb/s with cover art or M4A, Opus, WAV, clips via start and end time (Trim), thumbnails, subtitles, screenshots of the current frame, Shorts button with the same choices, age-restricted and members-only videos via the browser's own sign-in.
+App: any download folder (default Downloads), parallel parts for speed, resume after tab close or restart, slows down when your video needs bandwidth, parallel downloads 1 to 4 and optional speed limit, optional retry with YouTube sign-in when YouTube suspects a bot.
+Watching: download history (clock button in YouTube's top bar, progress ring), Big Picture, picture-in-picture for Shorts, back and forward through Shorts, loop, theme switch.
+
+## How the user flow works
+1. Toolbar under the video: camera button (video), music note button (audio), more buttons for thumbnail, subtitles, screenshot (check exact order in `extension/`).
+2. Camera: pick a Quality (size shown), optional Trim with two dots, Download.
+3. Shorts: Download button above YouTube's like button, menu with video, audio, thumbnail, subtitles, screenshot.
+4. History: clock button in YouTube's top bar, folder icon opens the file's folder.
+5. Settings: app window ("Saving to", Change…, Advanced, Diagnostics) and extension Options (language, hide toolbar, "Send downloads to the Download Manager").
+
+## App UX principles (from Nyxi)
+- Installer as simple as possible: open, install, done, open the app. Short texts, no technical explanations.
+- After a download: minimal feedback. No technical details like "720p" or video IDs in messages or file names (file name like `Example Video.mp4`).
+- Download status and output belong at the top right, directly left of the history icon. Not bottom left.
+- History panel shows active, finished, paused, and failed downloads.
+- One distinctive app icon, the same everywhere (EXE, installer, taskbar, Start menu, extension).
+
+## Legal and money (copy exactly from README, never retype)
+- Legal note: only download videos you are allowed to. Not affiliated with YouTube or Google.
+- Donations: BTC and USDT (Ethereum, ERC-20 only) addresses and QR codes are in the README "Support the project" section and `docs/images/donate-*.png`. Always copy them from there. A typo loses money.
+
+## Website: current state (checked 15 Oct 2026)
+- Astro static site in `site/`, GitHub Pages.
+- Fonts: Funnel Display, Onest, JetBrains Mono. Accent is already blue. Dark theme default, light theme and "Reduce motion" toggles in the footer (moving to the nav, see BRIEF section 14).
+- Liquid glass nav (SVG displacement, Chromium, blur fallback elsewhere).
+- Interactive guided tour of the toolbar using a Big Buck Bunny frame (CC BY 3.0, Blender Foundation).
+- About 4,500 words in 15 sections: hero with download block, trust row, language marquee, "Two parts, one tool", 5 how-to chapters, 24-feature list, with vs without app comparison, numbers, 8-step install with checksums and Scoop, compatibility tables, "What's new" (last 5 releases), FAQ, "From the maker" with donations, final download block, footer with credits.
+- Uses effects modeled on Magic UI and React Bits, credited in the footer.
+
+## Website: redesign decisions (full spec in `site/BRIEF.md`)
+- Goal: install the app, and support the project. Customer-facing only.
+- Accent: **blue** (`#3D7BFF`). No orange, no purple.
+- Copy: very compact. Under 500 visible words, headings 6 words max, body blocks 20 words max. Exact copy is in the brief.
+- Removed from the site (stay on GitHub): versions, changelog, spec and compatibility tables, RAM figures, checksums, Scoop, star counts, section numbers like `006`, long FAQ.
+- Hero: blurred, blue-graded loop of a Blender open movie (CC BY, credit it) behind a sharp vector rebuild of the player and toolbar. Intro plays once, then rests with a replay button.
+- Only ONE fully interactive showcase: "Try it". Everything else plays by itself.
+- No raster screenshots: every app, extension, and installer screen is rebuilt as HTML, CSS, and SVG from the source code.
+- Showcase cursors must hit their targets: measure with `getBoundingClientRect()`, never hardcode coordinates, verify with Playwright at 390, 768, 1280, 1920 px.
+- Network-style diagram explains extension to app to folder (ping, handshake, `Connected`).
+- Custom cursor (desktop only), custom animated icon set (hover, press, success states).
+- Build all components ourselves. Library sites are inspiration only. No library credits in the footer.
+- Animations always run, regardless of OS reduced-motion settings. The footer "Reduce motion" toggle stays, off by default.
+- Stack: Astro, React islands, TypeScript, Tailwind v4, Motion, GSAP ScrollTrigger, Lenis, Radix primitives, Playwright.
+- Work in phases: research board, tokens and nav, hero, Try it, diagram, features and install, FAQ and support, performance and tests.
+
+## Open issues
+- Some videos fail with "No downloadable video formats" (noted early October 2026, check if still open).
+- Installers are unsigned (SmartScreen warning).
+- Section 14 of `site/BRIEF.md` (revision 2 fixes) not started yet.
+
+## Working rules for Claude Code
+- Read before writing. Never guess file contents.
+- Never invent features, numbers, or quotes. The README is the source of truth for product facts.
+- Small, reviewable commits with clear messages.
+- Run lint and tests before saying something is done.
+- Ask before deleting files, rewriting history, or publishing a release.
+
+## Decisions
+- 2026-10-13: Website gets a full redesign. Focus on customers, not developers.
+- 2026-10-14: Accent switches from orange to blue. Copy cut to under 500 words. Own components only.
+- 2026-10-14: Screens rebuilt as vectors. Only "Try it" is interactive. Cursor accuracy rules and Playwright tests added.
+- 2026-10-15: This CLAUDE.md is the shared context across all PCs.
+
+## Status log
+- 2026-10-15: Created CLAUDE.md. Site redesign is in progress and already blue. Next step: put BRIEF v2 at `site/BRIEF.md`, then do its section 14 fixes in order.
+- 2026-10-15: Added CLAUDE.md and BRIEF v2 at `site/BRIEF.md` to the repo (committed on main, not pushed: gh on this PC is signed in as another account). Next step: BRIEF section 14 fixes in order, starting with #1 (playback hook, remove Replay buttons).
