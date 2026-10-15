@@ -6,7 +6,7 @@
 // Writes to public/media/:
 //   film-1080.{webm,mp4}  the sharp picture inside the player (desktop), with its poster film-1080.avif
 //   film-720.{webm,mp4}   the same for phones, with film-720.avif
-//   back.{webm,mp4}       the background: small, already blurred and graded toward blue (the page scales it up)
+// The backgrounds behind the hero and the final call to action are made from these by scripts/tiles.mjs.
 // The source never enters the repo. Needs FFmpeg with libsvtav1, libx264 and libaom (the gyan.dev "full" build).
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, statSync } from 'node:fs';
@@ -39,12 +39,3 @@ for (const v of sharp) {
   ff(['-filter_complex', `${vf},trim=end_frame=1`, '-frames:v', '1', '-c:v', 'libaom-av1', '-still-picture', '1', '-crf', '32', `${out}${v.name}.avif`]);
   console.log(`${v.name}: webm ${kb(v.name + '.webm')}, mp4 ${kb(v.name + '.mp4')}, poster ${kb(v.name + '.avif')}`);
 }
-
-// The background: graded to a night blue (colour mostly taken out, highlights pulled down into blue), blurred before encoding
-// so the browser doesn't have to, and small, because nothing in it is sharp.
-const grade = "hue=s=0.3,curves=r='0/0.01 1/0.18':g='0/0.02 1/0.32':b='0/0.05 1/0.62'";
-const back = `${loop},scale=640:360:flags=area,${grade},gblur=sigma=10,format=yuv420p`;
-ff(['-filter_complex', back, '-c:v', 'libsvtav1', '-preset', '5', '-crf', '44', '-g', '120', `${out}back.webm`]);
-ff(['-filter_complex', back, '-c:v', 'libx264', '-preset', 'slow', '-crf', '30', '-profile:v', 'high', '-movflags', '+faststart', `${out}back.mp4`]);
-ff(['-filter_complex', `${back},trim=end_frame=1`, '-frames:v', '1', '-c:v', 'libaom-av1', '-still-picture', '1', '-crf', '40', `${out}back.avif`]);
-console.log(`back: webm ${kb('back.webm')}, mp4 ${kb('back.mp4')}, poster ${kb('back.avif')}`);
