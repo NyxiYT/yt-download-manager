@@ -1,8 +1,8 @@
 ---
 // "Two parts. Zero setup." as a small network map (true to docs/ARCHITECTURE.md): the extension finds the app on
 // the PC (a ping, a handshake), the app's status turns from its own "Not connected" to "Connected", then the app
-// fetches the streams and saves the file into your folder. It plays when it comes into view (pinned for a moment
-// on wide screens), once; the replay button plays it again. Nothing in it can be clicked.
+// fetches the streams and saves the file into your folder. It loops while it's in view (pinned for a moment on wide
+// screens) and pauses off screen (lib/playback.ts). Nothing in it can be clicked.
 import { ICONS } from '../lib/icons';
 import { appIcon } from '../lib/app-icon';
 import { how } from '../lib/content';
@@ -45,10 +45,6 @@ const tb = ['video', 'music', 'image', 'captions', 'camera'] as const;
     <p class="sr-only">{how.nodes.map((n) => `${n.name}: ${n.text}`).join(' ')} {how.foot}</p>
     <div class="how-foot">
       <p class="how-note" data-reveal>{how.foot}</p>
-      <button class="replay" type="button" data-how-replay disabled>
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7" /><path d="M4 4v4h4" /></svg>
-        <span>Replay</span>
-      </button>
     </div>
   </div>
 </section>
@@ -120,10 +116,10 @@ const tb = ['video', 'music', 'image', 'captions', 'camera'] as const;
 
 <script>
   // The sequence: GSAP from the shared scroll engine, loaded when the section comes near.
-  import { getMotion } from '../islands/motion-pref';
+  import { getMotion, onMotion } from '../islands/motion-pref';
+  import { FADE_MS, HOLD_MS, scenePlayback } from '../lib/playback';
 
   const sec = document.querySelector<HTMLElement>('[data-how]')!;
-  const replay = sec.querySelector<HTMLButtonElement>('[data-how-replay]')!;
 
   const io = new IntersectionObserver(async ([e]) => {
     if (!e.isIntersecting) return;
@@ -137,7 +133,9 @@ const tb = ['video', 'music', 'image', 'captions', 'camera'] as const;
     const hs = q('[data-hs]');
     const pk = qa('[data-pk]');
 
-    const tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.out' }, onComplete: () => { replay.disabled = false; } });
+    const net = q('[data-net]');
+    // One loop: fade in on the empty map, play, hold the last frame, fade out; repeat.
+    const tl = gsap.timeline({ paused: true, repeat: -1, defaults: { ease: 'power2.out' } });
     tl.set([d1, d2], { [scale]: 0 })
       .set(hs, { '--t': 0, opacity: 0 })
       .set(pk, { '--t': 0, opacity: 0 })
@@ -162,20 +160,22 @@ const tb = ['video', 'music', 'image', 'captions', 'camera'] as const;
       .to(pk, { opacity: 1, duration: 0.1, stagger: 0.18 })
       .to(pk, { '--t': 1, duration: 0.7, ease: 'none', stagger: 0.18 }, '<')
       .to(pk, { opacity: 0, duration: 0.12, stagger: 0.18 }, '-=0.45')
-      .to(q('[data-file]'), { opacity: 1, y: 0, duration: 0.6, ease: 'back.out(1.6)' }, '-=0.25');
+      .to(q('[data-file]'), { opacity: 1, y: 0, duration: 0.6, ease: 'back.out(1.6)' }, '-=0.25')
+      .to(net, { opacity: 0, duration: FADE_MS / 2000, ease: 'none' }, `+=${HOLD_MS / 1000}`);
+    tl.fromTo(net, { opacity: 0 }, { opacity: 1, duration: FADE_MS / 2000, ease: 'none', immediateRender: false }, 0);
 
-    let played = false;
-    const play = () => { played = true; replay.disabled = true; tl.restart(); };
-    replay.addEventListener('click', play);
-    if (getMotion() === 'reduced') { tl.progress(1); replay.disabled = false; return; }
-    if (wide) {
-      // Hold the map in place while it plays, then let the page go on.
-      const st = ScrollTrigger.create({ trigger: sec, start: 'top 12%', end: '+=45%', pin: q('[data-how-pin]'), onEnter: () => { if (!played) play(); } });
-      // Scrolled past the start before the engine loaded: play now.
-      if (st.progress > 0 && !played) play();
-    } else {
-      play();
-    }
+    // Wide screens hold the map in place for a moment while the page scrolls on.
+    if (wide) ScrollTrigger.create({ trigger: sec, start: 'top 12%', end: '+=45%', pin: q('[data-how-pin]') });
+
+    // Plays while 35% of the map is in view and the tab is visible; "Reduce motion" shows the end state.
+    const pb = scenePlayback(net);
+    const sync = () => {
+      if (getMotion() === 'reduced') { tl.pause(); tl.progress(0.999, true); gsap.set(net, { opacity: 1 }); return; }
+      if (pb.live()) tl.play(); else tl.pause();
+    };
+    pb.onChange(sync);
+    onMotion(sync);
+    sync();
   }, { rootMargin: '0px 0px -20% 0px' });
   io.observe(sec);
 </script>

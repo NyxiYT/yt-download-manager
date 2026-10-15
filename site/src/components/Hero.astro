@@ -1,6 +1,6 @@
 ---
 // The hero: the film loop, blurred and graded blue, fills the back (its poster paints first; the video starts after
-// the page has loaded, see scripts/ui.ts). In front, the player with the toolbar plays the intro once and tilts a
+// the page has loaded, see scripts/ui.ts). In front, the player with the toolbar loops the intro while in view and tilts a
 // little with the pointer. The download button follows the visitor's system.
 import Demo from '../islands/Demo';
 import type { VideoData } from '../islands/demo/model';
@@ -77,7 +77,6 @@ import { AI } from '../lib/anim-icons';
 
   .hero-product { margin: 0; perspective: 1200px; display: grid; gap: 14px; justify-items: end; }
   .hero-frame { width: 100%; transform-style: preserve-3d; will-change: transform; border-radius: var(--radius-m); box-shadow: 0 40px 120px -30px rgb(0 0 0 / 0.85), 0 0 0 1px rgb(237 240 247 / 0.1), 0 0 90px -20px var(--accent-glow); }
-  .hero-frame :global(.replay) { position: absolute; right: 0; bottom: -46px; }
   .hero-frame { position: relative; }
 
   @media (max-width: 899px) {

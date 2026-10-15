@@ -56,6 +56,7 @@ export const trust = ['No ads', 'No account', 'No tracking', 'Open source', '10 
 export const tryIt = {
   title: 'Try it right here.',
   sub: 'Built from the real toolbar. Click anything.',
+  resume: 'Resuming tour',
   tabs: [
     { id: 'video', label: 'Video', caption: 'Pick 144p to 8K. The best quality is already selected.' },
     { id: 'audio', label: 'MP3', caption: 'Just the sound. MP3 with cover art, or M4A, Opus, WAV.' },

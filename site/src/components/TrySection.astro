@@ -1,5 +1,6 @@
 ---
-// Try it: the one interactive section (islands/TryIt.tsx). The visitor's cursor shows "Try" over the demo.
+// Try it: the one interactive section (islands/TryIt.tsx): a guided tour that the visitor can take over at any
+// moment. The visitor's cursor shows "Try" over the demo.
 import TryIt from '../islands/TryIt';
 import type { VideoData } from '../islands/demo/model';
 import video from '../data/videos/aqz-KE-bpKQ.json';
@@ -13,7 +14,7 @@ import { cover, film } from '../lib/media';
       <h2 id="try-title" class="h2" data-reveal>{tryIt.title}</h2>
       <p class="lede" data-reveal style="--i:1">{tryIt.sub}</p>
     </div>
-    <TryIt client:visible tabs={[...tryIt.tabs]} video={video as VideoData} short={short as VideoData} film={film} cover={cover} />
+    <TryIt client:visible tabs={[...tryIt.tabs]} video={video as VideoData} short={short as VideoData} film={film} cover={cover} resumeText={tryIt.resume} />
   </div>
 </section>
 
@@ -27,6 +28,9 @@ import { cover, film } from '../lib/media';
   :global(.try-tab[data-state="active"]) { background: var(--accent-fill); color: var(--on-accent); }
   :global(.try-panel) { display: grid; gap: 16px; max-width: 1040px; }
   :global(.try-panel:focus-visible) { outline-offset: 6px; }
+  :global(.try-foot) { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
   :global(.try-caption) { color: var(--muted); font-size: 1rem; }
+  :global(.try-resume) { flex: none; color: var(--accent-hi); font-size: 0.8125rem; opacity: 0; transform: translateY(4px); transition: opacity .25s var(--ease-out), transform .25s var(--ease-out); }
+  :global(.try-resume[data-on]) { opacity: 1; transform: none; }
   @media (max-width: 520px) { :global(.try-tab) { padding: 0 12px; } }
 </style>

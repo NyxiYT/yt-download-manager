@@ -1,11 +1,13 @@
 // "Set up in three steps": a stepper, and for the chosen step a short loop of that exact screen, played by the
 // drawn cursor (choreo.ts). The loops can't be clicked; the visitor only switches steps. Each loop lasts what its
-// label says, and stands still while it's off screen or motion is turned down.
+// label says, holds its last frame and cross-fades back (lib/playback.ts), and stands still while it's off screen
+// or motion is turned down.
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { createChoreo, type Choreo } from './choreo';
 import { Cursor, Ui } from './demo/parts';
 import { AppWindow, DownloadDone, Extensions, FolderDialog, Installer, KeyChip, Protected, type SetupStage } from './screens';
 import { useMotionPref } from './motion-pref';
+import { useScenePlayback } from './playback';
 
 interface Step { n: number; title: string; text: string; loop: string }
 const PATH = 'C:\\Users\\Public\\AppData\\Local\\YT Download Manager\\extension';
@@ -27,15 +29,10 @@ export default function InstallSteps({ steps, labelPrefix }: { steps: Step[]; la
   const [ui, setUi] = useState<{ hover: string | null; press: string | null }>({ hover: null, press: null });
   const root = useRef<HTMLDivElement>(null);
   const cursor = useRef<HTMLDivElement>(null);
-  const visible = useRef(false);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const n = steps[active].n;
 
-  useEffect(() => {
-    const io = new IntersectionObserver(([e]) => { visible.current = e.isIntersecting; }, { threshold: 0.2 });
-    if (root.current) io.observe(root.current);
-    return () => io.disconnect();
-  }, []);
+  const { live } = useScenePlayback(root);
   useLayoutEffect(() => { (window as Window & { __fitStages?: () => void }).__fitStages?.(); }, []);
 
   useEffect(() => {
@@ -43,7 +40,7 @@ export default function InstallSteps({ steps, labelPrefix }: { steps: Step[]; la
     setUi({ hover: null, press: null });
     if (reduced) { setSc(n === 1 ? { ss: 'more', setup: null } : n === 2 ? { setup: 'done' } : { app: 'on', ext: 'loaded', front: 'app' }); return; }
     const c = new AbortController();
-    const ch = createChoreo({ root: root.current!, cursor: cursor.current!, show: `install-${n}`, signal: c.signal, live: () => visible.current && !document.hidden, setUi });
+    const ch = createChoreo({ root: root.current!, cursor: cursor.current!, show: `install-${n}`, signal: c.signal, live, setUi });
     const set = (p: Scene) => setSc((s) => ({ ...s, ...p }));
     const loops: Record<number, (ch: Choreo) => Promise<void>> = {
       async 1(ch) {
@@ -54,9 +51,8 @@ export default function InstallSteps({ steps, labelPrefix }: { steps: Step[]; la
         await ch.click('ss-more', () => set({ ss: 'more' }), 520);
         await ch.wait(600);
         await ch.click('ss-run', () => set({ ss: 'off', setup: 'start' }), 520);
-        await ch.wait(1500);
-        await ch.leave();
         await ch.wait(500);
+        await ch.leave();
       },
       async 2(ch) {
         set(FIRST[2]);
@@ -67,9 +63,8 @@ export default function InstallSteps({ steps, labelPrefix }: { steps: Step[]; la
         set({ setup: 'done' });
         await ch.wait(500);
         await ch.click('setup-open', () => set({ setup: null, app: 'not' }), 450);
-        await ch.wait(1300);
+        await ch.wait(500);
         await ch.leave();
-        await ch.wait(400);
       },
       async 3(ch) {
         set(FIRST[3]);
@@ -87,19 +82,19 @@ export default function InstallSteps({ steps, labelPrefix }: { steps: Step[]; la
         await ch.click('fd-select', () => set({ fd: null, ext: 'loaded' }), 480);
         await ch.wait(900);
         set({ app: 'on', front: 'app' }); // the app window now says Connected
-        await ch.wait(1700);
+        await ch.wait(600);
         await ch.leave();
-        await ch.wait(400);
       },
     };
     (async () => {
       for (;;) {
         await loops[n](ch);
         setUi({ hover: null, press: null });
+        await ch.restart(root.current!, () => setSc(FIRST[n]));
       }
     })().catch((e) => { if ((e as Error).name !== 'AbortError') throw e; });
-    return () => c.abort();
-  }, [n, reduced]);
+    return () => { c.abort(); if (root.current) root.current.style.opacity = ''; };
+  }, [n, reduced, live]);
 
   const onKey = (e: React.KeyboardEvent, i: number) => {
     const d = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? -1 : 0;

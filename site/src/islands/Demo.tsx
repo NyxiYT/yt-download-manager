@@ -1,9 +1,10 @@
 // The extension under a neutral player, rebuilt from content.js (demo/parts.tsx, styles/ysd.css). Two ways to use it:
 //
-//   mode="hero"  the hero's intro, once: the toolbar rises, the drawn cursor opens the video picker, picks the top
-//                quality and presses Download; a file pill then flies to the nav's Download button (flight.ts).
-//                Nothing in it can be clicked; a replay button under it plays it again.
-//   mode="try"   the Try it section: the scene opens mid-use and is the visitor's to click. No drawn cursor.
+//   mode="hero"  the hero's intro, looping while it's in view (lib/playback.ts): the toolbar rises, the drawn cursor
+//                opens the video picker, picks the top quality and presses Download; the first time, a file pill
+//                then flies to the nav's Download button (flight.ts). Nothing in it can be clicked.
+//   mode="try"   the Try it section: the scene opens mid-use and is the visitor's to click. While `tour` is on, the
+//                drawn cursor shows this tab's story once, then onTourEnd moves Try it to the next tab.
 //
 // The drawn cursor follows choreo.ts: measured targets, hover, press, and a result only when the press lands.
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState, type CSSProperties } from 'react';
@@ -13,8 +14,10 @@ import {
   AudioPicker, Cursor, DropdownList, Film, FolderWindow, HistButton, HistPanel, Player, ShortsColumn, ShortsMenu, Toolbar, TopBar, Ui,
   VideoPicker, audioOpts, videoOpts, type FilmSrc,
 } from './demo/parts';
-import { abortErr, createChoreo } from './choreo';
+import { abortErr, createChoreo, type Choreo } from './choreo';
 import { useMotionPref } from './motion-pref';
+import { useScenePlayback } from './playback';
+import { FADE_MS, HOLD_MS, liveFade } from '../lib/playback';
 
 interface Props {
   mode: 'hero' | 'try';
@@ -24,6 +27,10 @@ interface Props {
   /** A still of the film, shown as the MP3's cover art in the folder window */
   cover?: string;
   label: string;
+  /** Try it: play this tab's guided story (the visitor hasn't taken over). */
+  tour?: boolean;
+  /** Try it: the story played and faded out; go on to the next tab. */
+  onTourEnd?: () => void;
 }
 
 const EASE = [0.2, 0, 0, 1] as const; // the extension's --ysd-ease
@@ -39,7 +46,7 @@ function midUse(data: VideoData, scene: Scene): DemoState {
   return { ...s, panel: true };
 }
 
-export default function Demo({ mode, scene, data, film, cover, label }: Props) {
+export default function Demo({ mode, scene, data, film, cover, label, tour = false, onTourEnd }: Props) {
   const hero = mode === 'hero';
   const start = useCallback(() => (hero ? initialState(data, scene) : midUse(data, scene)), [hero, data, scene]);
   const [s, dispatch] = useReducer(reducer, undefined, start);
@@ -48,13 +55,12 @@ export default function Demo({ mode, scene, data, film, cover, label }: Props) {
   const reduced = useMotionPref() === 'reduced';
   const [ui, setUi] = useState<{ hover: string | null; press: string | null }>({ hover: null, press: null });
   const [tip, setTip] = useState<{ text: string; x: number; y: number } | null>(null);
-  // 'init': the toolbar rises by CSS on the first paint, before the script runs; a replay goes through 'before'.
+  // 'init': the toolbar rises by CSS on the first paint, before the script runs; every later loop goes through 'before'.
   const [intro, setIntro] = useState<'init' | 'before' | 'playing' | 'done'>(hero ? 'init' : 'done');
-  const [run, setRun] = useState(0); // bumps on replay
   const [time, setTime] = useState(3.6);
   const root = useRef<HTMLDivElement>(null);
   const cursor = useRef<HTMLDivElement>(null);
-  const visible = useRef(false);
+  const { live } = useScenePlayback(root);
   const [pos, setPos] = useState<{ pop: Pos; dd: Pos; panel: Pos; folder: Pos }>({ pop: null, dd: null, panel: null, folder: null });
 
   // A new tab in Try it: start that scene fresh.
@@ -76,7 +82,9 @@ export default function Demo({ mode, scene, data, film, cover, label }: Props) {
     const W = r0.offsetWidth;
     const H = r0.offsetHeight;
     const next: typeof pos = { pop: null, dd: null, panel: null, folder: null };
-    const popEl = r0.querySelector<HTMLElement>('.ysd-pop');
+    // The open picker, not one still fading out (Shorts menu → video picker): measuring that one placed the picker
+    // with the wrong width, and it jumped on the next render.
+    const popEl = r0.querySelector<HTMLElement>(s.pop === 'shortsMenu' ? '.ysd-menu' : `.ysd-pop[aria-label="Download ${s.pop}"]`);
     if (s.pop && popEl) {
       const anchor = rel(q(scene === 'shorts' ? 'short-dl' : s.pop === 'audio' ? 'btn-audio' : 'btn-video'));
       const mw = popEl.offsetWidth;
@@ -122,12 +130,12 @@ export default function Demo({ mode, scene, data, film, cover, label }: Props) {
     const loop = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
-      if (visible.current && !document.hidden) dispatch({ type: 'tick', dt, rate: 24 });
+      if (live()) dispatch({ type: 'tick', dt, rate: 24 });
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [anyActive]);
+  }, [anyActive, live]);
   useEffect(() => {
     if (!s.flash) return;
     const t = setTimeout(() => dispatch({ type: 'flashEnd' }), 1100); // content.js flashHist
@@ -152,65 +160,140 @@ export default function Demo({ mode, scene, data, film, cover, label }: Props) {
   const fileName = (j: Job) => `${j.title}.${({ MP4: 'mp4', MP3: 'mp3', M4A: 'm4a', Opus: 'webm', WAV: 'wav' } as Record<string, string>)[j.format] ?? 'mp4'}`;
   const reveal = useCallback((j: Job) => dispatch({ type: 'reveal', file: fileName(j) }), []);
 
-  // ---------- visibility ----------
-  useEffect(() => {
-    const io = new IntersectionObserver(([e]) => { visible.current = e.isIntersecting; }, { threshold: 0.15 });
-    if (root.current) io.observe(root.current);
-    return () => io.disconnect();
-  }, []);
   // A stage that mounts after the page loaded is scaled to its box here (the fit script in Base.astro).
   useLayoutEffect(() => { (window as Window & { __fitStages?: () => void }).__fitStages?.(); }, []);
 
-  // ---------- the hero's intro ----------
+  // ---------- the hero's intro, looping while in view ----------
   useEffect(() => {
     if (!hero) return;
     if (reduced) { setIntro('done'); return; }
     const c = new AbortController();
     const phone = matchMedia('(max-width: 719px)').matches;
-    const live = () => visible.current && !document.hidden;
     const ch = createChoreo({ root: root.current!, cursor: cursor.current!, show: 'hero', signal: c.signal, live, setUi });
     const top = data.video[0];
+    // The file pill flies to the nav only on the first loop; after that the scene repeats quietly.
+    let first = true;
+    const fly = (r: DOMRect | undefined) => { if (r && first) import('./flight').then((f) => f.flyToNav(r)); };
     (async () => {
-      if (run > 0) {
-        dispatch({ type: 'reset', state: initialState(data, scene) });
-        setIntro('before');
-        await ch.wait(250);
-        setIntro('playing'); // the toolbar slides up (CSS)
-        await ch.wait(450);
-      } else {
-        await ch.wait(200);
-      }
-      if (phone) {
-        // Phones: the same steps without the cursor or the tilt.
-        dispatch({ type: 'open', pop: 'video' }); await ch.wait(500);
-        dispatch({ type: 'dropdown', open: true }); await ch.wait(450);
-        setUi({ hover: 'dd-0', press: null }); await ch.wait(380);
-        dispatch({ type: 'pickVideo', key: top.key }); setUi({ hover: null, press: null }); await ch.wait(400);
-        const r = q('download')?.getBoundingClientRect();
-        startDownload('video');
-        if (r) import('./flight').then((f) => f.flyToNav(r));
-      } else {
-        const r = rel(root.current);
-        await ch.enter(r.w * 0.66, r.h * 0.46);
-        await ch.click('btn-video', () => dispatch({ type: 'open', pop: 'video' }), 420);
-        await ch.wait(200);
-        await ch.click('select', () => dispatch({ type: 'dropdown', open: true }), 380);
-        await ch.wait(160);
-        await ch.hover('dd-1', 300);
-        await ch.click('dd-0', () => dispatch({ type: 'pickVideo', key: top.key }), 220);
-        await ch.wait(140);
-        await ch.click('download', () => {
-          const b = q('download')?.getBoundingClientRect();
+      await ch.wait(200);
+      for (;;) {
+        if (phone) {
+          // Phones: the same steps without the cursor or the tilt.
+          dispatch({ type: 'open', pop: 'video' }); await ch.wait(500);
+          dispatch({ type: 'dropdown', open: true }); await ch.wait(450);
+          setUi({ hover: 'dd-0', press: null }); await ch.wait(380);
+          dispatch({ type: 'pickVideo', key: top.key }); setUi({ hover: null, press: null }); await ch.wait(400);
+          const r = q('download')?.getBoundingClientRect();
           startDownload('video');
-          if (b) import('./flight').then((f) => f.flyToNav(b));
-        }, 380);
-        await ch.wait(500);
-        await ch.leave();
+          fly(r);
+          await ch.wait(500);
+        } else {
+          const r = rel(root.current);
+          await ch.enter(r.w * 0.66, r.h * 0.46);
+          await ch.click('btn-video', () => dispatch({ type: 'open', pop: 'video' }), 420);
+          await ch.wait(200);
+          await ch.click('select', () => dispatch({ type: 'dropdown', open: true }), 380);
+          await ch.wait(160);
+          await ch.hover('dd-1', 300);
+          await ch.click('dd-0', () => dispatch({ type: 'pickVideo', key: top.key }), 220);
+          await ch.wait(140);
+          await ch.click('download', () => {
+            const b = q('download')?.getBoundingClientRect();
+            startDownload('video');
+            fly(b);
+          }, 380);
+          await ch.wait(500);
+          await ch.leave();
+        }
+        setIntro('done');
+        first = false;
+        // Hold, fade out, back to the toolbar alone, fade in; then the toolbar rises again (CSS).
+        await ch.restart(root.current!, () => {
+          dispatch({ type: 'reset', state: initialState(data, scene) });
+          setUi({ hover: null, press: null });
+          setIntro('before');
+        });
+        setIntro('playing');
+        await ch.wait(450);
       }
-      setIntro('done');
     })().catch((e) => { if ((e as Error).name !== 'AbortError') throw e; });
-    return () => c.abort();
-  }, [hero, reduced, run]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => { c.abort(); if (root.current) root.current.style.opacity = ''; };
+  }, [hero, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ---------- Try it: this tab's guided story ----------
+  // A tab that opens during the tour starts hidden and fades in; a tour that resumes on the same tab fades out,
+  // resets the scene and fades back in. Any input from the visitor turns `tour` off (TryIt.tsx), which stops it here.
+  const resumed = useRef(false);
+  useLayoutEffect(() => { if (!hero && tour && !reduced && root.current) root.current.style.opacity = '0'; }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (hero || !tour || reduced) return;
+    const c = new AbortController();
+    const el = root.current!;
+    const ch = createChoreo({ root: el, cursor: cursor.current!, show: `try-${scene}`, signal: c.signal, live, setUi });
+    const half = FADE_MS / 2;
+    const r = () => rel(el);
+    const pickRow = async (rows: number[], pick: number, act: () => void) => {
+      for (const i of rows) if (i !== pick && q(`dd-${i}`)) await ch.hover(`dd-${i}`, 300);
+      await ch.click(`dd-${pick}`, act, 260);
+    };
+    const stories: Record<Scene, (ch: Choreo) => Promise<void>> = {
+      async video(ch) {
+        const top = data.video[0];
+        await ch.click('select', () => dispatch({ type: 'dropdown', open: true }), 520);
+        await ch.wait(200);
+        await pickRow([2, 1], 0, () => dispatch({ type: 'pickVideo', key: top.key }));
+        await ch.wait(200);
+        await ch.click('download', () => startDownload('video'), 420);
+        await ch.wait(1200);
+      },
+      async audio(ch) {
+        const i = Math.max(0, data.audio.findIndex((a) => a.key === 'mp3-320'));
+        await ch.click('select', () => dispatch({ type: 'dropdown', open: true }), 520);
+        await ch.wait(200);
+        await pickRow([i + 2, i + 1], i, () => dispatch({ type: 'pickAudio', key: data.audio[i].key }));
+        await ch.wait(200);
+        await ch.click('download', () => startDownload('audio'), 420);
+        await ch.wait(1200);
+      },
+      async trim(ch) {
+        const d = data.duration;
+        await ch.drag('dot-start', 'range', 0, 0.22, (v) => dispatch({ type: 'clip', start: Math.round(v * d), duration: d }), 900);
+        await ch.wait(250);
+        await ch.drag('dot-end', 'range', 1, 0.64, (v) => dispatch({ type: 'clip', end: Math.round(v * d), duration: d }), 900);
+        await ch.wait(300);
+        await ch.click('download', () => startDownload('video'), 520);
+        await ch.wait(1000);
+      },
+      async shorts(ch) {
+        await ch.click('m-video', () => dispatch({ type: 'open', pop: 'video' }), 520);
+        await ch.wait(400);
+        await ch.click('download', () => startDownload('video'), 520);
+        await ch.wait(1200);
+      },
+      async history(ch) {
+        const done = sRef.current.jobs.find((j) => j.status === 'completed');
+        if (done) await ch.click(`folder-${done.id}`, () => reveal(done), 620);
+        await ch.wait(1400);
+      },
+    };
+    (async () => {
+      if (resumed.current) {
+        await liveFade(el, 0, half, live, c.signal);
+        dispatch({ type: 'reset', state: start() });
+        await ch.wait(60);
+      }
+      resumed.current = true;
+      await liveFade(el, 1, half, live, c.signal);
+      await ch.enter(r().w * 0.62, r().h * 0.55);
+      await stories[scene](ch);
+      await ch.leave();
+      setUi({ hover: null, press: null });
+      await ch.wait(HOLD_MS);
+      await liveFade(el, 0, half, live, c.signal);
+      onTourEnd?.();
+    })().catch((e) => { if ((e as Error).name !== 'AbortError') throw e; });
+    return () => { c.abort(); setUi({ hover: null, press: null }); el.style.opacity = ''; };
+  }, [tour, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------- tooltips for the visitor (Try it) ----------
   const tipTimer = useRef(0);
@@ -301,18 +384,12 @@ export default function Demo({ mode, scene, data, film, cover, label }: Props) {
                   const W = root.current.offsetWidth;
                   el.style.left = `${Math.min(Math.max(8, tip.x - el.offsetWidth / 2), W - el.offsetWidth - 8)}px`;
                 }} style={{ left: tip.x, top: tip.y }}>{tip.text}</div>}
-                {hero && <div ref={cursor} className="d-cursor" style={{ opacity: 0 }}><Cursor press={!!ui.press} /></div>}
+                {(hero || tour) && <div ref={cursor} className="d-cursor" style={{ opacity: 0 }}><Cursor press={!!ui.press} /></div>}
               </div>
             </Ui.Provider>
           </div>
           {hero && <TimeSync onTime={setTime} />}
         </div>
-        {hero && (
-          <button type="button" className="replay" onClick={() => setRun((n) => n + 1)} disabled={intro !== 'done' || reduced} aria-label="Replay the intro">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7" /><path d="M4 4v4h4" /></svg>
-            <span>Replay</span>
-          </button>
-        )}
       </LazyMotion>
     </MotionConfig>
   );

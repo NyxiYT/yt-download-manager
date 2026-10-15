@@ -1,7 +1,7 @@
 ---
 // "Built for how you watch.": a rail of six tall cards that snaps sideways and leaves the next one in sight. Each
-// card holds a small piece of the product's interface that plays once when the card comes into view (CSS only,
-// started by scripts/ui.ts); hovering only lifts the card. Under the rail, the smaller features as chips.
+// card holds a small piece of the product's interface that loops while the card is in view (CSS, restarted by
+// scripts/ui.ts on the shared playback model); hovering only lifts the card. Under the rail, the smaller features as chips.
 import { AI } from '../lib/anim-icons';
 import { features } from '../lib/content';
 const chipIcon = { Thumbnails: 'image', Subtitles: 'captions', Screenshots: 'camera', 'Shorts in picture-in-picture': 'pip', 'Big Picture': 'corner', Loop: 'loop', 'Light or dark': 'theme' } as const;
@@ -16,7 +16,7 @@ const rows = [['4320p', '8K'], ['2160p60', '4K'], ['1440p60', '2K'], ['1080p60',
   <div class="rail" tabindex="0" role="region" aria-label="Features">
     <ul class="rail-track">
       {features.cards.map((c, i) => (
-        <li class="card" data-play data-ai-host data-reveal style={`--i:${i}`}>
+        <li class="card" data-loop data-ai-host data-reveal style={`--i:${i}`}>
           <div class={`frag frag-${c.id}`} aria-hidden="true">
             {c.id === 'quality' && (
               <div class="fq">
