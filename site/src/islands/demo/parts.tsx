@@ -194,7 +194,7 @@ function Trim({ duration, clip, enabled, onClip }: { duration: number; clip: { s
         <span className="ysd-trim-sum">{full ? 'Full length' : 'Clip'} · <b>{fmtClock(full ? duration : clip.end - clip.start)}</b></span>
         {!full && <button type="button" className="ysd-mini" onClick={() => onClip({ start: 0, end: duration })}>Reset</button>}
       </div>
-      <div className="ysd-range" data-range>
+      <div className="ysd-range" data-range data-t="range">
         <div className="ysd-range-track" />
         <div className="ysd-range-fill" style={{ left: `${(clip.start / duration) * 100}%`, right: `${100 - (clip.end / duration) * 100}%` }} />
         {dot('start')}

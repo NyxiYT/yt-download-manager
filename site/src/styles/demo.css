@@ -73,12 +73,6 @@
 .d-cursor-svg { display: block; margin: -3px 0 0 -5px; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .45)); transform-origin: 5px 3px; transition: transform .12s var(--ease-out); }
 .d-cursor-svg.press, [data-press] > .d-cursor-svg { transform: scale(.85); }
 
-/* Under the hero's player: play it again. */
-.replay { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px 0 10px; border: 1px solid var(--line-2); border-radius: 999px; background: color-mix(in srgb, var(--bg) 40%, transparent);
-  color: var(--muted); font-size: 0.8125rem; cursor: pointer; transition: color .15s, border-color .15s, opacity .2s; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.replay:hover { color: var(--text); border-color: var(--muted); }
-.replay:disabled { opacity: 0; pointer-events: none; }
-
 /* The file that flies into the nav (islands/flight.ts), and the ring it leaves there. */
 .file-pill { position: fixed; left: 0; top: 0; z-index: 120; display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px 0 10px; border-radius: 999px;
   background: var(--accent-fill); color: var(--on-accent); font: 600 12px/1 var(--font-mono); box-shadow: 0 10px 30px -8px var(--accent-glow); pointer-events: none; }

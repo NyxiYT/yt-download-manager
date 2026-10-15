@@ -3,8 +3,12 @@
 // button at every width. A click is always: move, a short pause, the target's hover look, press (cursor 0.85, the
 // target's pressed look), and then, only if the cursor really is over the target, the result.
 //
+// A loop ends with restart(): hold the final state, cross-fade back to the start (lib/playback.ts, BRIEF 7.7).
+//
 // For the Playwright tests (site/tests/cursor.spec.ts): every press is recorded in window.__presses, and when the
 // test defines window.__choreoPause, the press waits for it, so the test can measure the page at that moment.
+
+import { holdAndReset } from '../lib/playback';
 
 export interface Press { show: string; target: string; t: number; cx: number; cy: number; rect: { left: number; top: number; right: number; bottom: number }; inside: boolean }
 type W = Window & { __presses?: Press[]; __choreoPause?: (p: Press) => Promise<void> };
@@ -173,7 +177,10 @@ export function createChoreo(o: ChoreoOpts) {
     await tween(300, (k) => { cursor.style.opacity = String(1 - k); }, { live: o.live, signal, ease: EASE_OUT });
   }
 
+  /** End of a loop, after leave(): hold, fade the scene out, reset it, fade it back in. */
+  const restart = (scene: HTMLElement, reset: () => void) => holdAndReset(scene, reset, o.live, signal);
+
   const tw = (ms: number, fn: (k: number) => void, ease?: (x: number) => number) => tween(ms, fn, { live: o.live, signal, ease });
-  return { move, hover, click, drag, wait, until, enter, leave, rel, find, place, tween: tw };
+  return { move, hover, click, drag, wait, until, enter, leave, restart, rel, find, place, tween: tw };
 }
 export type Choreo = ReturnType<typeof createChoreo>;

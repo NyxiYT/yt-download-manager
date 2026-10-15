@@ -3,6 +3,7 @@
 // the background (after the page has loaded; still while off screen), the hero's tilt, the section reveals, and the
 // visitor's cursor. Smooth scrolling and the nav's glass load on the first interaction.
 import { getMotion, onMotion, setMotion } from '../islands/motion-pref';
+import { FADE_MS, HOLD_MS, liveFade, liveWait, scenePlayback } from '../lib/playback';
 
 const $ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => root.querySelector<T>(s);
 const $$ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => [...root.querySelectorAll<T>(s)];
@@ -161,6 +162,35 @@ const play = new IntersectionObserver((entries) => {
   }
 }, { threshold: [0, 0.5] });
 $$('[data-play]').forEach((el) => play.observe(el));
+
+// ---------- the feature cards: each mini-scene loops while in view (lib/playback.ts) ----------
+// A loop: add .play (the CSS animations run), wait until they all end, hold, fade the scene out, restart it, fade in.
+// Off screen, its animations pause where they are and resume from there.
+$$('[data-loop]').forEach((card) => {
+  const scene = $('.frag', card) ?? card;
+  const pb = scenePlayback(card);
+  const anims = () => scene.getAnimations({ subtree: true });
+  let running = false;
+  const run = async () => {
+    running = true;
+    for (let first = true; ; first = false) {
+      card.classList.remove('play');
+      void card.offsetWidth; // restart the CSS animations
+      card.classList.add('play');
+      if (!first) await liveFade(scene, 1, FADE_MS / 2, pb.live);
+      await new Promise((r) => requestAnimationFrame(r));
+      await Promise.all(anims().map((a) => a.finished.catch(() => {})));
+      if (getMotion() === 'reduced') { running = false; return; } // rests on its last frame
+      await liveWait(HOLD_MS, pb.live);
+      await liveFade(scene, 0, FADE_MS / 2, pb.live);
+    }
+  };
+  pb.onChange((live) => {
+    anims().forEach((a) => (live ? a.play() : a.pause()));
+    if (live && !running) run();
+  });
+  onMotion((p) => { if (p === 'full' && pb.live() && !running) run(); });
+});
 
 // ---------- the visitor's cursor (fine pointers only) ----------
 if (fine) import('./cursor');
