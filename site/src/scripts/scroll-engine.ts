@@ -1,6 +1,6 @@
 // One animation loop for the whole page: Lenis smooth scrolling driven by GSAP's ticker, with ScrollTrigger kept in
 // step. Loaded on the first interaction (and by How it works when it needs ScrollTrigger), so it stays out of
-// the first load. "Reduce motion" in the footer turns smooth scrolling off and back on at once.
+// the first load. "Reduce motion" in the nav turns smooth scrolling off and back on at once.
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';

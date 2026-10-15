@@ -1,9 +1,9 @@
-// The page's small behaviours, without React: theme and motion switches, copy buttons, the download buttons' check,
+// The page's small behaviours, without React: the theme and motion buttons, copy buttons, the download buttons' check,
 // the menu on phones, the nav (condensing, the section in view, the right download for the system), the hero's
 // tilt, the section reveals, and the visitor's cursor. Smooth scrolling and the nav's glass load on the first
 // interaction. The features grid's spotlight is in scripts/features.ts; the frame stream behind the hero and the
 // final call to action is in scripts/frame-stream.ts.
-import { getMotion, setMotion } from '../islands/motion-pref';
+import { getMotion, onMotion, setMotion } from '../islands/motion-pref';
 
 const $ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => root.querySelector<T>(s);
 const $$ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => [...root.querySelectorAll<T>(s)];
@@ -11,22 +11,28 @@ const root = document.documentElement;
 const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
 const store = { set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } } };
 
-// ---------- theme ----------
-const themeSwitch = $<HTMLInputElement>('[data-theme-switch]');
+// ---------- theme and motion: the icon buttons in the nav and in the phone menu (components/Toggles.astro) ----------
+const themeBtns = $$<HTMLButtonElement>('[data-theme-btn]');
 function paintTheme() {
   const light = root.dataset.theme === 'light';
-  if (themeSwitch) themeSwitch.checked = light;
+  const label = light ? 'Dark theme' : 'Light theme'; // what a click does
+  themeBtns.forEach((b) => b.setAttribute('aria-label', label));
+  $$('[data-theme-label]').forEach((t) => { t.textContent = label; });
   $<HTMLMetaElement>('meta[name=theme-color]')!.content = light ? '#F5F7FB' : '#07080B';
 }
-themeSwitch?.addEventListener('change', () => { root.dataset.theme = themeSwitch.checked ? 'light' : 'dark'; store.set('theme', root.dataset.theme); paintTheme(); });
+themeBtns.forEach((b) => b.addEventListener('click', () => {
+  root.dataset.theme = root.dataset.theme === 'light' ? 'dark' : 'light';
+  store.set('theme', root.dataset.theme);
+  paintTheme();
+}));
 paintTheme();
 
-// ---------- motion (turned down only here, never by the system setting) ----------
-const motionSwitch = $<HTMLInputElement>('[data-motion-toggle]');
-if (motionSwitch) {
-  motionSwitch.checked = getMotion() === 'reduced';
-  motionSwitch.addEventListener('change', () => setMotion(motionSwitch.checked ? 'reduced' : 'full'));
-}
+// Motion is turned down only here, never by the system setting.
+const motionBtns = $$<HTMLButtonElement>('[data-motion-btn]');
+const paintMotion = () => motionBtns.forEach((b) => b.setAttribute('aria-pressed', String(getMotion() === 'reduced')));
+motionBtns.forEach((b) => b.addEventListener('click', () => setMotion(getMotion() === 'reduced' ? 'full' : 'reduced')));
+onMotion(paintMotion);
+paintMotion();
 
 // ---------- copy buttons ----------
 document.addEventListener('click', async (e) => {

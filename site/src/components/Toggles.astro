@@ -1,0 +1,63 @@
+---
+// The two settings as icon buttons (BRIEF 7.5): Theme (a sun that morphs into a moon) and Reduce motion (a ball with
+// speed lines that pull in when motion is turned down, aria-pressed). Both remember the choice (scripts/ui.ts).
+// In the nav they are icons with a tooltip; in the phone menu they also show their label.
+// 24 px grid, 1.75 px stroke, round caps, like the rest of the icons. Transforms and opacity only.
+interface Props { where: 'nav' | 'sheet' }
+const { where } = Astro.props;
+const mask = `tm-cut-${where}`;
+---
+<div class={`tg tg-${where}`}>
+  <button class="tg-btn" type="button" data-theme-btn aria-label="Light theme">
+    <svg class="ai tg-theme" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
+      <mask id={mask}><rect width="24" height="24" fill="#fff" /><circle class="tm-cut" cx="17" cy="7" r="6" fill="#000" /></mask>
+      <circle class="tm-core" cx="12" cy="12" r="8" fill="currentColor" stroke="none" mask={`url(#${mask})`} />
+      <g class="tm-rays"><path d="M12 2.6v1.8M12 19.6v1.8M2.6 12h1.8M19.6 12h1.8M5.4 5.4l1.3 1.3M17.3 17.3l1.3 1.3M5.4 18.6l1.3-1.3M17.3 6.7l1.3-1.3" /></g>
+    </svg>
+    {where === 'sheet' ? <span class="tg-label" data-theme-label>Light theme</span> : <span class="tg-tip" aria-hidden="true" data-theme-label>Light theme</span>}
+  </button>
+  <button class="tg-btn" type="button" data-motion-btn aria-pressed="false" aria-label="Reduce motion">
+    <svg class="ai tg-motion" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
+      <circle class="mo-ball" cx="15.5" cy="12" r="4.5" />
+      <path class="mo-l mo-l1" d="M3.5 8.5h6" /><path class="mo-l mo-l2" d="M2 12h7" /><path class="mo-l mo-l3" d="M3.5 15.5h6" />
+    </svg>
+    {where === 'sheet' ? <span class="tg-label">Reduce motion</span> : <span class="tg-tip" aria-hidden="true">Reduce motion</span>}
+  </button>
+</div>
+
+<style>
+  .tg { display: flex; align-items: center; gap: 2px; }
+  .tg-btn { position: relative; display: inline-flex; align-items: center; gap: 12px; border: 0; background: none; color: var(--muted); cursor: pointer; border-radius: 10px; transition: color .15s, background-color .15s; }
+  .tg-nav .tg-btn { justify-content: center; width: 40px; height: 40px; }
+  .tg-btn:hover { color: var(--text); background: color-mix(in srgb, var(--text) 7%, transparent); }
+  .tg-btn[aria-pressed="true"] { color: var(--accent-hi); }
+  .tg svg { display: block; flex: none; overflow: visible; }
+
+  /* The tooltip (nav): below the button, after a short pause; also on keyboard focus. */
+  .tg-tip { position: absolute; top: calc(100% + 10px); left: 50%; translate: -50% 4px; padding: 6px 10px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--line-2); color: var(--text);
+    font-size: 0.8125rem; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s, translate .15s var(--ease-out); box-shadow: var(--shadow); }
+  .tg-btn:hover .tg-tip, .tg-btn:focus-visible .tg-tip { opacity: 1; translate: -50% 0; transition-delay: .35s; }
+
+  /* Theme: dark shows the sun (switch to light), light shows the moon (switch to dark). The core grows and a
+     second circle bites into it; the rays turn and shrink away. */
+  .tm-core, .tm-cut, .tm-rays { transform-box: fill-box; transform-origin: center; transition: transform .45s var(--ease-out), opacity .3s; }
+  .tm-core { transform: scale(0.55); }
+  .tm-cut { transform: translate(9px, -9px); }
+  :global([data-theme="light"]) .tm-core { transform: scale(1); }
+  :global([data-theme="light"]) .tm-cut { transform: none; }
+  :global([data-theme="light"]) .tm-rays { transform: rotate(-60deg) scale(0.4); opacity: 0; }
+  .tg-btn:hover .tm-rays { transform: rotate(30deg); }
+  :global([data-theme="light"]) .tg-btn:hover .tm-core { transform: scale(1) rotate(-12deg); }
+
+  /* Reduce motion: the speed lines pull into the ball and it settles left; hover nudges them. */
+  .mo-l, .mo-ball { transform-box: fill-box; transition: transform .35s var(--ease-out), opacity .25s; }
+  .mo-l { transform-origin: right center; }
+  .mo-l2 { transition-delay: .03s; } .mo-l3 { transition-delay: .06s; }
+  .tg-btn:hover .mo-l { transform: translateX(-1.5px); }
+  [aria-pressed="true"] .mo-l { transform: scaleX(0); opacity: 0; }
+  [aria-pressed="true"] .mo-ball { transform: translateX(-3.5px); }
+
+  /* Phone menu: full rows with their label. */
+  .tg-sheet { flex-direction: column; align-items: stretch; gap: 0; margin-top: 4px; }
+  .tg-sheet .tg-btn { width: 100%; padding: 14px 12px; border-top: 1px solid var(--line); border-radius: 0; font-size: 1.0625rem; color: var(--text); text-align: left; }
+</style>

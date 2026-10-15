@@ -1,4 +1,4 @@
-// The footer's "Reduce motion" switch (off by default, kept in localStorage). Motion is on for everyone
+// The nav's "Reduce motion" button (off by default, kept in localStorage). Motion is on for everyone
 // unless they turn it down here; the system setting isn't read. Changing it applies at once, without a reload.
 import { useSyncExternalStore } from 'react';
 

@@ -85,7 +85,7 @@ Watching: download history (clock button in YouTube's top bar, progress ring), B
 
 ## Website: current state (checked 15 Oct 2026)
 - Astro static site in `site/`, GitHub Pages.
-- Fonts: Funnel Display, Onest, JetBrains Mono. Accent is already blue. Dark theme default, light theme and "Reduce motion" toggles in the footer (moving to the nav, see BRIEF section 14).
+- Fonts: Funnel Display, Onest, JetBrains Mono. Accent is already blue. Dark theme default. Theme and "Reduce motion" are icon buttons in the nav (`site/src/components/Toggles.astro`), in the menu on phones.
 - Liquid glass nav (SVG displacement, Chromium, blur fallback elsewhere).
 - Interactive guided tour of the toolbar using a Big Buck Bunny frame (CC BY 3.0, Blender Foundation).
 - About 4,500 words in 15 sections: hero with download block, trust row, language marquee, "Two parts, one tool", 5 how-to chapters, 24-feature list, with vs without app comparison, numbers, 8-step install with checksums and Scoop, compatibility tables, "What's new" (last 5 releases), FAQ, "From the maker" with donations, final download block, footer with credits.
@@ -103,14 +103,14 @@ Watching: download history (clock button in YouTube's top bar, progress ring), B
 - Network-style diagram explains extension to app to folder (ping, handshake, `Connected`).
 - Custom cursor (desktop only), custom animated icon set (hover, press, success states).
 - Build all components ourselves. Library sites are inspiration only. No library credits in the footer.
-- Animations always run, regardless of OS reduced-motion settings. The footer "Reduce motion" toggle stays, off by default.
+- Animations always run, regardless of OS reduced-motion settings. The nav's "Reduce motion" button stays, off by default.
 - Stack: Astro, React islands, TypeScript, Tailwind v4, Motion, GSAP ScrollTrigger, Lenis, Radix primitives, Playwright.
 - Work in phases: research board, tokens and nav, hero, Try it, diagram, features and install, FAQ and support, performance and tests.
 
 ## Open issues
 - Some videos fail with "No downloadable video formats" (noted early October 2026, check if still open).
 - Installers are unsigned (SmartScreen warning).
-- Section 14 of `site/BRIEF.md`: #1 to #8 done, #9 to #12 open.
+- Section 14 of `site/BRIEF.md`: #1 to #9 done, #10 to #12 open.
 - `site/public/media/back.{avif,webm,mp4}` (the old blurred background film) are no longer used by the page. Delete them only after asking Nyxi.
 - Astro scopes every class in a component `<style>`, including `.js` and `.in` on other elements. Page-level hooks need `:global(.js)`. The feature chips' reveal (`Features.astro`, `.js .chips`) has this bug and never runs.
 - Feature card mini-scenes are the old ones, now 4:3. Their animations run 1.8 to 4.2 s, not all a clear 4 s story yet (BRIEF 8.6 examples). The card icons are still wrong (Members uses a clock, refresh is used twice): fix #12.
@@ -144,3 +144,4 @@ Watching: download history (clock button in YouTube's top bar, progress ring), B
 - 2026-10-15: BRIEF section 14 fix #5 done: FAQ opens and closes with a 260 ms height animation (Radix variable), the answer fades in and rises 6 px, the plus turns 45° into a cross, one open at a time. 41 Playwright tests pass. Committed, not pushed. Next: fix #6 (frame stream backgrounds for hero and CTA).
 - 2026-10-15: BRIEF section 14 fixes #6 and #7 done: the frame stream replaces the background film in the hero and the final CTA (particles fall into a glow at the bottom or onto the CTA button), seamless mask fades, real light theme for both. 45 Playwright tests pass. Next: fix #8 (the empty band above the nav, nav 16 px from the top).
 - 2026-10-15: BRIEF section 14 fix #8 done: the 54 px band above the nav came from the skip link (`.btn` overrode its `position: fixed`) plus the nav's top margin passing through the zero-height sticky shell. The hero now starts at the top edge; the nav floats 16 px (12 px on phones) via `top`. 48 Playwright tests pass. Next: fix #9 (theme and Reduce motion toggles into the nav).
+- 2026-10-15: BRIEF section 14 fix #9 done: Theme (sun morphs into moon) and Reduce motion (speed lines pull in, aria-pressed) are icon buttons with tooltips in the nav, in the menu on phones, remembered in localStorage; removed from the footer. 53 Playwright tests pass. Next: fix #10 (categorized footer).
