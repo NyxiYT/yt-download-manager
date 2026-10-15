@@ -149,14 +149,30 @@ export const finalCta = {
 };
 
 export const footer = {
-  links: [
-    { label: 'GitHub', href: REPO },
-    { label: 'Full guide', href: GUIDE },
-    { label: 'Changelog', href: CHANGELOG },
-    { label: 'Report a bug', href: ISSUES },
-    { label: 'Privacy', href: PRIVACY },
-    { label: 'License', href: LICENSE },
-    { label: 'Third-party licenses', href: THIRD_PARTY },
+  brand: 'Free YouTube downloader for Windows.',
+  download: 'Download',
+  columns: [
+    { title: 'Product', links: [
+      { label: 'Download', href: '#install' },
+      { label: 'Features', href: '#features' },
+      { label: 'How it works', href: '#how-it-works' },
+      { label: 'Install', href: '#install' },
+    ] },
+    { title: 'Help', links: [
+      { label: 'FAQ', href: '#faq' },
+      { label: 'Full guide', href: GUIDE },
+      { label: 'Report a bug', href: ISSUES },
+    ] },
+    { title: 'Project', links: [
+      { label: 'GitHub', href: REPO },
+      { label: 'Changelog', href: CHANGELOG },
+      { label: 'Support the project', href: '#support' },
+    ] },
+    { title: 'Legal', links: [
+      { label: 'Privacy', href: PRIVACY },
+      { label: 'License', href: LICENSE },
+      { label: 'Third-party licenses', href: THIRD_PARTY },
+    ] },
   ],
   legal: "Only download videos you're allowed to. Not affiliated with YouTube or Google.",
   credit: 'Film: Big Buck Bunny, © Blender Foundation, CC BY 3.0.',

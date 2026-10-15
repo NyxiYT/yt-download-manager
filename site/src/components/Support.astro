@@ -11,7 +11,7 @@ const wallets = await Promise.all(support.wallets.map(async (w) => ({
   qr: await QRCode.toString(w.address, { type: 'svg', margin: 1, errorCorrectionLevel: 'M', color: { dark: '#07080B', light: '#FFFFFF' } }),
 })));
 ---
-<section class="section support" aria-labelledby="sup-title">
+<section class="section support" id="support" aria-labelledby="sup-title">
   <div class="wrap">
     <div class="sup" data-reveal>
       <div class="sup-left">
