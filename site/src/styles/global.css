@@ -26,7 +26,8 @@
   --accent-fill-hi: #2563EB; /* their hover (5.2:1) */
   --on-accent: #FFFFFF;
   --link: #6E9BFF;
-  --glass-tint: rgb(10 12 17 / 0.58);
+  --glass-tint: rgb(10 12 17 / 0.80); /* thick enough that the nav's links stay readable over headings (4.9:1 at worst) */
+  --nav-link: #B4BAC7;       /* 10.3:1 on --bg */
   --glass-line: rgb(237 240 247 / 0.10);
   --glass-hi: rgb(237 240 247 / 0.16);
   --shadow: 0 30px 80px -30px rgb(0 0 0 / 0.8);
@@ -52,7 +53,8 @@
   --accent-fill-hi: #1A4FC4;
   --on-accent: #FFFFFF;
   --link: #1A4FC4;
-  --glass-tint: rgb(245 247 251 / 0.66);
+  --glass-tint: rgb(245 247 251 / 0.84);
+  --nav-link: #434B5E;       /* 8.1:1 on --bg */
   --glass-line: rgb(12 18 32 / 0.08);
   --glass-hi: rgb(255 255 255 / 0.8);
   --shadow: 0 30px 70px -32px rgb(12 18 32 / 0.35);
