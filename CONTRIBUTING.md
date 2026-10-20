@@ -49,6 +49,17 @@ cd yt-download-manager
   updates). The installer is in `manager/Setup/`. Keep the interface texts in `Ui/Strings.cs`, in all ten
   languages (English is used where one is missing).
 
+What the app and the installer keep to:
+
+- The installer stays open, install, done, open the app. Short texts, no technical explanations.
+- Feedback after a download is minimal: no technical details such as `720p` or video IDs in messages or file
+  names (a file is called `Example Video.mp4`).
+- Download status sits at the top right, directly left of the history button. The history shows active,
+  finished, paused and failed downloads.
+- One app icon, the same everywhere: the app, the installer, the taskbar, the Start menu and the extension.
+- The donation addresses are copied from the README's "Support the project" section and
+  `docs/images/donate-*.png`, never typed again.
+
 ## 3. Build
 
 ```bash

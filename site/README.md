@@ -58,6 +58,43 @@ hero highlights Big Buck Bunny's real top row, `2160p60 4K`, and the headline sa
 - Theme and motion follow the visitor's system (light or dark, Reduce motion) until they pick in the nav; their
   pick is remembered and wins (`tests/toggles.spec.ts`).
 - Blue only: `#3D7BFF` for accents, `#2F6BF0` under white text (AA). The product mockups keep the product's own colours.
+- Every section, background and illustration has a designed light version; nothing shows as a dark block on a light
+  page. The tokens are in `src/styles/global.css`.
+- Type: Funnel Display for headings, Onest for text (17 px at least, line height 1.6), JetBrains Mono for labels such
+  as `4320p`.
+- Copy: under 500 visible words (FAQ answers aside), headings 6 words at most, text blocks 20 words at most. Every
+  fact matches the README; no versions, file sizes, changelogs, spec tables, RAM figures, checksums or star counts.
+- Every scene plays by itself while at least 35% of it is on screen, pauses off screen or in a hidden tab, holds its
+  last frame 1.8 s and cross-fades to the start in 0.4 s (`src/lib/playback.ts`). No replay buttons. Try it hands
+  over to the visitor on any input and resumes its tour after 8 s without one.
+- The drawn cursor measures its target with `getBoundingClientRect()` before every move (again on resize, font load
+  and at every loop start), and the click step triggers the result: a miss changes nothing.
+- Icons: 24 px grid, 1.75 px strokes, round caps. Each icon means its label and none appears twice in a list.
+- Motion: reveals fade up 24 px with `cubic-bezier(.22, 1, .36, 1)`, 0.08 s apart, once. Loops stay under 12 s and at
+  most two run at a time. Only `transform`, `opacity`, `clip-path`, filters and the canvas are animated.
+- Every link that leaves the page opens in a new tab; links within the page stay (`tests/links.spec.ts`).
+- Checked at 360, 390, 768, 1024, 1440 and 1920 px in both themes, with no horizontal page scroll. Budgets on a phone:
+  Lighthouse 90+, LCP under 2.5 s, CLS under 0.1, INP under 200 ms, first JavaScript under 150 KB gzipped, the frame
+  stream's tiles under 600 KB.
+- Never: orange, purple, gradient text, emoji, testimonials, invented numbers, section numbers like `006`, bento grids,
+  horizontal scroll rails, YouTube logos or red play buttons, copied library components or library credits.
+
+## Notes
+
+- The features grid walks its cards on desktop and tablets (640 px and up); a turn lasts the longer of 4 s and the
+  card's animation plus 0.6 s. Phones play the card nearest the middle.
+- Each install step lasts exactly its label (`0:07`, `0:08`, `0:11` in `content.ts`). If a step's choreography grows,
+  raise its label: the console warns when a step rests under 0.9 s on its last frame.
+- The FAQ uses Radix Accordion without `forceMount`; with it, Radix doesn't re-render after measuring and nothing
+  animates. Closed answers are therefore not in the static HTML (only the first one is).
+- The frame stream's tiles are stills of the film (meadow and trees only, 8 per theme), made by `scripts/tiles.mjs`
+  with Chrome and sharp.
+- Astro scopes every class in a component's `<style>`, also `.js` and `.in` set on other elements: page-level hooks
+  need `:global(.js)`.
+- Building needs Node 22.12 or newer. On an older Node, npm skips Rolldown's native binary and the build fails with
+  "Cannot find native binding".
+- Two tests fail now and then when the whole suite runs in parallel and pass on their own: `cursor.spec.ts` "input
+  stops the tour, 8 s of quiet resumes it" and `frame-stream.spec.ts` "the CTA stream stands still off screen".
 
 ## Deploy
 
