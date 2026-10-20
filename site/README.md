@@ -55,7 +55,8 @@ hero highlights Big Buck Bunny's real top row, `2160p60 4K`, and the headline sa
   labels. The only raster media are the film (and its posters) and the social preview image.
 - One interactive section (Try it). Everything else plays by itself; the drawn cursor in the hero and the install
   loops must hit what it clicks, which `tests/cursor.spec.ts` checks at 390, 768, 1280 and 1920 px.
-- Motion is on for everyone; the footer's "Reduce motion" turns it off. The system setting isn't read.
+- Theme and motion follow the visitor's system (light or dark, Reduce motion) until they pick in the nav; their
+  pick is remembered and wins (`tests/toggles.spec.ts`).
 - Blue only: `#3D7BFF` for accents, `#2F6BF0` under white text (AA). The product mockups keep the product's own colours.
 
 ## Deploy
