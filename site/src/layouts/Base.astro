@@ -85,16 +85,17 @@ const faqLd = {
     <script type="application/ld+json" set:html={JSON.stringify(faqLd)} />
     <style is:inline set:html={fonts}></style>
     <slot name="head" />
-    <!-- Before the first paint: the theme the visitor picked, their system (for the download button) and whether
-         they turned motion down in the nav. Motion stays on unless they did; the system setting isn't read. -->
+    <!-- Before the first paint: the theme and the motion the visitor picked in the nav, or else their system's
+         appearance and Reduce motion setting, and their system (for the download button). -->
     <script is:inline>
       (function () {
         var d = document.documentElement;
         d.classList.add('js');
-        try {
-          if (localStorage.getItem('theme') === 'light') { d.dataset.theme = 'light'; document.querySelector('meta[name=theme-color]').content = '#F5F7FB'; }
-          if (localStorage.getItem('motion') === 'reduced') d.dataset.motion = 'reduced';
-        } catch (e) {}
+        var theme = null, motion = null;
+        try { theme = localStorage.getItem('theme'); motion = localStorage.getItem('motion'); } catch (e) {}
+        var sys = function (q) { return !!(window.matchMedia && matchMedia(q).matches); };
+        if (theme ? theme === 'light' : sys('(prefers-color-scheme: light)')) { d.dataset.theme = 'light'; document.querySelector('meta[name=theme-color]').content = '#F5F7FB'; }
+        if (motion ? motion === 'reduced' : sys('(prefers-reduced-motion: reduce)')) d.dataset.motion = 'reduced';
         var ua = navigator.userAgent, uad = navigator.userAgentData, p = (uad && uad.platform) || navigator.platform || '';
         var touch = (uad && uad.mobile) || /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Mac/i.test(p) && navigator.maxTouchPoints > 1);
         d.dataset.os = touch ? 'phone' : /Win/i.test(p) || /Windows NT/i.test(ua) ? 'windows' : /Mac/i.test(p) ? 'mac' : /Linux|X11|CrOS/i.test(p + ua) ? 'linux' : 'windows';

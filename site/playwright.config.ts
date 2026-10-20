@@ -7,6 +7,7 @@ export default defineConfig({
   timeout: 120_000,
   fullyParallel: true,
   reporter: [['list']],
-  use: { baseURL: 'http://localhost:4331/yt-download-manager/', channel: process.env.PW_CHANNEL || undefined },
+  // A visitor whose system is dark (Playwright pretends light otherwise); toggles.spec.ts tries light and Reduce motion.
+  use: { baseURL: 'http://localhost:4331/yt-download-manager/', channel: process.env.PW_CHANNEL || undefined, colorScheme: 'dark' },
   webServer: { command: 'npx astro preview --port 4331', url: 'http://localhost:4331/yt-download-manager/', reuseExistingServer: true, timeout: 60_000 },
 });

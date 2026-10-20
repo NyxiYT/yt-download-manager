@@ -83,7 +83,7 @@
   ::selection { background: var(--accent-fill); color: var(--on-accent); }
 }
 
-/* Reduce motion (the nav's button, off by default): everything works, nothing moves. The system setting isn't read. */
+/* Reduce motion (the nav's button, or the system's setting until the visitor presses it): everything works, nothing moves. */
 [data-motion="reduced"] *,
 [data-motion="reduced"] *::before,
 [data-motion="reduced"] *::after {

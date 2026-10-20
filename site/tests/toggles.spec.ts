@@ -44,6 +44,38 @@ test.describe('desktop', () => {
   });
 });
 
+test.describe('system settings', () => {
+  test.use({ viewport: { width: 1280, height: 900 } });
+
+  test('a light system gets the light theme until the visitor picks', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.goto('./');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    await expect(page.locator('[data-nav-bar] [data-theme-btn]')).toHaveAttribute('aria-label', 'Dark theme');
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await page.locator('[data-nav-bar] [data-theme-btn]').click();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light'); // the visitor's pick wins
+  });
+
+  test('the system Reduce motion setting turns motion down until the visitor picks', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('./');
+    await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
+    await expect(page.locator('[data-nav-bar] [data-motion-btn]')).toHaveAttribute('aria-pressed', 'true');
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await expect(page.locator('html')).toHaveAttribute('data-motion', 'full');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.locator('[data-nav-bar] [data-motion-btn]').click();
+    await expect(page.locator('html')).toHaveAttribute('data-motion', 'full');
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-motion', 'full'); // the visitor's pick wins
+  });
+});
+
 test.describe('phone', () => {
   test.use({ viewport: { width: 390, height: 844 } });
   test('both settings are in the menu', async ({ page }) => {

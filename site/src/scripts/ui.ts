@@ -3,13 +3,16 @@
 // tilt, the section reveals, and the visitor's cursor. Smooth scrolling and the nav's glass load on the first
 // interaction. The features grid's spotlight is in scripts/features.ts; the frame stream behind the hero and the
 // final call to action is in scripts/frame-stream.ts.
-import { getMotion, onMotion, setMotion } from '../islands/motion-pref';
+import { followSystemMotion, getMotion, onMotion, setMotion } from '../islands/motion-pref';
 
 const $ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => root.querySelector<T>(s);
 const $$ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => [...root.querySelectorAll<T>(s)];
 const root = document.documentElement;
 const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
-const store = { set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } } };
+const store = {
+  get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } },
+  set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } },
+};
 
 // ---------- theme and motion: the icon buttons in the nav and in the phone menu (components/Toggles.astro) ----------
 const themeBtns = $$<HTMLButtonElement>('[data-theme-btn]');
@@ -26,8 +29,16 @@ themeBtns.forEach((b) => b.addEventListener('click', () => {
   paintTheme();
 }));
 paintTheme();
+// Until the visitor picks a theme, the page follows the system's appearance, also when it changes (Auto at dusk).
+const systemLight = matchMedia('(prefers-color-scheme: light)');
+systemLight.addEventListener('change', () => {
+  if (store.get('theme')) return;
+  root.dataset.theme = systemLight.matches ? 'light' : 'dark';
+  paintTheme();
+});
 
-// Motion is turned down only here, never by the system setting.
+// Motion follows the system's Reduce motion setting until the visitor presses the button.
+followSystemMotion();
 const motionBtns = $$<HTMLButtonElement>('[data-motion-btn]');
 const paintMotion = () => motionBtns.forEach((b) => b.setAttribute('aria-pressed', String(getMotion() === 'reduced')));
 motionBtns.forEach((b) => b.addEventListener('click', () => setMotion(getMotion() === 'reduced' ? 'full' : 'reduced')));
