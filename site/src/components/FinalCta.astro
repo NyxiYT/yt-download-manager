@@ -13,8 +13,8 @@ import { DOWNLOAD_X64, EXTENSION_ZIP, finalCta, hero } from '../lib/content';
     <h2 id="fin-title" class="fin-h" data-reveal>{finalCta.title}</h2>
     <p class="fin-line" data-reveal style="--i:1">{finalCta.line}</p>
     <div data-reveal style="--i:2" data-fin-button>
-      <a class="btn btn-primary os-windows" href={DOWNLOAD_X64} target="_blank" rel="noopener noreferrer" data-download><Fragment set:html={AI.download} />{finalCta.button}</a>
-      <a class="btn btn-primary os-other" href={EXTENSION_ZIP} target="_blank" rel="noopener noreferrer" data-download><Fragment set:html={AI.download} />{hero.extension}</a>
+      <a class="btn btn-primary os-windows" href={DOWNLOAD_X64} data-download><Fragment set:html={AI.download} />{finalCta.button}</a>
+      <a class="btn btn-primary os-other" href={EXTENSION_ZIP} data-download><Fragment set:html={AI.download} />{hero.extension}</a>
       <a class="btn btn-primary os-phone" href="#install">{hero.phone}</a>
     </div>
   </div>

@@ -72,7 +72,8 @@ hero highlights Big Buck Bunny's real top row, `2160p60 4K`, and the headline sa
 - Icons: 24 px grid, 1.75 px strokes, round caps. Each icon means its label and none appears twice in a list.
 - Motion: reveals fade up 24 px with `cubic-bezier(.22, 1, .36, 1)`, 0.08 s apart, once. Loops stay under 12 s and at
   most two run at a time. Only `transform`, `opacity`, `clip-path`, filters and the canvas are animated.
-- Every link that leaves the page opens in a new tab; links within the page stay (`tests/links.spec.ts`).
+- Every link that leaves the page opens in a new tab, except the download buttons: GitHub sends release files as
+  attachments, so they save the file where the visitor is. Links within the page stay (`tests/links.spec.ts`).
 - Checked at 360, 390, 768, 1024, 1440 and 1920 px in both themes, with no horizontal page scroll. Budgets on a phone:
   Lighthouse 90+, LCP under 2.5 s, CLS under 0.1, INP under 200 ms, first JavaScript under 150 KB gzipped, the frame
   stream's thumbnails under 600 KB.

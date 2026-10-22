@@ -21,11 +21,11 @@ import { AI } from '../lib/anim-icons';
       <h1 id="hero-title" class="hero-title">{hero.title.map((l) => <span>{l}</span>)}</h1>
       <p class="hero-sub">{hero.sub}</p>
       <div class="hero-cta">
-        <a class="btn btn-primary os-windows" href={DOWNLOAD_X64} target="_blank" rel="noopener noreferrer" data-download>
+        <a class="btn btn-primary os-windows" href={DOWNLOAD_X64} data-download>
           <Fragment set:html={AI.download} />
           {hero.primary}
         </a>
-        <a class="btn btn-primary os-other" href={EXTENSION_ZIP} target="_blank" rel="noopener noreferrer" data-download>{hero.extension}</a>
+        <a class="btn btn-primary os-other" href={EXTENSION_ZIP} data-download>{hero.extension}</a>
         <span class="os-phone hero-phone">
           <span class="hero-phone-text">{hero.phone}</span>
           <button class="btn btn-primary" type="button" data-copy={SITE_URL}>{hero.copyLink}<span class="sr-only" data-copy-status aria-live="polite"></span></button>

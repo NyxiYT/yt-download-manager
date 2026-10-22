@@ -12,8 +12,8 @@ const ext = (href: string) => href.startsWith('http');
       <div class="foot-brand">
         <span class="foot-name"><span class="foot-mark" set:html={appIcon('foot', 32)} />YT Download Manager</span>
         <p class="foot-line">{footer.brand}</p>
-        <a class="btn btn-primary btn-sm foot-dl os-win" href={DOWNLOAD_X64} target="_blank" rel="noopener noreferrer" data-download>{footer.download}</a>
-        <a class="btn btn-primary btn-sm foot-dl os-ext" href={EXTENSION_ZIP} target="_blank" rel="noopener noreferrer" data-download>{footer.download}</a>
+        <a class="btn btn-primary btn-sm foot-dl os-win" href={DOWNLOAD_X64} data-download>{footer.download}</a>
+        <a class="btn btn-primary btn-sm foot-dl os-ext" href={EXTENSION_ZIP} data-download>{footer.download}</a>
       </div>
       {footer.columns.map((c) => (
         <nav class="foot-col" aria-label={c.title}>
