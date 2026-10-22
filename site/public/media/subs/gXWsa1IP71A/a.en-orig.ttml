@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<tt xml:lang="en" xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" ttp:profile="http://www.w3.org/TR/profile/sdp-us" >
+<head>
+<styling>
+<style xml:id="s1" tts:textAlign="center" tts:extent="90% 90%" tts:origin="5% 5%" tts:displayAlign="after"/>
+<style xml:id="s2" tts:fontSize=".72c" tts:backgroundColor="black" tts:color="white"/>
+</styling>
+<layout>
+<region xml:id="r1" style="s1"/>
+</layout>
+</head>
+<body region="r1">
+<div>
+<p begin="00:00:00.000" end="00:00:02.560" style="s2">I did [music]</p>
+<p begin="00:00:01.200" end="00:00:04.080" style="s2">paint the leafy shadows, which is</p>
+<p begin="00:00:02.560" end="00:00:05.520" style="s2">something that we&#39;ve been trying to do</p>
+<p begin="00:00:04.080" end="00:00:07.040" style="s2">for a while. Like I remember [music] for</p>
+<p begin="00:00:05.520" end="00:00:09.040" style="s2">Project Gold, but we couldn&#39;t really</p>
+<p begin="00:00:07.040" end="00:00:11.440" style="s2">figure out how to do it well. So I</p>
+<p begin="00:00:09.040" end="00:00:13.040" style="s2">revisited that topic now for the</p>
+<p begin="00:00:11.440" end="00:00:15.080" style="s2">overgrown teaser and [music]</p>
+<p begin="00:00:13.040" end="00:00:17.320" style="s2">I&#39;m pretty happy with what I could come</p>
+<p begin="00:00:15.080" end="00:00:18.560" style="s2">up with within like a day, which still</p>
+<p begin="00:00:17.320" end="00:00:19.880" style="s2">requires a little bit of manual work,</p>
+<p begin="00:00:18.560" end="00:00:21.160" style="s2">but it&#39;s also nice because then you have</p>
+<p begin="00:00:19.880" end="00:00:22.800" style="s2">a lot more control and there&#39;s going to</p>
+<p begin="00:00:21.160" end="00:00:24.960" style="s2">be a blog post on [music] the studio</p>
+<p begin="00:00:22.800" end="00:00:27.280" style="s2">website. Join Blender Studio to find out</p>
+<p begin="00:00:24.960" end="00:00:27.280" style="s2">more.</p>
+</div>
+</body>
+</tt>

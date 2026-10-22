@@ -97,6 +97,11 @@ hero highlights Big Buck Bunny's real top row, `2160p60 4K`, and the headline sa
   action's circle its button on a tilted ring, both laid out anew on every visit. Downloads fly into the section's
   download button (measured each frame) on a second canvas above the text wash, and the button wiggles when they
   land.
+- Try it's thumbnail, subtitle and screenshot buttons save real files (`src/islands/demo/save.ts`): the thumbnail from
+  YouTube's image server (it allows any site to fetch it), the largest size the video has; the subtitles from tracks
+  `scripts/subs.mjs` saves next to the page with yt-dlp (YouTube doesn't let another site fetch them; the video has
+  none and says so, the Short has YouTube's automatic English ones); a PNG of the film's current frame.
+  `tests/demo-files.spec.ts` checks each file.
 - Astro scopes every class in a component's `<style>`, also `.js` and `.in` set on other elements: page-level hooks
   need `:global(.js)`.
 - Building needs Node 22.12 or newer. On an older Node, npm skips Rolldown's native binary and the build fails with

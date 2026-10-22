@@ -7,12 +7,33 @@ export interface VideoData { vid: string; title: string; author: string; duratio
 export interface Frame { src: string; srcset?: string; width: number; height: number; alt: string }
 
 export type Scene = 'video' | 'trim' | 'audio' | 'shorts' | 'history';
-export type Picker = 'video' | 'audio' | 'shortsMenu';
+export type Picker = 'video' | 'audio' | 'thumb' | 'subs' | 'shortsMenu';
+
+// The thumbnail sizes YouTube keeps for a video, largest first (content.js THUMBS); a Short may also have a vertical one.
+export const THUMB_SIZES: readonly { key: string; label: string; res: string; tall?: boolean }[] = [
+  { key: 'oardefault', label: 'Vertical', res: '1080×1920', tall: true },
+  { key: 'maxresdefault', label: 'Maximum resolution', res: '1280×720' },
+  { key: 'sddefault', label: 'Standard', res: '640×480' },
+  { key: 'hqdefault', label: 'High', res: '480×360' },
+  { key: 'mqdefault', label: 'Medium', res: '320×180' },
+];
+// Subtitle files (content.js SUB_FORMATS).
+export const SUB_FORMATS = {
+  srt: { label: 'SRT', ext: 'srt', type: 'application/x-subrip' },
+  vtt: { label: 'WebVTT', ext: 'vtt', type: 'text/vtt' },
+  ttml: { label: 'TTML', ext: 'ttml', type: 'application/ttml+xml' },
+  srv3: { label: 'SRV3', ext: 'srv3', type: 'application/xml' },
+} as const;
+export type SubFmt = keyof typeof SUB_FORMATS;
+/** A subtitle track of the video, saved next to the page by scripts/subs.mjs. */
+export interface SubTrack { key: string; lang: string; label: string; auto: boolean; files: Record<'json3' | 'ttml' | 'srv3', string> }
 export type Phase = 'idle' | 'menuOpen' | 'qualityChosen' | 'trimDragged' | 'downloading' | 'done' | 'folderOpened';
 
 export interface Job {
-  id: string; title: string; author: string; format: 'MP4' | 'MP3' | 'M4A' | 'Opus' | 'WAV'; quality: string; size: number;
-  pct: number; status: 'downloading' | 'processing' | 'completed'; clip?: { start: number; end: number };
+  id: string; title: string; author: string; format: 'MP4' | 'MP3' | 'M4A' | 'Opus' | 'WAV' | 'JPG' | 'PNG' | 'SRT' | 'WebVTT' | 'TTML' | 'SRV3';
+  quality: string; size: number; pct: number; status: 'downloading' | 'processing' | 'completed'; clip?: { start: number; end: number };
+  /** The name of a file the visitor really saved (thumbnail, subtitles, screenshot). */
+  file?: string;
 }
 
 export interface DemoState {
@@ -21,6 +42,9 @@ export interface DemoState {
   dropdown: boolean;
   videoKey: string;
   audioKey: string;
+  thumbKey: string;
+  subsKey: string;
+  subFmt: SubFmt;
   clip: { start: number; end: number };
   jobs: Job[];
   panel: boolean;
@@ -34,6 +58,10 @@ export type Action =
   | { type: 'dropdown'; open?: boolean }
   | { type: 'pickVideo'; key: string }
   | { type: 'pickAudio'; key: string }
+  | { type: 'pickThumb'; key: string }
+  | { type: 'pickSubs'; key: string }
+  | { type: 'subFmt'; fmt: SubFmt }
+  | { type: 'saved'; job: Job }
   | { type: 'clip'; start?: number; end?: number; duration: number }
   | { type: 'start'; job: Job }
   | { type: 'tick'; dt: number; rate: number }
@@ -45,7 +73,7 @@ export type Action =
 
 export function initialState(data: VideoData, scene: Scene): DemoState {
   const base: DemoState = {
-    phase: 'idle', pop: null, dropdown: false, videoKey: data.video[0]?.key ?? '', audioKey: 'mp3-320',
+    phase: 'idle', pop: null, dropdown: false, videoKey: data.video[0]?.key ?? '', audioKey: 'mp3-320', thumbKey: '', subsKey: '', subFmt: 'srt',
     clip: { start: 0, end: data.duration }, jobs: [], panel: false, flash: false, folder: null,
   };
   if (scene !== 'history') return base;
@@ -76,6 +104,14 @@ export function reducer(s: DemoState, a: Action): DemoState {
       return { ...s, videoKey: a.key, dropdown: false, phase: 'qualityChosen' };
     case 'pickAudio':
       return { ...s, audioKey: a.key, dropdown: false, phase: 'qualityChosen' };
+    case 'pickThumb':
+      return { ...s, thumbKey: a.key, dropdown: false };
+    case 'pickSubs':
+      return { ...s, subsKey: a.key, dropdown: false };
+    case 'subFmt':
+      return { ...s, subFmt: a.fmt };
+    case 'saved': // a file the visitor saved: straight into the history as done
+      return { ...s, pop: null, dropdown: false, flash: true, jobs: [a.job, ...s.jobs] };
     case 'clip': {
       const min = Math.min(1, a.duration / 2); // content.js: minLen
       const start = a.start !== undefined ? Math.max(0, Math.min(a.start, s.clip.end - min)) : s.clip.start;

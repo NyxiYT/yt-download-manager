@@ -6,9 +6,10 @@ import { getMotion, onMotion } from '../motion-pref';
 import { ICONS, type IconName } from '../../lib/icons';
 import { ARROW_PATH, ARROW_SIZE } from '../../lib/arrow';
 import {
-  audioLabel, estimate, fmtClock, fmtSize, fmtTime, qualityText, ringPct,
-  type AudioOption, type DemoState, type Job, type VideoData, type VideoOption,
+  SUB_FORMATS, THUMB_SIZES, audioLabel, estimate, fmtClock, fmtSize, fmtTime, qualityText, ringPct,
+  type AudioOption, type DemoState, type Job, type SubFmt, type SubTrack, type VideoData, type VideoOption,
 } from './model';
+import type { ThumbAvail } from './save';
 
 export const Ui = createContext<{ hover: string | null; press: string | null }>({ hover: null, press: null });
 export function useT(t: string) {
@@ -96,9 +97,11 @@ const isDarkSite = () => document.documentElement.dataset.theme !== 'light';
 export const useSiteDark = () => useSyncExternalStore(onTheme, isDarkSite, () => true);
 
 // ---------- the toolbar (full width mode, content.js layoutBar) ----------
-export function Toolbar({ open, onVideo, onAudio }: { open: 'video' | 'audio' | null; onVideo: () => void; onAudio: () => void }) {
+export function Toolbar({ open, onVideo, onAudio, onThumb, onSubs, onShot }: {
+  open: string | null; onVideo: () => void; onAudio: () => void; onThumb?: () => void; onSubs?: () => void; onShot?: () => void;
+}) {
   const btn = (name: IconName, tip: string, t: string, onClick?: () => void, cls = '', on = false) => (
-    <button type="button" className={`ysd-btn ${cls}${on ? ' ysd-on' : ''}${(open === 'video' && t === 'btn-video') || (open === 'audio' && t === 'btn-audio') ? ' ysd-open' : ''}`}
+    <button type="button" className={`ysd-btn ${cls}${on ? ' ysd-on' : ''}${open && t === `btn-${open}` ? ' ysd-open' : ''}`}
       aria-label={tip} data-tip={tip} aria-haspopup={onClick ? 'dialog' : undefined} onClick={onClick} {...useT(t)}>
       <Icon name={name} />
     </button>
@@ -109,9 +112,9 @@ export function Toolbar({ open, onVideo, onAudio }: { open: 'video' | 'audio' | 
       <div className="ysd-group">
         {btn('video', 'Download video', 'btn-video', onVideo)}
         {btn('music', 'Download audio', 'btn-audio', onAudio)}
-        {btn('image', 'Download thumbnail', 'btn-thumb')}
-        {btn('captions', 'Download subtitles', 'btn-subs')}
-        {btn('camera', 'Save a screenshot of this frame', 'btn-shot')}
+        {btn('image', 'Download thumbnail', 'btn-thumb', onThumb)}
+        {btn('captions', 'Download subtitles', 'btn-subs', onSubs)}
+        {btn('camera', 'Save a screenshot of this frame', 'btn-shot', onShot)}
       </div>
       <div className="ysd-group">
         {btn('moon', dark ? 'Switch to light theme' : 'Switch to dark theme', 'btn-moon', undefined, 'ysd-wide', dark)}
@@ -138,10 +141,11 @@ function PopHead({ icon, title, onClose }: { icon: IconName; title: string; onCl
   );
 }
 
-export interface Opt { value: string; label: string; badge?: string; hint?: string; right?: string }
+export interface Opt { value: string; label: string; badge?: string; hint?: string; right?: string; disabled?: boolean; icon?: IconName }
 function OptContent({ o }: { o: Opt }) {
   return (
     <span className="ysd-opt">
+      {o.icon && <Icon name={o.icon} size={16} className="ysd-opt-icon" />}
       <span className="ysd-opt-label">{o.label}</span>
       {o.badge && <span className="ysd-badge">{o.badge}</span>}
       {o.hint && <span className="ysd-opt-hint">{o.hint}</span>}
@@ -173,7 +177,7 @@ export function DropdownList({ options, value, onPick, style }: { options: Opt[]
 }
 function DdItem({ o, i, selected, onPick }: { o: Opt; i: number; selected: boolean; onPick: (v: string) => void }) {
   return (
-    <button type="button" className="ysd-dd-item" role="option" aria-selected={selected} onClick={() => onPick(o.value)} {...useT(`dd-${i}`)}>
+    <button type="button" className="ysd-dd-item" role="option" aria-selected={selected} disabled={o.disabled} onClick={() => onPick(o.value)} {...useT(`dd-${i}`)}>
       <OptContent o={o} />
       <span className="ysd-check">{selected ? <Icon name="check" size={18} /> : null}</span>
     </button>
@@ -183,6 +187,19 @@ function DdItem({ o, i, selected, onPick }: { o: Opt; i: number; selected: boole
 export const videoOpts = (list: VideoOption[]): Opt[] => list.map((o) => ({ value: o.key, label: o.quality, badge: o.badge, hint: o.codec, right: fmtSize(o.size) }));
 export const audioOpts = (list: AudioOption[]): Opt[] =>
   list.map((o) => ({ value: o.key, label: audioLabel(o), hint: o.format === 'WAV' ? '' : o.hint, right: `${o.approx ? '~' : ''}${fmtSize(o.size)}` }));
+const thumbRes = (t: (typeof THUMB_SIZES)[number], avail?: ThumbAvail) => { const a = avail?.[t.key]; return a ? `${a.w}×${a.h}` : t.res; };
+// The vertical picture only where the video has one (a Short).
+const thumbList = (avail?: ThumbAvail) => THUMB_SIZES.filter((t) => !t.tall || avail?.[t.key]);
+export const thumbOpts = (avail?: ThumbAvail): Opt[] =>
+  thumbList(avail).map((t) => ({ value: t.key, label: t.label, hint: avail?.[t.key] === false ? 'not available' : '', right: thumbRes(t, avail), disabled: avail?.[t.key] === false }));
+export const subsOpts = (tracks: SubTrack[]): Opt[] => tracks.map((t) => ({ value: t.key, label: t.label, hint: t.lang, icon: t.auto ? 'auto' : undefined }));
+/** The size the picker shows as chosen: the one picked, or the largest YouTube has. */
+export function thumbChoice(s: DemoState, avail?: ThumbAvail) {
+  const list = thumbList(avail);
+  const sel = list.find((t) => t.key === s.thumbKey) ?? list[0];
+  return avail?.[sel.key] === false ? list.find((t) => avail[t.key] !== false) ?? list[list.length - 1] : sel;
+}
+export const subsChoice = (s: DemoState, tracks: SubTrack[]) => tracks.find((t) => t.key === s.subsKey) ?? tracks.find((t) => !t.auto) ?? tracks[0];
 
 function Trim({ duration, clip, enabled, onClip }: { duration: number; clip: { start: number; end: number }; enabled: boolean; onClip: (c: { start?: number; end?: number }) => void }) {
   const full = clip.start <= 0.05 && clip.end >= duration - 0.05;
@@ -245,11 +262,73 @@ function Dot({ which, value, duration, onKey, onDrag }: { which: 'start' | 'end'
   );
 }
 
-function PopFoot({ summary, onDownload }: { summary: string; onDownload: () => void }) {
+function PopFoot({ summary, onDownload, busy = false }: { summary: string; onDownload: () => void; busy?: boolean }) {
   return (
     <div className="ysd-pop-foot">
-      <span className="ysd-pop-sum">{summary}</span>
-      <button type="button" className="ysd-primary" onClick={onDownload} {...useT('download')}><Icon name="download" size={18} /><span>Download</span></button>
+      <span className="ysd-pop-sum" role="status">{busy && <span className="ysd-spin" aria-hidden="true" />}{summary}</span>
+      <button type="button" className="ysd-primary" onClick={onDownload} disabled={busy} {...useT('download')}><Icon name="download" size={18} /><span>Download</span></button>
+    </div>
+  );
+}
+
+// A line of news in a picker (content.js msgRow): information, or an error with what to do.
+function Msg({ err = false, children }: { err?: boolean; children: ReactNode }) {
+  return <div className={`ysd-msg${err ? ' ysd-err' : ''}`} role={err ? 'alert' : undefined}><Icon name={err ? 'error' : 'info'} size={18} /><span>{children}</span></div>;
+}
+
+/** What a picker is doing right now: saving, or the last thing that went wrong. */
+export interface Saving { busy: boolean; error: string | null }
+
+export function ThumbPicker({ data, s, avail, saving, onClose, onToggle, onDownload, style }: {
+  data: VideoData; s: DemoState; avail?: ThumbAvail; saving: Saving; onClose: () => void; onToggle: () => void; onDownload: () => void; style: CSSProperties;
+}) {
+  const sel = thumbChoice(s, avail);
+  return (
+    <div className="ysd-pop" role="dialog" aria-label="Download thumbnail" style={style} data-pop data-picker="thumb">
+      <PopHead icon="image" title="Download thumbnail" onClose={onClose} />
+      <div className="ysd-pop-body">
+        <img className={`ysd-thumb${sel.tall ? ' ysd-tall' : ''}`} alt="Thumbnail preview" src={`https://i.ytimg.com/vi/${data.vid}/${sel.key}.jpg`} />
+        <SelectField label="Quality" cur={thumbOpts(avail).find((o) => o.value === sel.key)!} open={s.dropdown} onToggle={onToggle} t="select" />
+        {saving.error && <Msg err>{saving.error}</Msg>}
+        <PopFoot summary={saving.busy ? 'Fetching image…' : `JPG · ${thumbRes(sel, avail)}`} onDownload={onDownload} busy={saving.busy} />
+      </div>
+    </div>
+  );
+}
+
+export type TrackList = { state: 'loading' } | { state: 'error'; message: string } | { state: 'ready'; tracks: SubTrack[] };
+
+export function SubsPicker({ s, list, saving, onClose, onToggle, onFormat, onRetry, onDownload, style }: {
+  s: DemoState; list: TrackList; saving: Saving; onClose: () => void; onToggle: () => void; onFormat: (f: SubFmt) => void; onRetry: () => void; onDownload: () => void; style: CSSProperties;
+}) {
+  const body = () => {
+    if (list.state === 'loading') return <div className="ysd-msg" role="status"><span className="ysd-spin" aria-hidden="true" /><span>Looking for subtitles…</span></div>;
+    if (list.state === 'error') return <><Msg err>{list.message}</Msg><button type="button" className="ysd-secondary" onClick={onRetry}><Icon name="refresh" size={18} /><span>Retry</span></button></>;
+    if (!list.tracks.length) return <Msg>This video has no subtitles</Msg>;
+    const track = subsChoice(s, list.tracks);
+    return (
+      <>
+        <div>
+          <SelectField label="Language" cur={subsOpts([track])[0]} open={s.dropdown} onToggle={onToggle} t="select" />
+          {list.tracks.some((t) => t.auto) && <div className="ysd-note" style={{ marginTop: 8 }}><Icon name="auto" size={16} />Auto-generated subtitles are marked with this icon</div>}
+        </div>
+        <div>
+          <div className="ysd-label">File format</div>
+          <div className="ysd-seg" role="radiogroup" aria-label="File format">
+            {(Object.keys(SUB_FORMATS) as SubFmt[]).map((k) => (
+              <button key={k} type="button" role="radio" aria-checked={k === s.subFmt} className={k === s.subFmt ? 'ysd-sel' : ''} onClick={() => onFormat(k)}>{SUB_FORMATS[k].label}</button>
+            ))}
+          </div>
+        </div>
+        {saving.error && <Msg err>{saving.error}</Msg>}
+        <PopFoot summary={saving.busy ? 'Fetching subtitles…' : `${SUB_FORMATS[s.subFmt].label} · ${track.label}`} onDownload={onDownload} busy={saving.busy} />
+      </>
+    );
+  };
+  return (
+    <div className="ysd-pop" role="dialog" aria-label="Download subtitles" style={style} data-pop data-picker="subs">
+      <PopHead icon="captions" title="Download subtitles" onClose={onClose} />
+      <div className="ysd-pop-body">{body()}</div>
     </div>
   );
 }
@@ -261,7 +340,7 @@ export function VideoPicker({ data, s, onClose, onToggle, onClip, onDownload, st
   const ratio = (s.clip.end - s.clip.start) / data.duration;
   const cur = videoOpts([opt])[0];
   return (
-    <div className="ysd-pop" role="dialog" aria-label="Download video" style={style} data-pop>
+    <div className="ysd-pop" role="dialog" aria-label="Download video" style={style} data-pop data-picker="video">
       <PopHead icon="video" title="Download video" onClose={onClose} />
       <div className="ysd-pop-body">
         <SelectField label="Quality" cur={cur} open={s.dropdown} onToggle={onToggle} t="select" />
@@ -278,7 +357,7 @@ export function AudioPicker({ data, s, onClose, onToggle, onClip, onDownload, st
   const opt = data.audio.find((o) => o.key === s.audioKey) ?? data.audio[0];
   const ratio = opt.trimmable ? (s.clip.end - s.clip.start) / data.duration : 1;
   return (
-    <div className="ysd-pop" role="dialog" aria-label="Download audio" style={style} data-pop>
+    <div className="ysd-pop" role="dialog" aria-label="Download audio" style={style} data-pop data-picker="audio">
       <PopHead icon="music" title="Download audio" onClose={onClose} />
       <div className="ysd-pop-body">
         <SelectField label="Format" cur={audioOpts([opt])[0]} open={s.dropdown} onToggle={onToggle} t="select" />
@@ -309,16 +388,18 @@ export function ShortsColumn({ open, onDownload }: { open: boolean; onDownload: 
   );
 }
 
-export function ShortsMenu({ onVideo, style }: { onVideo: () => void; style: CSSProperties }) {
+export function ShortsMenu({ onVideo, onAudio, onThumb, onSubs, onShot, style }: {
+  onVideo: () => void; onAudio: () => void; onThumb: () => void; onSubs: () => void; onShot: () => void; style: CSSProperties;
+}) {
   const item = (icon: IconName, label: string, t: string, onClick?: () => void) => <MItem icon={icon} label={label} t={t} onClick={onClick} />;
   return (
-    <div className="ysd-pop ysd-menu" role="menu" style={style} data-pop>
+    <div className="ysd-pop ysd-menu" role="menu" style={style} data-pop data-picker="shortsMenu">
       {item('video', 'Download video', 'm-video', onVideo)}
-      {item('music', 'Download audio', 'm-audio')}
-      {item('image', 'Download thumbnail', 'm-thumb')}
-      {item('captions', 'Download subtitles', 'm-subs')}
+      {item('music', 'Download audio', 'm-audio', onAudio)}
+      {item('image', 'Download thumbnail', 'm-thumb', onThumb)}
+      {item('captions', 'Download subtitles', 'm-subs', onSubs)}
       <div className="ysd-msep" />
-      {item('camera', 'Save a screenshot of this frame', 'm-shot')}
+      {item('camera', 'Save a screenshot of this frame', 'm-shot', onShot)}
     </div>
   );
 }
@@ -424,6 +505,8 @@ function HistItem({ j, onReveal }: { j: Job; onReveal: (j: Job) => void }) {
 }
 
 // ---------- the folder the app opens (a plain file list, not a copy of Explorer) ----------
+const fileIcon = (name: string): IconName =>
+  /\.(mp3|m4a|webm|wav)$/.test(name) ? 'music' : /\.(jpg|png)$/.test(name) ? 'image' : /\.(srt|vtt|ttml|srv3)$/.test(name) ? 'captions' : 'video';
 export function FolderWindow({ files, selected, cover, onClose, style }: {
   files: { name: string; size: string }[]; selected: string; cover?: string; onClose: () => void; style: CSSProperties;
 }) {
@@ -436,7 +519,7 @@ export function FolderWindow({ files, selected, cover, onClose, style }: {
           <li key={f.name} aria-selected={f.name === selected} className={f.name === selected ? 'sel' : ''}>
             {f.name.endsWith('.mp3') && cover
               ? <img className="d-cover" src={cover} alt="" width={36} height={36} loading="lazy" decoding="async" />
-              : <span className="d-file-ico"><Icon name={f.name.endsWith('.mp3') ? 'music' : 'video'} size={18} /></span>}
+              : <span className="d-file-ico"><Icon name={fileIcon(f.name)} size={18} /></span>}
             <span className="d-file-name">{f.name}</span>
             <span className="d-file-size">{f.size}</span>
           </li>

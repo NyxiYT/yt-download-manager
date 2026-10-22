@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?><timedtext format="3">
+<head>
+<ws id="0"/>
+<ws id="1" mh="2" ju="0" sd="3"/>
+<wp id="0"/>
+<wp id="1" ap="6" ah="20" av="100" rc="2" cc="40"/>
+</head>
+<body>
+<w t="0" id="1" wp="1" ws="1"/>
+<p t="0" d="2560" w="1"><s>I</s><s t="560"> did</s><s t="654"> [music]</s></p>
+<p t="1190" d="1370" w="1" a="1">
+</p>
+<p t="1200" d="2880" w="1"><s>paint</s><s t="240"> the</s><s t="320"> leafy</s><s t="440"> shadows,</s><s t="1080"> which</s><s t="1280"> is</s></p>
+<p t="2550" d="1530" w="1" a="1">
+</p>
+<p t="2560" d="2960" w="1"><s>something</s><s t="320"> that</s><s t="440"> we&#39;ve</s><s t="600"> been</s><s t="880"> trying</s><s t="1160"> to</s><s t="1240"> do</s></p>
+<p t="4070" d="1450" w="1" a="1">
+</p>
+<p t="4080" d="2960" w="1"><s>for</s><s t="120"> a</s><s t="200"> while.</s><s t="520"> Like</s><s t="920"> I</s><s t="960"> remember</s><s t="1159"> [music]</s><s t="1240"> for</s></p>
+<p t="5510" d="1530" w="1" a="1">
+</p>
+<p t="5520" d="3520" w="1"><s>Project</s><s t="360"> Gold,</s><s t="880"> but</s><s t="1000"> we</s><s t="1080"> couldn&#39;t</s><s t="1320"> really</s></p>
+<p t="7030" d="2010" w="1" a="1">
+</p>
+<p t="7040" d="4400" w="1"><s>figure</s><s t="280"> out</s><s t="360"> how</s><s t="440"> to</s><s t="600"> do</s><s t="760"> it</s><s t="880"> well.</s><s t="1560"> So</s><s t="1800"> I</s></p>
+<p t="9030" d="2410" w="1" a="1">
+</p>
+<p t="9040" d="4000" w="1"><s>revisited</s><s t="600"> that</s><s t="760"> topic</s><s t="1400"> now</s><s t="1640"> for</s><s t="2080"> the</s></p>
+<p t="11430" d="1610" w="1" a="1">
+</p>
+<p t="11440" d="3640" w="1"><s>overgrown</s><s t="400"> teaser</s><s t="920"> and</s><s t="1005"> [music]</s></p>
+<p t="13030" d="2050" w="1" a="1">
+</p>
+<p t="13040" d="4280" w="1"><s>I&#39;m</s><s t="40"> pretty</s><s t="240"> happy</s><s t="840"> with</s><s t="1360"> what</s><s t="1520"> I</s><s t="1600"> could</s><s t="1880"> come</s></p>
+<p t="15070" d="2250" w="1" a="1">
+</p>
+<p t="15080" d="3480" w="1"><s>up</s><s t="120"> with</s><s t="280"> within</s><s t="560"> like</s><s t="720"> a</s><s t="760"> day,</s><s t="1200"> which</s><s t="1680"> still</s></p>
+<p t="17310" d="1250" w="1" a="1">
+</p>
+<p t="17320" d="2560" w="1"><s>requires</s><s t="320"> a</s><s t="360"> little</s><s t="480"> bit</s><s t="600"> of</s><s t="680"> manual</s><s t="1040"> work,</s></p>
+<p t="18550" d="1330" w="1" a="1">
+</p>
+<p t="18560" d="2600" w="1"><s>but</s><s t="80"> it&#39;s</s><s t="200"> also</s><s t="440"> nice</s><s t="720"> because</s><s t="1000"> then</s><s t="1120"> you</s><s t="1200"> have</s></p>
+<p t="19870" d="1290" w="1" a="1">
+</p>
+<p t="19880" d="2920" w="1"><s>a</s><s t="40"> lot</s><s t="160"> more</s><s t="240"> control</s><s t="760"> and</s><s t="960"> there&#39;s</s><s t="1080"> going</s><s t="1200"> to</s></p>
+<p t="21150" d="1650" w="1" a="1">
+</p>
+<p t="21160" d="3800" w="1"><s>be</s><s t="160"> a</s><s t="280"> blog</s><s t="520"> post</s><s t="1000"> on</s><s t="1110"> [music]</s><s t="1200"> the</s><s t="1360"> studio</s></p>
+<p t="22790" d="2170" w="1" a="1">
+</p>
+<p t="22800" d="4480" w="1"><s>website.</s><s t="600"> Join</s><s t="840"> Blender</s><s t="1080"> Studio</s><s t="1480"> to</s><s t="1800"> find</s><s t="2040"> out</s></p>
+<p t="24950" d="2330" w="1" a="1">
+</p>
+<p t="24960" d="2320" w="1">more.</p>
+</body>
+</timedtext>

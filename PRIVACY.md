@@ -48,8 +48,10 @@ manager. Removing the extension deletes them.
 ## The website
 
 The website (`nyxiyt.github.io/yt-download-manager`) is hosted by GitHub Pages and serves its fonts, pictures
-and videos itself. It has no analytics, sets no cookies and loads nothing from other sites. Your choices on it
-(light or dark, reduced motion) are kept in your browser's local storage.
+and videos itself. It has no analytics, sets no cookies and loads nothing from other sites on its own. Only when you
+open the thumbnail picker in its "Try it" demo does your browser fetch that video's thumbnail from YouTube's image
+server (`i.ytimg.com`), the way the extension does. Your choices on it (light or dark, reduced motion) are kept in
+your browser's local storage.
 
 ## Other services' privacy policies
 

@@ -1,0 +1,17 @@
+{
+ "source": "yt-dlp -J, scripts/subs.mjs",
+ "vid": "gXWsa1IP71A",
+ "tracks": [
+  {
+   "key": "a.en-orig",
+   "lang": "en",
+   "label": "English (auto-generated)",
+   "auto": true,
+   "files": {
+    "json3": "media/subs/gXWsa1IP71A/a.en-orig.json3",
+    "ttml": "media/subs/gXWsa1IP71A/a.en-orig.ttml",
+    "srv3": "media/subs/gXWsa1IP71A/a.en-orig.srv3"
+   }
+  }
+ ]
+}

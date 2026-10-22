@@ -176,3 +176,26 @@
   --ysd-accent: #065fd4; --ysd-on-accent: #fff; --ysd-red: #cc0000; --ysd-green: #188038; --ysd-amber: #b25e00;
   --ysd-track: rgba(0, 0, 0, .12); --ysd-shadow: 0 4px 24px rgba(0, 0, 0, .14);
 }
+
+/* The thumbnail and subtitle pickers (content.css): preview, messages, the format switch, a spinner while saving. */
+.ysd-thumb { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px; background: var(--ysd-field); }
+.ysd-msg { display: flex; align-items: center; gap: 10px; padding: 6px 0; color: var(--ysd-text2); font-size: 13px; line-height: 18px; }
+.ysd-msg svg { flex: none; }
+.ysd-msg.ysd-err { align-items: flex-start; color: var(--ysd-text); }
+.ysd-msg.ysd-err svg { color: var(--ysd-red); }
+.ysd-seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); padding: 3px; border-radius: 8px; background: var(--ysd-field); border: 1px solid var(--ysd-border); }
+.ysd-seg button { min-height: 30px; padding: 0 6px; border: 0; border-radius: 6px; background: none; color: var(--ysd-text2); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: background-color .15s, color .15s; }
+.ysd-seg button:hover { color: var(--ysd-text); }
+.ysd-seg button.ysd-sel { background: var(--ysd-raised); color: var(--ysd-text); box-shadow: 0 1px 3px rgba(0, 0, 0, .2); }
+.ysd-seg button:focus-visible { outline: 2px solid var(--ysd-accent); outline-offset: 1px; }
+.ysd-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 16px; border: 1px solid var(--ysd-border); border-radius: 18px;
+  background: none; color: var(--ysd-text); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
+.ysd-secondary:hover { background: var(--ysd-hover); }
+.ysd-secondary svg { color: var(--ysd-text2); }
+.ysd-spin { display: inline-block; width: 16px; height: 16px; flex: none; border: 2px solid var(--ysd-track); border-top-color: var(--ysd-accent); border-radius: 50%; animation: ysd-rot .8s linear infinite; }
+.ysd-pop-sum .ysd-spin { vertical-align: -3px; margin-right: 8px; }
+@keyframes ysd-rot { to { transform: rotate(360deg); } }
+.ysd-opt-icon { flex: none; margin-right: 6px; color: var(--ysd-text2); }
+.ysd-dd-item:disabled { opacity: .4; cursor: default; background: none; }
+.ysd-primary:disabled { opacity: .6; cursor: default; filter: none; transform: none; }
+.ysd-thumb.ysd-tall { width: auto; height: 240px; aspect-ratio: 9/16; margin: 0 auto; }

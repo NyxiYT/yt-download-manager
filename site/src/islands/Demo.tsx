@@ -4,16 +4,18 @@
 //                opens the video picker, picks the top quality and presses Download; the first time, a file pill
 //                then flies to the nav's Download button (flight.ts). Nothing in it can be clicked.
 //   mode="try"   the Try it section: the scene opens mid-use and is the visitor's to click. While `tour` is on, the
-//                drawn cursor shows this tab's story once, then onTourEnd moves Try it to the next tab.
+//                drawn cursor shows this tab's story once, then onTourEnd moves Try it to the next tab. The thumbnail,
+//                subtitle and screenshot buttons save real files (demo/save.ts); the tour never presses them.
 //
 // The drawn cursor follows choreo.ts: measured targets, hover, press, and a result only when the press lands.
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState, type CSSProperties } from 'react';
 import { AnimatePresence, LazyMotion, MotionConfig, domAnimation, m } from 'motion/react';
-import { initialState, reducer, fmtSize, fmtTime, type DemoState, type Job, type Scene, type VideoData } from './demo/model';
+import { SUB_FORMATS, initialState, reducer, fmtSize, fmtTime, type DemoState, type Job, type Scene, type VideoData } from './demo/model';
 import {
-  AudioPicker, Cursor, DropdownList, Film, FolderWindow, HistButton, HistPanel, Player, ShortsColumn, ShortsMenu, Toolbar, TopBar, Ui,
-  VideoPicker, audioOpts, videoOpts, type FilmSrc,
+  AudioPicker, Cursor, DropdownList, Film, FolderWindow, HistButton, HistPanel, Player, ShortsColumn, ShortsMenu, SubsPicker, ThumbPicker, Toolbar,
+  TopBar, Ui, VideoPicker, audioOpts, subsChoice, subsOpts, thumbChoice, thumbOpts, videoOpts, type FilmSrc, type Saving, type TrackList,
 } from './demo/parts';
+import { SaveError, loadTracks, probeThumbs, saveShot, saveSubs, saveThumb, type ThumbAvail } from './demo/save';
 import { abortErr, createChoreo, type Choreo } from './choreo';
 import { useMotionPref } from './motion-pref';
 import { useScenePlayback } from './playback';
@@ -84,9 +86,9 @@ export default function Demo({ mode, scene, data, film, cover, label, tour = fal
     const next: typeof pos = { pop: null, dd: null, panel: null, folder: null };
     // The open picker, not one still fading out (Shorts menu → video picker): measuring that one placed the picker
     // with the wrong width, and it jumped on the next render.
-    const popEl = r0.querySelector<HTMLElement>(s.pop === 'shortsMenu' ? '.ysd-menu' : `.ysd-pop[aria-label="Download ${s.pop}"]`);
+    const popEl = r0.querySelector<HTMLElement>(`[data-picker="${s.pop}"]`);
     if (s.pop && popEl) {
-      const anchor = rel(q(scene === 'shorts' ? 'short-dl' : s.pop === 'audio' ? 'btn-audio' : 'btn-video'));
+      const anchor = rel(q(scene === 'shorts' ? 'short-dl' : `btn-${s.pop}`));
       const mw = popEl.offsetWidth;
       const mh = popEl.offsetHeight;
       if (scene === 'shorts') {
@@ -157,7 +159,57 @@ export default function Demo({ mode, scene, data, film, cover, label, tour = fal
     }
     dispatch({ type: 'start', job });
   }, [data]);
-  const fileName = (j: Job) => `${j.title}.${({ MP4: 'mp4', MP3: 'mp3', M4A: 'm4a', Opus: 'webm', WAV: 'wav' } as Record<string, string>)[j.format] ?? 'mp4'}`;
+  const fileName = (j: Job) => j.file ?? `${j.title}.${({ MP4: 'mp4', MP3: 'mp3', M4A: 'm4a', Opus: 'webm', WAV: 'wav' } as Record<string, string>)[j.format] ?? 'mp4'}`;
+
+  // ---------- real files: thumbnail, subtitles, screenshot ----------
+  const [avail, setAvail] = useState<ThumbAvail>();
+  const [tracks, setTracks] = useState<TrackList | null>(null);
+  const [saving, setSaving] = useState<Saving>({ busy: false, error: null });
+  useEffect(() => { setSaving({ busy: false, error: null }); }, [s.pop]);
+  useEffect(() => { if (s.pop === 'thumb' && !avail) probeThumbs(data.vid).then(setAvail); }, [s.pop, avail, data.vid]);
+  const fetchTracks = useCallback(() => {
+    setTracks({ state: 'loading' });
+    loadTracks(data.vid).then((t) => setTracks({ state: 'ready', tracks: t }),
+      (e) => setTracks({ state: 'error', message: e instanceof SaveError ? e.message : "Couldn't load the list of subtitles." }));
+  }, [data.vid]);
+  useEffect(() => { if (s.pop === 'subs' && (!tracks || tracks.state === 'error')) fetchTracks(); }, [s.pop]); // eslint-disable-line react-hooks/exhaustive-deps
+  const saved = (format: Job['format'], quality: string, size: number, file: string) => dispatch({
+    type: 'saved', job: { id: `j${Date.now()}`, title: data.title, author: data.author, format, quality, size, pct: 100, status: 'completed', file },
+  });
+  // Runs one save; the picker shows "Fetching…" meanwhile and the failure as it is.
+  const run = useCallback(async (act: () => Promise<void>) => {
+    if (saving.busy) return;
+    setSaving({ busy: true, error: null });
+    try {
+      await act();
+      setSaving({ busy: false, error: null });
+    } catch (e) {
+      setSaving({ busy: false, error: e instanceof SaveError ? e.message : 'Something went wrong. Try again.' });
+    }
+  }, [saving.busy]);
+  const onThumb = () => run(async () => {
+    const r = await saveThumb(data.vid, data.title, thumbChoice(sRef.current, avail).key);
+    saved('JPG', `${r.w}×${r.h}`, r.blob.size, r.name);
+  });
+  const onSubs = () => run(async () => {
+    if (tracks?.state !== 'ready' || !tracks.tracks.length) return;
+    const st = sRef.current;
+    const track = subsChoice(st, tracks.tracks);
+    const f = SUB_FORMATS[st.subFmt];
+    const r = await saveSubs(track, st.subFmt, data.title);
+    saved(f.label, track.label, r.blob.size, r.name);
+  });
+  // The screenshot has no picker: it saves at once, and a failure shows as a note under the button.
+  const onShot = async (anchor: string) => {
+    const v = root.current?.querySelector('video') ?? null;
+    try {
+      const r = await saveShot(v, data.title, 3.6 + (v?.currentTime ?? 0) * 0.85);
+      saved('PNG', `${r.w}×${r.h}`, r.blob.size, r.name);
+    } catch (err) {
+      const b = rel(q(anchor));
+      setTip({ text: err instanceof SaveError ? err.message : "Couldn't capture this frame.", x: b.x + b.w / 2, y: b.y + b.h + 8 });
+    }
+  };
   const reveal = useCallback((j: Job) => dispatch({ type: 'reveal', file: fileName(j) }), []);
 
   // A stage that mounts after the page loaded is scaled to its box here (the fit script in Base.astro).
@@ -309,7 +361,11 @@ export default function Demo({ mode, scene, data, film, cover, label, tour = fal
   const onClip = (c: { start?: number; end?: number }) => dispatch({ type: 'clip', ...c, duration: data.duration });
   const close = () => dispatch({ type: 'close' });
   const style = (p: Pos): CSSProperties => (p ? { left: p.left, top: p.top, width: p.width, maxHeight: p.maxHeight } : { left: 0, top: 0, visibility: 'hidden' });
-  const ddOptions = s.pop === 'audio' ? audioOpts(data.audio) : videoOpts(data.video);
+  const trackList = tracks?.state === 'ready' ? tracks.tracks : [];
+  const ddOptions = s.pop === 'audio' ? audioOpts(data.audio) : s.pop === 'thumb' ? thumbOpts(avail) : s.pop === 'subs' ? subsOpts(trackList) : videoOpts(data.video);
+  const ddValue = s.pop === 'audio' ? s.audioKey : s.pop === 'thumb' ? thumbChoice(s, avail).key : s.pop === 'subs' ? subsChoice(s, trackList)?.key ?? '' : s.videoKey;
+  const ddPick = (v: string) => dispatch(s.pop === 'audio' ? { type: 'pickAudio', key: v } : s.pop === 'thumb' ? { type: 'pickThumb', key: v } : s.pop === 'subs' ? { type: 'pickSubs', key: v } : { type: 'pickVideo', key: v });
+  const open = (pop: 'video' | 'audio' | 'thumb' | 'subs') => () => dispatch({ type: 'open', pop });
   const files = s.jobs.filter((j) => j.status === 'completed').map((j) => ({ name: fileName(j), size: fmtSize(j.size) }));
   const clock = `${fmtTime(time).replace(/^0/, '')} / ${fmtTime(data.duration).replace(/^0/, '')}`;
   const dw = hero ? 760 : 1120;
@@ -333,8 +389,8 @@ export default function Demo({ mode, scene, data, film, cover, label, tour = fal
                   <>
                     <Player film={film} time={clock} />
                     <div className="d-bar">
-                      <Toolbar open={s.pop === 'video' || s.pop === 'audio' ? s.pop : null}
-                        onVideo={() => dispatch({ type: 'open', pop: 'video' })} onAudio={() => dispatch({ type: 'open', pop: 'audio' })} />
+                      <Toolbar open={s.pop !== 'shortsMenu' ? s.pop : null} onVideo={open('video')} onAudio={open('audio')}
+                        onThumb={hero ? undefined : open('thumb')} onSubs={hero ? undefined : open('subs')} onShot={hero ? undefined : () => onShot('btn-shot')} />
                     </div>
                     {!hero && <div className="d-meta"><p className="d-vtitle">{data.title}</p><p className="d-channel">{data.author}</p></div>}
                   </>
@@ -351,17 +407,28 @@ export default function Demo({ mode, scene, data, film, cover, label, tour = fal
                       <AudioPicker data={data} s={s} style={style(pos.pop)} onClose={close} onToggle={toggleDropdown} onClip={onClip} onDownload={() => startDownload('audio')} />
                     </m.div>
                   )}
+                  {s.pop === 'thumb' && (
+                    <m.div key="pt" className="d-layer" {...pop}>
+                      <ThumbPicker data={data} s={s} avail={avail} saving={saving} style={style(pos.pop)} onClose={close} onToggle={toggleDropdown} onDownload={onThumb} />
+                    </m.div>
+                  )}
+                  {s.pop === 'subs' && (
+                    <m.div key="ps" className="d-layer" {...pop}>
+                      <SubsPicker s={s} list={tracks ?? { state: 'loading' }} saving={saving} style={style(pos.pop)} onClose={close} onToggle={toggleDropdown}
+                        onFormat={(fmt) => dispatch({ type: 'subFmt', fmt })} onRetry={fetchTracks} onDownload={onSubs} />
+                    </m.div>
+                  )}
                   {s.pop === 'shortsMenu' && (
                     <m.div key="pm" className="d-layer" {...pop}>
-                      <ShortsMenu style={style(pos.pop)} onVideo={() => dispatch({ type: 'open', pop: 'video' })} />
+                      <ShortsMenu style={style(pos.pop)} onVideo={open('video')} onAudio={open('audio')} onThumb={open('thumb')} onSubs={open('subs')}
+                        onShot={() => { dispatch({ type: 'close' }); onShot('short-dl'); }} />
                     </m.div>
                   )}
                 </AnimatePresence>
                 <AnimatePresence>
                   {s.dropdown && (
                     <m.div key="dd" className="d-layer" initial={{ opacity: 0, y: -4, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4, scale: 0.98 }} transition={{ duration: 0.12, ease: EASE }}>
-                      <DropdownList options={ddOptions} value={s.pop === 'audio' ? s.audioKey : s.videoKey} style={style(pos.dd)}
-                        onPick={(v) => dispatch(s.pop === 'audio' ? { type: 'pickAudio', key: v } : { type: 'pickVideo', key: v })} />
+                      <DropdownList options={ddOptions} value={ddValue} style={style(pos.dd)} onPick={ddPick} />
                     </m.div>
                   )}
                 </AnimatePresence>
