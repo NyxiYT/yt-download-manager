@@ -1,6 +1,6 @@
 ---
 // The hero: the frame stream fills the back (scripts/frame-stream.ts: YouTube thumbnails drifting down, one now and
-// then downloading into the glow at the bottom), fading into the page at the bottom in both themes. In front, the
+// then flying into the download button), fading into the page at the bottom in both themes. In front, the
 // player with the toolbar loops the intro while in view and tilts a little with the pointer. The download button
 // follows the visitor's system.
 import Demo from '../islands/Demo';
@@ -14,6 +14,7 @@ import { AI } from '../lib/anim-icons';
   <div class="hero-back" aria-hidden="true">
     <canvas class="stream" data-stream="hero"></canvas>
     <div class="hero-scrim"></div>
+    <canvas class="stream" data-stream-fx="hero"></canvas>
   </div>
   <div class="wrap hero-grid">
     <div class="hero-copy">
@@ -44,8 +45,9 @@ import { AI } from '../lib/anim-icons';
 
 <style>
   .hero { position: relative; overflow: clip; padding-block: clamp(120px, 15vh, 168px) clamp(64px, 9vw, 112px); isolation: isolate; }
-  /* The background shares the page's ground and fades into it over its bottom 30%: no edge, no box. */
-  .hero-back { position: absolute; inset: 0; z-index: -1; -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent); mask-image: linear-gradient(180deg, #000 70%, transparent); }
+  /* The background shares the page's ground and fades into it over its bottom 20% (below the download button, where
+     downloads land): no edge, no box. */
+  .hero-back { position: absolute; inset: 0; z-index: -1; -webkit-mask-image: linear-gradient(180deg, #000 80%, transparent); mask-image: linear-gradient(180deg, #000 80%, transparent); }
   .stream { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   /* A soft pool of the ground colour behind the copy, so the words stay calm over the tiles. */
   .hero-scrim { position: absolute; inset: 0; background: radial-gradient(70% 80% at 18% 50%, color-mix(in srgb, var(--bg) 82%, transparent), transparent 70%); }
@@ -83,6 +85,8 @@ import { AI } from '../lib/anim-icons';
 <script>
   import { frameStream } from '../scripts/frame-stream';
   const canvas = document.querySelector<HTMLCanvasElement>('[data-stream="hero"]');
-  // Downloads land in a soft glow at the bottom centre.
-  if (canvas) frameStream({ canvas, pattern: 'rain', seed: 7, sink: (w, h) => ({ x: w * 0.5, y: h * 0.96 }) });
+  const fx = document.querySelector<HTMLCanvasElement>('[data-stream-fx="hero"]');
+  // Downloads land on the download button shown for this system (the first visible button; phones show none).
+  const button = () => [...document.querySelectorAll<HTMLElement>('.hero-cta .btn')].find((b) => b.getClientRects().length) ?? null;
+  if (canvas && fx) frameStream({ canvas, fx, pattern: 'rain', target: button, fallback: (w, h) => ({ x: w * 0.5, y: h * 0.96 }) });
 </script>

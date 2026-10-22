@@ -76,7 +76,7 @@ hero highlights Big Buck Bunny's real top row, `2160p60 4K`, and the headline sa
   attachments, so they save the file where the visitor is. Links within the page stay (`tests/links.spec.ts`).
 - Checked at 360, 390, 768, 1024, 1440 and 1920 px in both themes, with no horizontal page scroll. Budgets on a phone:
   Lighthouse 90+, LCP under 2.5 s, CLS under 0.1, INP under 200 ms, first JavaScript under 150 KB gzipped, the frame
-  stream's thumbnails under 600 KB.
+  stream fetches only the thumbnails on screen (about 40, 10 KB each), never the library.
 - Never: orange, purple, gradient text, emoji, testimonials, invented numbers, section numbers like `006`, bento grids,
   horizontal scroll rails, YouTube logos or red play buttons, copied library components or library credits.
 
@@ -88,10 +88,15 @@ hero highlights Big Buck Bunny's real top row, `2160p60 4K`, and the headline sa
   raise its label: the console warns when a step rests under 0.9 s on its last frame.
 - The FAQ uses Radix Accordion without `forceMount`; with it, Radix doesn't re-render after measuring and nothing
   animates. Closed answers are therefore not in the static HTML (only the first one is).
-- The backgrounds behind the hero and the final call to action (`src/scripts/frame-stream.ts`) are real YouTube
-  thumbnails, 12 per section and never the same in both, kept in `public/media/thumbs` by `scripts/thumbs.mjs` (the
-  video IDs are listed there). The hero's drift down in depth layers; the final call to action's circle its button on
-  a tilted ring. Both keep their positions through a resize and resume where they stopped after scrolling away.
+- The backgrounds behind the hero and the final call to action (`src/scripts/frame-stream.ts`) draw real YouTube
+  thumbnails from one library: `src/data/thumbs.json` (video ID, channel, title, source) with the pictures in
+  `public/media/thumbs`, both made by `scripts/thumbs.mjs` from popular channels' regular uploads (no Shorts). One
+  pool hands them out (`src/lib/thumb-pool.ts`): a thumbnail belongs to one tile at a time, so none shows twice on the
+  page; one that just left rests a while; one whose file fails is replaced. Adding pictures means running the script
+  again (or adding entries); the animation doesn't change. The hero's drift down in depth layers, the final call to
+  action's circle its button on a tilted ring, both laid out anew on every visit. Downloads fly into the section's
+  download button (measured each frame) on a second canvas above the text wash, and the button wiggles when they
+  land.
 - Astro scopes every class in a component's `<style>`, also `.js` and `.in` set on other elements: page-level hooks
   need `:global(.js)`.
 - Building needs Node 22.12 or newer. On an older Node, npm skips Rolldown's native binary and the build fails with
