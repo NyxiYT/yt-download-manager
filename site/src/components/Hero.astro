@@ -1,5 +1,5 @@
 ---
-// The hero: the frame stream fills the back (scripts/frame-stream.ts: stills of the film drifting down, one now and
+// The hero: the frame stream fills the back (scripts/frame-stream.ts: YouTube thumbnails drifting down, one now and
 // then downloading into the glow at the bottom), fading into the page at the bottom in both themes. In front, the
 // player with the toolbar loops the intro while in view and tilts a little with the pointer. The download button
 // follows the visitor's system.
@@ -84,5 +84,5 @@ import { AI } from '../lib/anim-icons';
   import { frameStream } from '../scripts/frame-stream';
   const canvas = document.querySelector<HTMLCanvasElement>('[data-stream="hero"]');
   // Downloads land in a soft glow at the bottom centre.
-  if (canvas) frameStream({ canvas, density: 1, seed: 7, sink: (w, h) => ({ x: w * 0.5, y: h * 0.96 }) });
+  if (canvas) frameStream({ canvas, pattern: 'rain', seed: 7, sink: (w, h) => ({ x: w * 0.5, y: h * 0.96 }) });
 </script>

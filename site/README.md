@@ -37,8 +37,7 @@ npm run test:cursor  # the showcase cursor tests (after a build); PW_CHANNEL=chr
 ## The film
 
 The only moving picture is one loop of the opening shot of *Big Buck Bunny* (© Blender Foundation, CC BY 3.0,
-credited in the footer). The player in the hero and in Try it shows it sharp; behind the hero and the final call to
-action runs a small copy that is already blurred and graded blue. Posters paint first; the videos start after the
+credited in the footer), in the player in the hero and in Try it. Posters paint first; the videos start after the
 page has loaded and stand still while off screen.
 
 ```sh
@@ -52,7 +51,8 @@ hero highlights Big Buck Bunny's real top row, `2160p60 4K`, and the headline sa
 ## Rules the page keeps
 
 - No raster pictures of the app, the extension or the installer: every screen is HTML, CSS and SVG, with its real
-  labels. The only raster media are the film (and its posters) and the social preview image.
+  labels. The only raster media are the film (and its posters), the thumbnails behind the hero and the final call to
+  action, and the social preview image.
 - One interactive section (Try it). Everything else plays by itself; the drawn cursor in the hero and the install
   loops must hit what it clicks, which `tests/cursor.spec.ts` checks at 390, 768, 1280 and 1920 px.
 - Theme and motion follow the visitor's system (light or dark, Reduce motion) until they pick in the nav; their
@@ -75,7 +75,7 @@ hero highlights Big Buck Bunny's real top row, `2160p60 4K`, and the headline sa
 - Every link that leaves the page opens in a new tab; links within the page stay (`tests/links.spec.ts`).
 - Checked at 360, 390, 768, 1024, 1440 and 1920 px in both themes, with no horizontal page scroll. Budgets on a phone:
   Lighthouse 90+, LCP under 2.5 s, CLS under 0.1, INP under 200 ms, first JavaScript under 150 KB gzipped, the frame
-  stream's tiles under 600 KB.
+  stream's thumbnails under 600 KB.
 - Never: orange, purple, gradient text, emoji, testimonials, invented numbers, section numbers like `006`, bento grids,
   horizontal scroll rails, YouTube logos or red play buttons, copied library components or library credits.
 
@@ -87,14 +87,16 @@ hero highlights Big Buck Bunny's real top row, `2160p60 4K`, and the headline sa
   raise its label: the console warns when a step rests under 0.9 s on its last frame.
 - The FAQ uses Radix Accordion without `forceMount`; with it, Radix doesn't re-render after measuring and nothing
   animates. Closed answers are therefore not in the static HTML (only the first one is).
-- The frame stream's tiles are stills of the film (meadow and trees only, 8 per theme), made by `scripts/tiles.mjs`
-  with Chrome and sharp.
+- The backgrounds behind the hero and the final call to action (`src/scripts/frame-stream.ts`) are real YouTube
+  thumbnails, 12 per section and never the same in both, kept in `public/media/thumbs` by `scripts/thumbs.mjs` (the
+  video IDs are listed there). The hero's drift down in depth layers; the final call to action's circle its button on
+  a tilted ring. Both keep their positions through a resize and resume where they stopped after scrolling away.
 - Astro scopes every class in a component's `<style>`, also `.js` and `.in` set on other elements: page-level hooks
   need `:global(.js)`.
 - Building needs Node 22.12 or newer. On an older Node, npm skips Rolldown's native binary and the build fails with
   "Cannot find native binding".
-- Two tests fail now and then when the whole suite runs in parallel and pass on their own: `cursor.spec.ts` "input
-  stops the tour, 8 s of quiet resumes it" and `frame-stream.spec.ts` "the CTA stream stands still off screen".
+- One test fails now and then when the whole suite runs in parallel and passes on its own: `cursor.spec.ts` "input
+  stops the tour, 8 s of quiet resumes it".
 
 ## Deploy
 

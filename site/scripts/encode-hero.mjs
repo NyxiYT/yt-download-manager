@@ -6,7 +6,6 @@
 // Writes to public/media/:
 //   film-1080.{webm,mp4}  the sharp picture inside the player (desktop), with its poster film-1080.avif
 //   film-720.{webm,mp4}   the same for phones, with film-720.avif
-// The backgrounds behind the hero and the final call to action are made from these by scripts/tiles.mjs.
 // The source never enters the repo. Needs FFmpeg with libsvtav1, libx264 and libaom (the gyan.dev "full" build).
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, statSync } from 'node:fs';

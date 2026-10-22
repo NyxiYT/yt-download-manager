@@ -1,6 +1,6 @@
 // The frame stream: the hero and the final call to action draw it on a canvas, it moves
-// while in view and stands still off screen, the old background film is gone, the tiles stay within budget, and
-// light mode has no dark block behind the hero.
+// while in view and stands still off screen, each section shows its own thumbnails, the old background film is gone,
+// the thumbnails stay within budget, and light mode has no dark block behind the hero.
 import { readdirSync, statSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 
@@ -27,6 +27,10 @@ test('the CTA stream stands still off screen', async ({ page }) => {
   await page.goto('./');
   await page.locator('section.fin').scrollIntoViewIfNeeded();
   await expect.poll(async () => (await print(page, 'cta')).lit, { timeout: 8_000 }).toBeGreaterThan(50);
+  // The pictures are in and the button has finished revealing: a paused stream still draws once when its pictures
+  // arrive, and its glow follows the button.
+  await expect(page.locator('[data-stream="cta"][data-ready]')).toBeAttached({ timeout: 8_000 });
+  await expect.poll(() => page.locator('[data-fin-button]').evaluate((e) => e.getAnimations({ subtree: true }).length)).toBe(0);
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(400);
   const a = await print(page, 'cta');
@@ -34,10 +38,19 @@ test('the CTA stream stands still off screen', async ({ page }) => {
   expect((await print(page, 'cta')).h).toBe(a.h);
 });
 
-test('no background film; tiles under 600 KB', async ({ page }) => {
+test('the hero and the CTA show different thumbnails, 12 each', async ({ page }) => {
+  const got = new Set<string>();
+  page.on('request', (r) => { const m = /media\/thumbs\/((hero|cta)-\d+)\.avif$/.exec(r.url()); if (m) got.add(m[1]); });
+  await page.goto('./');
+  await page.locator('section.fin').scrollIntoViewIfNeeded();
+  await expect.poll(() => got.size, { timeout: 8_000 }).toBe(24);
+  expect([...got].filter((n) => n.startsWith('hero-'))).toHaveLength(12);
+});
+
+test('no background film; thumbnails under 600 KB', async ({ page }) => {
   await page.goto('./');
   await expect(page.locator('video[data-back]')).toHaveCount(0);
-  const dir = new URL('../public/media/tiles/', import.meta.url);
+  const dir = new URL('../public/media/thumbs/', import.meta.url);
   const total = readdirSync(dir).reduce((n, f) => n + statSync(new URL(f, dir)).size, 0);
   expect(total).toBeLessThan(600 * 1024);
 });

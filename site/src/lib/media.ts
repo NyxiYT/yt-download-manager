@@ -1,6 +1,5 @@
 // The film (scripts/encode-hero.mjs): the only moving picture on the page. The player in the hero and in Try it
-// shows it sharp (1080p on wide screens, 720p on narrow ones). Its stills, graded blue, are the frame stream's tiles
-// behind the hero and the final call to action (scripts/frame-stream.ts).
+// shows it sharp (1080p on wide screens, 720p on narrow ones).
 const base = import.meta.env.BASE_URL;
 const m = (f: string) => `${base}media/${f}`;
 const WIDE = '(min-width: 900px)';

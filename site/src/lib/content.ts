@@ -175,7 +175,7 @@ export const footer = {
     ] },
   ],
   legal: "Only download videos you're allowed to. Not affiliated with YouTube or Google.",
-  credit: 'Film: Big Buck Bunny, © Blender Foundation, CC BY 3.0.',
+  credit: 'Film: Big Buck Bunny, © Blender Foundation, CC BY 3.0. Video thumbnails © their creators.',
   creditHref: 'https://peach.blender.org/',
   licenseHref: 'https://creativecommons.org/licenses/by/3.0/',
 };
