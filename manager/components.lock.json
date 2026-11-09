@@ -3,54 +3,54 @@
   "tools": {
     "yt-dlp": {
       "x64": {
-        "version": "2026.08.19",
-        "url": "https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp.exe",
-        "sha256": "66674953fe251b89f4d08c5f0e35e0728679bd67ab3d7d05c0562af101dd3e7a"
+        "version": "2026.10.26",
+        "url": "https://github.com/yt-dlp/yt-dlp/releases/download/2026.10.26/yt-dlp.exe",
+        "sha256": "f5389d3698ecde4ef06f4e6b1ce0294fe9ac1396228c8990b8d3416d6d177a7d"
       },
       "x86": {
-        "version": "2026.08.19",
-        "url": "https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp_x86.exe",
-        "sha256": "a8f91bd41452506bc81ebd2f369b186fea0ee7075413ba00cef9fd346a0a5d0c"
+        "version": "2026.10.26",
+        "url": "https://github.com/yt-dlp/yt-dlp/releases/download/2026.10.26/yt-dlp_x86.exe",
+        "sha256": "c0407c66361f50a99e10949ae882ea2ad7de9086b75d226d8fd88da4f74828fa"
       }
     },
     "ffmpeg": {
       "x64": {
-        "version": "n9.0.2-17-g2a571b6068",
-        "source": "https://github.com/BtbN/FFmpeg-Builds/releases/tag/autobuild-2026-09-30-13-08",
-        "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-30-13-08/ffmpeg-n9.0.2-17-g2a571b6068-win64-gpl-9.0.zip",
-        "sha256": "a0e45723c72141975f51d8666302e614711745f3102b704ca3f82c897a58d278"
+        "version": "n9.0.2-39-g7adfbe40dc",
+        "source": "https://github.com/FFmpeg-Builds/FFmpeg-Builds/releases/tag/autobuild-2026-10-31-12-59",
+        "url": "https://github.com/FFmpeg-Builds/FFmpeg-Builds/releases/download/autobuild-2026-10-31-12-59/ffmpeg-n9.0.2-39-g7adfbe40dc-win64-gpl-9.0.zip",
+        "sha256": "693f3e224bc184b40524a62ca47526cfebaf2504414021b92fe75f677ad868b9"
       },
       "x64-shared": {
-        "version": "n9.0.2-17-g2a571b6068",
-        "source": "https://github.com/BtbN/FFmpeg-Builds/releases/tag/autobuild-2026-09-30-13-08",
-        "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-30-13-08/ffmpeg-n9.0.2-17-g2a571b6068-win64-gpl-shared-9.0.zip",
-        "sha256": "3da6c7b60bb9ccd73ec5b5e815ba804a0879eb362ba0e3beebce50174c022696"
+        "version": "n9.0.2-39-g7adfbe40dc",
+        "source": "https://github.com/FFmpeg-Builds/FFmpeg-Builds/releases/tag/autobuild-2026-10-31-12-59",
+        "url": "https://github.com/FFmpeg-Builds/FFmpeg-Builds/releases/download/autobuild-2026-10-31-12-59/ffmpeg-n9.0.2-39-g7adfbe40dc-win64-gpl-shared-9.0.zip",
+        "sha256": "1d9823c35c7a7e2f54d1438cf61030d6efabe3278de01c191309d1e828bb74df"
       },
       "x86": {
-        "version": "N-127043-g5a54fcf75e",
-        "source": "https://github.com/yt-dlp/FFmpeg-Builds/releases/tag/autobuild-2026-09-30-18-57",
-        "url": "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2026-09-30-18-57/ffmpeg-N-127043-g5a54fcf75e-win32-gpl.zip",
-        "sha256": "d3170c0ecf219f3f57297c7c31cf1d0c247faadf72b0d815df49df88b953ce70"
+        "version": "N-128251-g6d1bfd7609",
+        "source": "https://github.com/yt-dlp/FFmpeg-Builds/releases/tag/autobuild-2026-10-31-18-18",
+        "url": "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2026-10-31-18-18/ffmpeg-N-128251-g6d1bfd7609-win32-gpl.zip",
+        "sha256": "4ed287e4658f0a098da1bc898c8a8b79844ef545cb341c2923cb7b30dec58e0c"
       },
       "x86-shared": {
-        "version": "N-127043-g5a54fcf75e",
-        "source": "https://github.com/yt-dlp/FFmpeg-Builds/releases/tag/autobuild-2026-09-30-18-57",
-        "url": "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2026-09-30-18-57/ffmpeg-N-127043-g5a54fcf75e-win32-gpl-shared.zip",
-        "sha256": "2cb8be8d95a5f89daf6e500bb056c633a5e020c6d05ef61ab1c8b831ae5e619f"
+        "version": "N-128251-g6d1bfd7609",
+        "source": "https://github.com/yt-dlp/FFmpeg-Builds/releases/tag/autobuild-2026-10-31-18-18",
+        "url": "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2026-10-31-18-18/ffmpeg-N-128251-g6d1bfd7609-win32-gpl-shared.zip",
+        "sha256": "5c51df8bf2aa7f0f6aa89eb27d2ab2799098ed566e3c563ac2db23f540c43d00"
       }
     },
     "deno": {
       "x64": {
-        "version": "2.9.7",
-        "url": "https://github.com/denoland/deno/releases/download/v2.9.7/deno-x86_64-pc-windows-msvc.zip",
-        "sha256": "a0c3101b4158d1dfb7d6a78a7bf0f3de80c96bb423c152beec8beb22786f2238"
+        "version": "2.9.8",
+        "url": "https://github.com/denoland/deno/releases/download/v2.9.8/deno-x86_64-pc-windows-msvc.zip",
+        "sha256": "cba84b26e0df5ae7f74fc66b86a95b866872a86292ebd84fa1e959927edd93bf"
       }
     },
     "node": {
       "x86": {
-        "version": "22.23.3",
-        "url": "https://nodejs.org/dist/v22.23.3/node-v22.23.3-win-x86.zip",
-        "sha256": "1e07ac00e61b41b7ecf242de8e38883d237d5ad3fdcad7c16f2dd3a88670e2b6"
+        "version": "22.23.4",
+        "url": "https://nodejs.org/dist/v22.23.4/node-v22.23.4-win-x86.zip",
+        "sha256": "7d6c4dce2ecccca46e3c4b3e43c8bebbd1969bd616fdb4fda1e8269171d9ccea"
       }
     }
   }
